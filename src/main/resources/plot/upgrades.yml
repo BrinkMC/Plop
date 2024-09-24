@@ -1,0 +1,24 @@
+upgrades:
+  factory-limit:
+    '1':
+      level: 1
+      limit: 3
+    '2':
+      level: 2
+      limit: 5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -29,20 +29,20 @@ repositories {
 dependencies {
     implementation(platform(kotlin("bom")))
 
-    compileOnly("dev.folia", "folia-api", "1.19.4-R0.1-SNAPSHOT")
+    compileOnly("dev.folia", "folia-api", "1.20.1-R0.1-SNAPSHOT")
     compileOnly("com.github.MilkBowl", "VaultAPI", "1.7.1")
-    compileOnly("me.clip", "placeholderapi", "2.11.3")
+    compileOnly("me.clip", "placeholderapi", "2.11.6")
 
     compileOnly("com.sk89q.worldguard", "worldguard-core", "7.0.9")
     compileOnly("com.sk89q.worldguard", "worldguard-bukkit", "7.0.9")
     compileOnly("com.sk89q.worldedit", "worldedit-core", "7.2.9")
     compileOnly("com.sk89q.worldedit", "worldedit-core", "7.2.9")
 
-    implementation(platform("net.kyori:adventure-bom:4.14.0"))
+    implementation(platform("net.kyori:adventure-bom:4.17.0"))
     implementation("net.kyori", "adventure-extra-kotlin")
     implementation("net.kyori", "adventure-serializer-configurate4")
 
-    implementation(platform("cloud.commandframework:cloud-bom:1.8.3"))
+    implementation(platform("cloud.commandframework:cloud-bom:2.0.0"))
     implementation("cloud.commandframework", "cloud-paper")
     implementation("cloud.commandframework", "cloud-kotlin-extensions")
     implementation("cloud.commandframework", "cloud-minecraft-extras")
@@ -67,13 +67,13 @@ java {
 
 kotlin {
     jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
 tasks {
     compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "21"
     }
     jar {
         archiveClassifier.set("not-shadowed")
@@ -119,7 +119,7 @@ tasks {
     withType<RunServer> {
         javaLauncher.set(
             project.javaToolchains.launcherFor {
-                languageVersion.set(JavaLanguageVersion.of(17))
+                languageVersion.set(JavaLanguageVersion.of(21))
             }
         )
     }
@@ -131,9 +131,9 @@ tasks {
     processResources {
         val props = mapOf(
             "version" to project.version,
-            "website" to "https://github.com/RyzenFromFire/RFactories",
+            "website" to "https://github.com/VQ9/Plop",
             "description" to project.description,
-            "apiVersion" to "1.13",
+            "apiVersion" to "1.20",
         )
         inputs.properties(props)
         filesMatching("plugin.yml") {

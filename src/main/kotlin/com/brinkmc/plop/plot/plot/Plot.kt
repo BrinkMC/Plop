@@ -5,8 +5,10 @@ import com.brinkmc.plop.plot.plot.modifier.PlotSize
 import com.brinkmc.plop.plot.plot.modifier.ShopLimit
 import com.brinkmc.plop.plot.plot.modifier.VisitorLimit
 import com.brinkmc.plop.plot.plot.structure.Totem
-import org.bukkit.Location
+import org.bukkit.Bukkit
+import org.incendo.cloud.paper.PaperCommandManager
 import java.util.*
+
 
 /*
 I find best practice for data classes tends to be separate the logic into extension functions.

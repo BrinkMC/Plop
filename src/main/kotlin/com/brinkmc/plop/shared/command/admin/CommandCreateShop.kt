@@ -1,4 +1,7 @@
 package com.brinkmc.plop.shared.command.admin
 
-class CommandCreateShop {
+import com.brinkmc.plop.Plop
+import com.brinkmc.plop.shared.base.Addon
+
+internal class CommandCreateShop(override val plugin: Plop) : Addon {
 }

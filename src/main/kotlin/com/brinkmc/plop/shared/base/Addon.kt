@@ -3,8 +3,10 @@ package com.brinkmc.plop.shared.base
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.Plots
 import com.brinkmc.plop.plot.handler.PlotUpgradeHandler
+import com.brinkmc.plop.shared.util.MessageService
 import com.brinkmc.plop.shop.Shops
 import org.bukkit.Server
+import org.bukkit.entity.Player
 
 internal interface Addon {
 
@@ -24,4 +26,7 @@ internal interface Addon {
 
     val plotUpgradeHandler: PlotUpgradeHandler
         get() = checkNotNull(plots.plotUpgradeHandler)
+
+    val messages: MessageService
+        get() = plugin.messageService()
 }

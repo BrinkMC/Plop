@@ -22,6 +22,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import org.checkerframework.checker.units.qual.C
+import org.incendo.cloud.*
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities

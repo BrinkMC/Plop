@@ -29,4 +29,9 @@ internal interface Addon {
 
     val messages: MessageService
         get() = plugin.messageService()
+
+    // Provide an easy way to get formatted MiniMessage messages with custom tags also replaced properly
+    fun Player.sendFormattedMessage(message: String) {
+        with (messages) { sendFormattedMessage(message) }
+    }
 }

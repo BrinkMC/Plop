@@ -9,31 +9,52 @@ import org.bukkit.Bukkit
 import org.incendo.cloud.paper.PaperCommandManager
 import java.util.*
 
+/*
+Plot key so that I can find things fast in O(1) time
+
+Plot can either have
+(plotId & ownerId) or (plotId & guildId)
+ */
+data class PlotKey(
+    val plotId: UUID? = null,
+    val ownerId: UUID? = null,
+    val guildId: UUID? = null
+) {
+    // Literally overrides the == sign for PlotKeys lol
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true // Check if both references point to the same object
+        if (javaClass != other?.javaClass) return false // Check if the object is the same as PlotKey
+        other as PlotKey // Cast to PlotKey because it's the same, and we can treat it as such
+        return ( plotId == other.plotId || ownerId == other.ownerId || guildId == other.guildId ) // Finally compare if the two are the same
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hash(plotId, ownerId, guildId) // Create hash from all 3 things put together ( 2 things )
+    }
+}
 
 /*
-I find best practice for data classes tends to be separate the logic into extension functions.
+I find best practice for data classes / sealed classes tends to be separate the logic into extension functions.
 This works well in keeping the data class itself relatively clean
  */
 
-data class Plot (
+sealed class Plot (
     // State
-    var guild: Boolean, // Is this a guild plot?
+    open val plotId: UUID, // Unique ID for the plot
 
-    // Primary
-    val owner: UUID,
-    var members: List<UUID>?,
-    val claim: Claim,
+    open val claim: Claim,
 
-    var totems: List<Totem>,
-    var visits: PlotVisits,
+    open val totems: MutableList<Totem>,
+    open var visits: PlotVisits,
 
     // Mutable
-    var plotSize: PlotSize,
-    var factoryLimit: FactoryLimit,
-    var shopLimit: ShopLimit,
-    var visitorLimit: VisitorLimit
+    open var plotSize: PlotSize,
+    open var factoryLimit: FactoryLimit,
+    open var shopLimit: ShopLimit,
+    open var visitorLimit: VisitorLimit
 
 ) {
+
     fun addMember() {
         //TODO
     }

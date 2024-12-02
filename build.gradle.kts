@@ -44,11 +44,11 @@ dependencies {
     implementation("net.kyori", "adventure-extra-kotlin")
     implementation("net.kyori", "adventure-serializer-configurate4")
 
-    implementation("org.incendo","cloud-core","2.0.0")
-    implementation("org.incendo","cloud-annotations","2.0.0")
-    implementation("org.incendo","cloud-kotlin-coroutines-annotations", "2.0.0")
-    implementation("org.incendo","cloud-kotlin-extensions", "2.0.0")
-    implementation("org.incendo","cloud-kotlin-coroutines", "2.0.0")
+    implementation(platform("org.incendo:cloud-bom:2.0.0"))
+    implementation("org.incendo","cloud-annotations")
+    implementation("org.incendo","cloud-kotlin-coroutines-annotations")
+    implementation("org.incendo","cloud-kotlin-extensions")
+    implementation("org.incendo","cloud-kotlin-coroutines")
     implementation("org.incendo","cloud-paper", "2.0.0-beta.10")
 
 
@@ -59,7 +59,7 @@ dependencies {
     implementation("com.noxcrew.interfaces", "interfaces", "1.2.0")
 
     implementation(platform("org.spongepowered:configurate-bom:4.1.2"))
-    implementation("org.spongepowered", "configurate-hocon")
+    implementation("org.spongepowered", "configurate-yaml")
     implementation("org.spongepowered", "configurate-extra-kotlin")
 
     implementation("org.bstats", "bstats-bukkit", "3.0.2")

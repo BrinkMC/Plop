@@ -2,9 +2,7 @@ package com.brinkmc.plop.plot
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.handler.PlotHandler
-import com.brinkmc.plop.plot.plot.GuildPlot
-import com.brinkmc.plop.plot.plot.PersonalPlot
-import com.brinkmc.plop.plot.plot.Plot
+import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.PlotKey
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State

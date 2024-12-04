@@ -13,9 +13,8 @@ data class Shop (
     // Primary
     val id: UUID,
 
-    val locationX: Location,
+    val location: Location,
     val creator: UUID, // Original placer
-    var plot: UUID, // Is it on a plot?
 
     // Mutable
     var ware: Item,
@@ -31,5 +30,7 @@ data class Shop (
     fun removeMember() {
         //TODO
     }
+
+
 }
 

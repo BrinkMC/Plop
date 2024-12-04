@@ -1,6 +1,7 @@
 package com.brinkmc.plop.plot.plot.modifier
 
 data class VisitorLimit(
-    val level: Int,
-    @Transient val visitorLimit: Int
+    var level: Int,
+    var amount: Int,
+    @Transient var visitorLimit: Int
 )

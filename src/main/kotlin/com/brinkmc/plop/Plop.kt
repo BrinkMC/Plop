@@ -12,31 +12,22 @@ import com.brinkmc.plop.shared.command.plot.preview.CommandPlotPreview
 import com.brinkmc.plop.shared.command.plot.visit.CommandPlotVisit
 import com.brinkmc.plop.shared.command.shop.CommandShopList
 import com.brinkmc.plop.shared.command.shop.CommandTrade
+import com.brinkmc.plop.shared.config.ConfigReader
 import com.brinkmc.plop.shared.util.MessageService
 import com.brinkmc.plop.shared.util.PlopMessageSource
 import com.brinkmc.plop.shop.Shops
 import com.google.gson.Gson
-import io.papermc.paper.command.brigadier.CommandSourceStack
-import org.bukkit.Bukkit
-import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
-import org.checkerframework.checker.units.qual.C
-import org.incendo.cloud.*
 import org.incendo.cloud.annotations.AnnotationParser
-import org.incendo.cloud.annotations.Command
-import org.incendo.cloud.bukkit.CloudBukkitCapabilities
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
-import org.incendo.cloud.meta.CommandMeta
-import org.incendo.cloud.meta.SimpleCommandMeta
 import org.incendo.cloud.paper.PaperCommandManager
 import org.incendo.cloud.paper.util.sender.PaperSimpleSenderMapper
 import org.incendo.cloud.paper.util.sender.Source
 import java.io.File
 
 
-class Plop : State,JavaPlugin() {
+class Plop : State, JavaPlugin() {
     private val plugin = this
 
     lateinit var plots: Plots
@@ -46,6 +37,7 @@ class Plop : State,JavaPlugin() {
     private lateinit var annotationParser: AnnotationParser<Source>
     private lateinit var messageSource: PlopMessageSource
     private lateinit var messageService: MessageService
+    private lateinit var configManager: ConfigReader
 
     lateinit var messaging: Gson
 
@@ -112,8 +104,12 @@ class Plop : State,JavaPlugin() {
         return plugin.dataFolder.listFiles()?.find { it.name == fileName }
     }
 
-    fun messageService(): MessageService {
+    fun getMessageService(): MessageService {
         return this.messageService
+    }
+
+    fun getConfigManager(): ConfigReader {
+        return this.configManager
     }
 
     fun plopMessageSource(): PlopMessageSource {

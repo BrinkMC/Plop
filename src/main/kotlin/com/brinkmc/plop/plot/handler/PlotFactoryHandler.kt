@@ -1,6 +1,7 @@
 package com.brinkmc.plop.plot.handler
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.plot.modifier.FactoryLimit
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import org.bukkit.configuration.file.YamlConfiguration
@@ -9,7 +10,7 @@ import java.io.File
 
 class PlotFactoryHandler(override val plugin: Plop): Addon, State {
 
-    val lim = mutableMapOf<Int, Int>()
+    val factoryLevels = linkedMapOf<Int, FactoryLimit>()
 
     override fun load() {
         try {

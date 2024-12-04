@@ -1,11 +1,9 @@
 package com.brinkmc.plop.shop
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import org.bukkit.entity.Player
-import java.util.UUID
 
 class Shops(override val plugin: Plop): Addon,State {
 

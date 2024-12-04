@@ -3,11 +3,9 @@ package com.brinkmc.plop.plot.handler
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.GuildPlot
 import com.brinkmc.plop.plot.plot.PersonalPlot
-import com.brinkmc.plop.plot.plot.Plot
+import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.PlotKey
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.base.State
-import org.bukkit.entity.Player
 import java.util.UUID
 
 class PlotHandler(override val plugin: Plop): Addon {
@@ -42,6 +40,11 @@ class PlotHandler(override val plugin: Plop): Addon {
             is PersonalPlot -> PlotKey(plotId = plot.plotId, ownerId = plot.ownerId)
         }
         plotMap[plotKey] = plot
+    }
+
+    val plotList = listOf<Plot>()
+    fun getPlotById(plotId: UUID): Plot? {
+        return plotList.find { plot -> plot.plotId = plotId }
     }
 
 }

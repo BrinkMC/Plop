@@ -62,6 +62,7 @@ dependencies {
     implementation("org.spongepowered", "configurate-yaml")
     implementation("org.spongepowered", "configurate-extra-kotlin")
 
+    implementation("com.zaxxer", "HikariCP", "6.2.1")
     implementation("org.bstats", "bstats-bukkit", "3.0.2")
     implementation("io.papermc", "paperlib", "1.0.8")
 

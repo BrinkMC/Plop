@@ -13,6 +13,7 @@ import com.brinkmc.plop.shared.command.plot.visit.CommandPlotVisit
 import com.brinkmc.plop.shared.command.shop.CommandShopList
 import com.brinkmc.plop.shared.command.shop.CommandTrade
 import com.brinkmc.plop.shared.config.ConfigReader
+import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.MessageService
 import com.brinkmc.plop.shared.util.PlopMessageSource
 import com.brinkmc.plop.shop.Shops
@@ -32,6 +33,7 @@ class Plop : State, JavaPlugin() {
 
     lateinit var plots: Plots
     lateinit var shops: Shops
+    lateinit var DB: HikariManager
 
     private lateinit var commandManager: PaperCommandManager<Source>
     private lateinit var annotationParser: AnnotationParser<Source>

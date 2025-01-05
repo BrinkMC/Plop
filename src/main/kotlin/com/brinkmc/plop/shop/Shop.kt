@@ -30,7 +30,5 @@ data class Shop (
     fun removeMember() {
         //TODO
     }
-
-
 }
 

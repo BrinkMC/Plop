@@ -6,6 +6,7 @@ import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.config.SQLData
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import java.sql.ResultSet
 
 class HikariManager(override val plugin: Plop): Addon, State {
 
@@ -13,7 +14,7 @@ class HikariManager(override val plugin: Plop): Addon, State {
     private lateinit var database: HikariDataSource
 
     override fun load() {
-        config = configManager.getDatabaseConfig()
+        config = configManager.databaseConfig() // Read and set values for connection
         database.jdbcUrl = "jdbc:mariadb://${config.host}/${config.database}"
         database.username = config.user
         database.password = config.password
@@ -24,6 +25,8 @@ class HikariManager(override val plugin: Plop): Addon, State {
             getSchemaStatements("schema.sql").forEach { statement ->
                 connection.prepareStatement(statement).execute()
             }
+        }
+        catch (exception: Exception) {
 
         }
     }
@@ -31,6 +34,37 @@ class HikariManager(override val plugin: Plop): Addon, State {
     override fun kill() {
         TODO("Not yet implemented")
     }
+
+    // Query the database, returns results
+    fun query(query: String, vararg params: Any): ResultSet? {
+        return try {
+            val connection = database.connection
+            val preparedStatement = connection.prepareStatement(query)
+            params.forEachIndexed { index, param -> // "Prevent" SQL injection
+                preparedStatement.setObject(index + 1, param)
+            }
+            preparedStatement.executeQuery() // Actually execute and returns
+        } catch (exception: Exception) { // Code has failed catastrophically
+            logger.error("Failed to query MySQL :( -> ${exception.message}")
+            null
+        }
+    }
+
+    fun update(query: String, vararg params: Any): Int? {
+        return try {
+            val connection = database.connection // Establish connection
+            val preparedStatement = connection.prepareStatement(query)
+            params.forEachIndexed { index, param -> // "Prevent" SQL injection
+                preparedStatement.setObject(index + 1, param)
+            }
+            preparedStatement.executeUpdate() // Updates the code and returns number of lines affected
+
+        } catch (exception: Exception) { // Code has failed catastrophically
+            logger.error("Failed to update MySQL :( -> ${exception.message}")
+            null
+        }
+    }
+
 
     fun getSchemaStatements(fileName: String): List<String> {
         return plugin.getFile(fileName)?.readText()?.split(";") ?: listOf()

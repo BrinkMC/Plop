@@ -27,32 +27,27 @@ fun precision(x: Double, p: Int): Double {
 }
 
 internal fun String.toLocation(): Location? {
-    return stringToLocation(this, null)
+    return stringToLocation(this)
 }
 
-fun stringToLocation(storedLoc: String, forcedWorld: World?): Location? {
-    val args = Pattern.compile(":").split(storedLoc)
-    if (args.size >= 4 || args.size == 3 && forcedWorld != null) {
-        val world = forcedWorld?.name ?: args[0]
-        val i = if (args.size == 3) 0 else 1
-        val x = args[i].toDouble()
-        val y = args[i + 1].toDouble()
-        val z = args[i + 2].toDouble()
-        val loc = Location(Bukkit.getWorld(world), x, y, z)
-        if (args.size >= 6) {
-            loc.pitch = args[4].toFloat()
-            loc.yaw = args[5].toFloat()
-        }
-        return loc
-    } else if (args.size == 2) {
-        val args2: Array<String> = Pattern.compile(",").split(args[1])
-        if (args2.size == 3) {
-            val world = forcedWorld?.name ?: args[0]
-            val x = args2[0].toDouble()
-            val y = args2[1].toDouble()
-            val z = args2[2].toDouble()
-            return Location(Bukkit.getWorld(world), x, y, z)
-        }
+fun stringToLocation(locationString: String): Location? {
+    val parts = locationString.split(",")
+    if (parts.size !in 4..6) return null // Make sure string is correct size to be real location
+
+    val world = Bukkit.getWorld(parts[0]) ?: return null
+    val x = parts[1].toDoubleOrNull() ?: return null
+    val y = parts[2].toDoubleOrNull() ?: return null
+    val z = parts[3].toDoubleOrNull() ?: return null
+    val yaw = if (parts.size > 4) parts[4].toFloatOrNull() ?: 0.0f else 0.0f // Provide default value if null
+    val pitch = if (parts.size > 5) parts[5].toFloatOrNull() ?: 0.0f else 0.0f // Provide default value if null
+
+    return Location(world, x, y, z, yaw, pitch)
+}
+
+internal fun Location.toString(includeYawPitch: Boolean = true): String { // Default to true
+    return if (includeYawPitch) {
+        "${this.world?.name},${this.x},${this.y},${this.z},${this.yaw},${this.pitch}"
+    } else {
+        "${this.world?.name},${this.x},${this.y},${this.z}"
     }
-    return null
 }

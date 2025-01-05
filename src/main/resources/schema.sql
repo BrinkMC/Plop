@@ -1,127 +1,114 @@
 # Plot Schema
-create table if not exists `PersonalPlot`
+create table if not exists `plots_plots`
 (
     plot_id varchar(36) not null,
-    player_id varchar(36) not null,
-    claim_id varchar(36) not null,
-    plot_visit_id varchar(36) not null,
-    primary key (plot_id, player_id),
-    foreign key (claim_id) references Claim(claim_id),
-    foreign key (plot_visit_id) references PlotVisit(plot_visit_id)
+    type enum('Personal', 'Guild') not null,
+    owner_id varchar(36) not null,
+    primary key (plot_id)
 );
 
-create table if not exists `GuildPlot`
-(
-    plot_id  varchar(36) not null,
-    guild_id varchar(36) not null,
-    claim_id varchar(36) not null,
-    plot_visit_id varchar(36) not null,
-    primary key (plot_id, guild_id),
-    foreign key (claim_id) references Claim(claim_id),
-    foreign key (plot_visit_id) references PlotVisit(plot_visit_id)
-    );
+# create table if not exists `GuildMember`
+# (
+#     member_id varchar(36) not null,
+#     guild_plot_id varchar(36) not null,
+#     primary key (member_id),
+#     foreign key (guild_plot_id) references GuildPlot(plot_id)
+# );
 
-create table if not exists `GuildMember`
+create table if not exists `plots_claims`
 (
-    member_id varchar(36) not null,
-    guild_plot_id varchar(36) not null,
-    primary key (member_id),
-    foreign key (guild_plot_id) references GuildPlot(plot_id)
-);
-
-create table if not exists `Claim`
-(
-    claim_id varchar(36) not null,
     max_length int not null,
     centre text not null,
     home text null,
     visit text null,
-    primary key (claim_id)
+    plot_id varchar(36) not null,
+    primary key (plot_id),
+    foreign key (plot_id) references plots_plots(plot_id)
 );
 
-create table if not exists `Totem`
+create table if not exists `plots_totems`
 (
-    totem_id varchar(36) null,
-    totem_type text not null,
-    totem_location text not null,
-    personal_plot_id varchar(36) null, # I can't have both
-    guild_plot_id varchar(36) null,
-    foreign key (personal_plot_id) references PersonalPlot(plot_id),
-    foreign key (guild_plot_id) references GuildPlot(plot_id),
-    check (
-        (personal_plot_id is not null and guild_plot_id is null) or
-        (guild_plot_id is not null and personal_plot_id is null)
-    )
+    totem_id int auto_increment not null,
+    totem_type     text        not null,
+    totem_location text        not null,
+    plot_id        varchar(36) not null,
+    primary key (totem_id),
+    foreign key (plot_id) references plots_plots(plot_id)
 );
 
-create table if not exists `PlotSize`
+create table if not exists `plots_sizes`
 (
     level int not null,
-    personal_plot_id varchar(36) null, # I can't have both
-    guild_plot_id varchar(36) null,
-    foreign key (personal_plot_id) references PersonalPlot(plot_id),
-    foreign key (guild_plot_id) references GuildPlot(plot_id),
-    check (
-        (personal_plot_id is not null and guild_plot_id is null) or
-        (guild_plot_id is not null and personal_plot_id is null)
-    )
+    plot_id varchar(36) not null,
+    primary key (plot_id),
+    foreign key (plot_id) references plots_plots(plot_id)
 );
 
-create table if not exists `FactoryLimit`
+create table if not exists `plots_factory_limits`
 (
     level int not null,
-    personal_plot_id varchar(36) null, # I can't have both
-    guild_plot_id varchar(36) null,
-    foreign key (personal_plot_id) references PersonalPlot(plot_id),
-    foreign key (guild_plot_id) references GuildPlot(plot_id),
-    check (
-        (personal_plot_id is not null and guild_plot_id is null) or
-        (guild_plot_id is not null and personal_plot_id is null)
-        )
+    plot_id varchar(36) not null,
+    primary key (plot_id),
+    foreign key (plot_id) references plots_plots(plot_id)
 );
 
-create table if not exists `ShopLimit`
+create table if not exists `plots_factory_locations`
+(
+    factory_id int auto_increment not null,
+    plot_id varchar(36) not null,
+    location text,
+    primary key (factory_id),
+    foreign key (plot_id) references plots_plots(plot_id)
+);
+
+create table if not exists `plots_shop_limits`
 (
     level int not null,
-    personal_plot_id varchar(36) null, # I can't have both
-    guild_plot_id varchar(36) null,
-    foreign key (personal_plot_id) references PersonalPlot(plot_id),
-    foreign key (guild_plot_id) references GuildPlot(plot_id),
-    check (
-        (personal_plot_id is not null and guild_plot_id is null) or
-        (guild_plot_id is not null and personal_plot_id is null)
-        )
+    plot_id varchar(36) not null,
+    primary key (plot_id),
+    foreign key (plot_id) references plots_plots(plot_id)
 );
 
-create table if not exists `VisitorLimit`
+create table if not exists `plots_shop_locations`
+(
+    shop_id varchar(36) not null,
+    plot_id varchar(36) not null,
+    primary key (shop_id),
+    foreign key (plot_id) references plots_plots(plot_id)
+);
+
+create table if not exists `plots_visitor_limits`
 (
     level int not null,
-    personal_plot_id varchar(36) null, # I can't have both
-    guild_plot_id varchar(36) null,
-    foreign key (personal_plot_id) references PersonalPlot(plot_id),
-    foreign key (guild_plot_id) references GuildPlot(plot_id),
-    check (
-        (personal_plot_id is not null and guild_plot_id is null) or
-        (guild_plot_id is not null and personal_plot_id is null)
-        )
+    plot_id varchar(36) not null,
+    primary key (plot_id),
+    foreign key (plot_id) references plots_plots(plot_id)
 );
 
-create table if not exists `PlotVisit`
+create table if not exists `plots_visits`
 (
-    plot_visit_id varchar(36) not null,
-    allow_visitors binary(1) not null
+    allow_visitors binary not null,
+    plot_id varchar(36) not null,
+    primary key (plot_id),
+    foreign key (plot_id) references plots_plots(plot_id)
 );
 
-create table if not exists `Visit`
+create table if not exists `plots_visit_records`
 (
-    visit_id int auto_increment primary key,
-    plot_visit_id varchar(36) not null,
+    visit_record_id int auto_increment primary key not null,
+    plot_id int not null,
     visit_timestamp timestamp not null default current_timestamp,
-    foreign key (plot_visit_id) references PlotVisit(plot_visit_id)
+    foreign key (plot_id) references plots_plots(plot_id)
 );
 
 # Shop Schema
-create table if not exists `Shop`
+create table if not exists `shops_shops`
 (
-
+    shop_id varchar(36) not null,
+    loc varchar(36) not null,
+    owner_id varchar(36) not null,
+    ware text,
+    stock int,
+    price float,
+    primary key (shop_id)
 );

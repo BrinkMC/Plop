@@ -7,41 +7,44 @@ import com.brinkmc.plop.plot.plot.modifier.PlotSize
 import com.brinkmc.plop.plot.plot.modifier.ShopLimit
 import com.brinkmc.plop.plot.plot.modifier.VisitorLimit
 import com.brinkmc.plop.plot.plot.structure.Totem
+import org.bukkit.Bukkit
+import org.bukkit.entity.Player
 import java.util.*
 
 /*
-I find best practice for data classes / sealed classes tends to be separate the logic into extension functions.
+I find best practice for data classes tends to be separate the logic into extension functions.
 This works well in keeping the data class itself relatively clean
  */
 
-sealed class Plot (
-    // State
-    open val plotId: UUID, // Unique ID for the plot
-
-    open val claim: Claim,
-    open val totems: MutableList<Totem>,
-
-    open val plotVisit: PlotVisit,
-
-    // Values with configurable limits via config
-    open var plotSize: PlotSize,
-    open var factoryLimit: FactoryLimit,
-    open var shopLimit: ShopLimit,
-    open var visitorLimit: VisitorLimit
-
-) {
-
-    fun upgradePlotSize(newPlotSize: PlotSize) {
-        plotSize = newPlotSize
-    }
-
-
-    fun addMember() {
-        //TODO
-    }
-
-    fun removeMember() {
-        //TODO
-    }
+enum class PLOT_TYPE {
+    Personal,
+    Guild
 }
 
+data class Plot(
+    val plotId: UUID, // Unique ID for the plot
+    val type: PLOT_TYPE,
+
+    // Primary
+    val ownerId: UUID, // It may be a Player UUID OR Guild UUID
+
+    //Inherited from Plot interface
+    val claim: Claim,
+    var visitorLimit: VisitorLimit,
+    var plotSize: PlotSize,
+    var factoryLimit: FactoryLimit,
+    var shopLimit: ShopLimit,
+
+    // Might not exist in database
+    val totems: MutableList<Totem>,
+    val plotVisit: PlotVisit,
+) {
+    fun getOwner(): PlotOwner {
+        return if (type == PLOT_TYPE.Guild) {
+            PlotOwner.GuildOwner(Guild.getGuild(ownerId))
+        }
+        else {
+            PlotOwner.PlayerOwner(Bukkit.getOfflinePlayer(ownerId))
+        }
+    }
+}

@@ -10,22 +10,22 @@ import java.io.File
 
 class PlotFactoryHandler(override val plugin: Plop): Addon, State {
 
-    val factoryLevels = linkedMapOf<Int, FactoryLimit>()
+    val levels = mutableListOf<Int>()
 
     override fun load() {
         try {
-            val conf = YamlConfiguration.loadConfiguration(File(plugin.dataFolder, "plot/upgrades.yml"))
-            val factorySection = conf.getConfigurationSection("factory.limit") ?: return
+            val conf = YamlConfiguration.loadConfiguration(File(plugin.dataFolder, "plot/upgrades.yml")) // Get relevant config
+            val factorySection = conf.getConfigurationSection("factory.limit") ?: return // Check filled in
 
             for (key in factorySection.getKeys(false)) {
-                lim[factorySection.getInt("$key.level")] = factorySection.getInt("$key.limit")
+                levels.add(factorySection.getInt("$key.limit")) // Add a level per child node
             }
         } catch (e: ConfigurateException) {
-            logger.error("Failed to configurate factory limits :(")
+            logger.error("Failed to configurate factory limits :(") // Didn't work did it
         }
     }
 
     override fun kill() {
-        TODO("Not yet implemented")
+        levels.clear()
     }
 }

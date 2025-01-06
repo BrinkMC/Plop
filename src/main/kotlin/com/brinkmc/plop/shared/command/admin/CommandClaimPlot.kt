@@ -15,6 +15,8 @@ internal class CommandClaimPlot(override val plugin: Plop) : Addon {
             player.sendFormattedMessage(messages.notAdmin())
             return
         }
+
+
     }
 
 }

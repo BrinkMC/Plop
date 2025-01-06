@@ -11,9 +11,9 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader
 
 class PlopMessageSource(override val plugin: Plop): State, Addon {
 
-    val hashOfStrings: HashMap<String, String> = hashMapOf()
+    private val hashOfStrings: HashMap<String, String> = hashMapOf()
 
-    lateinit var loader: YamlConfigurationLoader
+    private lateinit var loader: YamlConfigurationLoader
 
     override fun load() {
         readLocale()
@@ -24,7 +24,7 @@ class PlopMessageSource(override val plugin: Plop): State, Addon {
         loader
     }
 
-    fun readLocale() {
+    private fun readLocale() {
         val localesFile = plugin.getFile("locales.yml")
 
         // Ensure the plugin stalls if no locale is found
@@ -51,7 +51,7 @@ class PlopMessageSource(override val plugin: Plop): State, Addon {
     }
 
     // Recursive function - Revision 1 didn't realise this fact
-    fun parseNode(node: ConfigurationNode, parentKey: String) {
+    private fun parseNode(node: ConfigurationNode, parentKey: String) {
         node.childrenMap().forEach { (key, child) ->
             val childKey = key.toString()
             // For recursion, find key of the config value + for hashmap usage

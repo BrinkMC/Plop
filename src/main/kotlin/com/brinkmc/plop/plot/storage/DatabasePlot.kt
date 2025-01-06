@@ -14,7 +14,9 @@ import com.brinkmc.plop.plot.plot.structure.Totem
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.storage.HikariManager
+import com.brinkmc.plop.shared.util.fullString
 import com.brinkmc.plop.shared.util.toLocation
+import org.bukkit.Location
 import java.sql.ResultSet
 import java.sql.Timestamp
 import java.util.Date
@@ -38,7 +40,7 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
         INNER JOIN plots_factory_limits factory_lim ON factory_lim.plot_id = plots.plot_id
         INNER JOIN plots_shop_limits shop_lim ON shop_lim.plot_id = plots.plot_id
         INNER JOIN plots_visitor_limits visitor_lim ON visitor_lim.plot_id = plots.plot_id
-        INNER JOIN plots_visits visit ON visits.plot_id = plots.plot_id
+        INNER JOIN plots_visits visit ON visits.plot_id = plots.plot_id;
     """.trimIndent() // Draws compelete dataset for 1 plot
         val resultSet = DB.query(query, uuid.toString())
         return resultSet?.let { mapToPlot(it) }
@@ -60,7 +62,7 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
 
         val visitorLimit = VisitorLimit(
             level = resultSet.getInt("visitor_lim.level"), // Get the stored level
-            amount = 0, //TODO FIX THIS LOL
+            amount = 0, // Server startup surely no one is at the plot //TODO Verify
             visitorLimit = plots.plotVisitorHandler.levels[resultSet.getInt("visitor_lim.level")] // Read from config
         )
 
@@ -69,27 +71,33 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
             size = plots.plotSizeHandler.levels[resultSet.getInt("size.level")]
         )
 
+        // Get list of factories
+        val factoryList = mutableListOf<Location>()
+        val subFactoriesQuerySet = DB.query("SELECT * FROM plots_factory_locations WHERE plot_id=?;", listOf(plotId))
+        if (subFactoriesQuerySet != null) do { // Only execute if there are factories
+            factoryList.add(subFactoriesQuerySet.getString("factory_location").toLocation()!!) // Must be a location
+        } while (subFactoriesQuerySet.next())
+
         val factoryLimit = FactoryLimit(
             level = resultSet.getInt("factory_lim.level"),
-            factories = listOf(), //TODO FIX THIS
+            factories = factoryList,
             factoryLimit = plots.plotFactoryHandler.levels[resultSet.getInt("factory_lim.level")]
         )
 
+        // Get list of shops
+        val shopList = mutableListOf<UUID>()
+        val subShopQuerySet = DB.query("SELECT * FROM plots_shop_locations WHERE plot_id=?;", listOf(plotId))
+        if (subShopQuerySet != null) do { // Only execute if there are factories
+            shopList.add(UUID.fromString(subShopQuerySet.getString("shop_id"))) // Can't be null
+        } while (subShopQuerySet.next())
         val shopLimit = ShopLimit(
             level = resultSet.getInt("shop_lim.level"),
-            shops = listOf(), //TODO FIX THIS
+            shops = shopList,
             shopLimit = plots.plotShopHandler.levels[resultSet.getInt("shop_lim.level")]
         )
 
-        val subQueryTotem = """
-            SELECT * FROM plots_totems WHERE plot_id = ?
-        """.trimIndent()
-        val subTotemResultSet = DB.query(subQueryTotem, plotId)
-
-        val subQueryVisits = """
-            SELECT * FROM plots_visit_records WHERE plot_id = ?
-        """.trimIndent()
-        val subVisitsResultSet = DB.query(subQueryVisits, plotId)
+        val subTotemResultSet = DB.query("SELECT * FROM plots_totems WHERE plot_id = ?;", plotId)
+        val subVisitsResultSet = DB.query("SELECT * FROM plots_visit_records WHERE plot_id = ?;", plotId)
 
         if (subTotemResultSet == null || subVisitsResultSet == null) {
             return Plot(plotId,
@@ -138,5 +146,120 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
         )
     }
 
-    fun create(plot: Plot) {}
+    fun create(plot: Plot) {
+        DB.update("INSERT INTO plots_plots (plot_id, type, owner_id) VALUES(?, ?, ?);", listOf(
+            plot.plotId,
+            plot.type.toString(),
+            plot.ownerId
+        ))
+        DB.update("INSERT INTO plots_claims (max_length, centre, home, visit, plot_id) VALUES (?, ?, ?, ?, ?);", listOf(
+            plot.claim.maxLength,
+            plot.claim.centre.fullString(false),
+            plot.claim.home.fullString(),
+            plot.claim.visit.fullString(),
+            plot.plotId
+        ))
+        // Skip totems, none placed
+        DB.update("INSERT INTO plots_sizes (level, plot_id) VALUES(?, ?);", listOf(
+            plot.plotSize.level,
+            plot.plotId
+        ))
+        DB.update("INSERT INTO plots_factory_limits (level, plot_id) VALUES(?, ?);", listOf(
+            plot.factoryLimit.level,
+            plot.plotId
+        ))
+        // Skip factories placed, none placed
+        DB.update("INSERT INTO plots_shop_limits (level, plot_id) VALUES(?, ?);", listOf(
+            plot.shopLimit.level,
+            plot.plotId
+        ))
+        // Skip shops placed, none placed
+        DB.update("INSERT INTO plots_visitor_limits (level, plot_id) VALUES(?, ?);", listOf(
+            plot.visitorLimit.level,
+            plot.plotId
+        ))
+        DB.update("INSERT INTO plots_visits (allow_visitors, plot_id) VALUES(?, ?);", listOf(
+            plot.plotVisit.open,
+            plot.plotId
+        ))
+        // No visitor records
+    }
+
+    fun save(plot: Plot) {
+        DB.update("INSERT INTO plots_plots (plot_id, type, owner_id) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE type=?, owner_id=?;", listOf(
+            plot.plotId,
+            plot.type.toString(),
+            plot.ownerId,
+            plot.type.toString(),
+            plot.ownerId
+        ))
+        DB.update("INSERT INTO plots_claims (max_length, centre, home, visit, plot_id) VALUES(?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE max_length=?, centre=?, home=?, visit=?;", listOf(
+            plot.claim.maxLength,
+            plot.claim.centre.fullString(false),
+            plot.claim.home.fullString(),
+            plot.claim.visit.fullString(),
+            plot.plotId,
+            plot.claim.maxLength,
+            plot.claim.centre.fullString(false),
+            plot.claim.home.fullString(),
+            plot.claim.visit.fullString(),
+        ))
+        for (totem in plot.totems) {
+            DB.update("INSERT INTO plots_totems (totem_location, totem_type, plot_id) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE totem_type=?;", listOf(
+                totem.location.fullString(false),
+                totem.totemType.toString(),
+                plot.plotId,
+                totem.totemType.toString()
+            ))
+        }
+        DB.update("INSERT INTO plots_sizes (level, plot_id) VALUES(?, ?) ON DUPLICATE KEY UPDATE level=?;", listOf(
+            plot.plotSize.level,
+            plot.plotId,
+            plot.plotSize.level
+        ))
+        DB.update("INSERT INTO plots_factory_limits (level, plot_id) VALUES(?, ?) ON DUPLICATE KEY UPDATE level=?;", listOf(
+            plot.factoryLimit.level,
+            plot.plotId,
+            plot.factoryLimit.level
+        ))
+        for (shop in plot.shopLimit.shops) {
+            DB.update("INSERT INTO plots_shop_locations (shop_id, plot_id) VALUES(?, ?) ON DUPLICATE KEY UPDATE plot_id?;", listOf(
+                shop,
+                plot.plotId,
+                plot.plotId // Not sure about this one
+            ))
+        }
+        DB.update("INSERT INTO plots_shop_limits (level, plot_id) VALUES(?, ?) ON DUPLICATE KEY UPDATE level=?;", listOf(
+            plot.shopLimit.level,
+            plot.plotId,
+            plot.shopLimit.level
+        ))
+        for (factory in plot.factoryLimit.factories) {
+            DB.update("INSERT INTO plots_factory_locations (factory_location, plot_id) VALUES(?, ?) ON DUPLICATE KEY UPDATE plot_id=?;", listOf(
+                factory.fullString(false),
+                plot.plotId,
+                plot.plotId // Not sure about this one
+            ))
+        }
+        DB.update("INSERT INTO plots_visitor_limits (level, plot_id) VALUES(?, ?) ON DUPLICATE KEY UPDATE level=?;", listOf(
+            plot.visitorLimit.level,
+            plot.plotId,
+            plot.visitorLimit.level
+        ))
+        DB.update("INSERT INTO plots_visits (allow_visitors, plot_id) VALUES(?, ?) ON DUPLICATE KEY UPDATE allow_visitors=?;", listOf(
+            plot.plotVisit.open,
+            plot.plotId,
+            plot.plotVisit.open
+        ))
+    }
+
+    // Should hopefully never have to be called
+    fun delete(plot: Plot) {
+        val deleteUpdate =  """
+            DELETE FROM plots_plots, plots_claims, plots_totems, plots_sizes, plots_factory_limits, plots_factory_locations, plots_shop_limits, plots_visitor_limits, plots_visits, plots_visit_records) WHERE plot_id=?;
+        """.trimIndent() // Delete all references to the plot
+        DB.update(deleteUpdate, listOf(plot.plotId))
+    }
+
+    
 }

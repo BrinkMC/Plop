@@ -7,14 +7,6 @@ create table if not exists `plots_plots`
     primary key (plot_id)
 );
 
-# create table if not exists `GuildMember`
-# (
-#     member_id varchar(36) not null,
-#     guild_plot_id varchar(36) not null,
-#     primary key (member_id),
-#     foreign key (guild_plot_id) references GuildPlot(plot_id)
-# );
-
 create table if not exists `plots_claims`
 (
     max_length int not null,
@@ -28,11 +20,10 @@ create table if not exists `plots_claims`
 
 create table if not exists `plots_totems`
 (
-    totem_id int auto_increment not null,
-    totem_type     text        not null,
     totem_location text        not null,
+    totem_type     text        not null,
     plot_id        varchar(36) not null,
-    primary key (totem_id),
+    primary key (totem_location),
     foreign key (plot_id) references plots_plots(plot_id)
 );
 
@@ -54,10 +45,9 @@ create table if not exists `plots_factory_limits`
 
 create table if not exists `plots_factory_locations`
 (
-    factory_id int auto_increment not null,
+    factory_location text not null,
     plot_id varchar(36) not null,
-    location text,
-    primary key (factory_id),
+    primary key (factory_location),
     foreign key (plot_id) references plots_plots(plot_id)
 );
 

@@ -3,26 +3,18 @@ package com.brinkmc.plop.shared.storage
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.config.SQLData
+import com.brinkmc.plop.shared.config.configs.SQLConfig
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import java.sql.ResultSet
 
 class HikariManager(override val plugin: Plop): Addon, State {
 
-    private lateinit var config: SQLData
+    private lateinit var config: SQLConfig
     private lateinit var database: HikariDataSource
 
     override fun load() {
-        val temp = configManager.getDatabaseConfig() // Can't set directly to lateinit
-
-        if (temp == null) {
-            logger.error("Catastrophic fail to load database values")
-            return
-        }
-
-        // Continue now that null check has been made
-        config = temp
+        config = SQLConfig(plugin) // Initiate the config
 
         database.jdbcUrl = "jdbc:mariadb://${config.host}/${config.database}"
         database.username = config.user

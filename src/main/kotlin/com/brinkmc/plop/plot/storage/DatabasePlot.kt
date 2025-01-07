@@ -13,13 +13,11 @@ import com.brinkmc.plop.plot.plot.structure.TOTEM_TYPE
 import com.brinkmc.plop.plot.plot.structure.Totem
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.fullString
 import com.brinkmc.plop.shared.util.toLocation
 import org.bukkit.Location
 import java.sql.ResultSet
 import java.sql.Timestamp
-import java.util.Date
 import java.util.UUID
 
 /*

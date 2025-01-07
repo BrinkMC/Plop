@@ -14,7 +14,16 @@ class HikariManager(override val plugin: Plop): Addon, State {
     private lateinit var database: HikariDataSource
 
     override fun load() {
-        config = configManager.databaseConfig() // Read and set values for connection
+        val temp = configManager.getDatabaseConfig() // Can't set directly to lateinit
+
+        if (temp == null) {
+            logger.error("Catastrophic fail to load database values")
+            return
+        }
+
+        // Continue now that null check has been made
+        config = temp
+
         database.jdbcUrl = "jdbc:mariadb://${config.host}/${config.database}"
         database.username = config.user
         database.password = config.password
@@ -26,13 +35,14 @@ class HikariManager(override val plugin: Plop): Addon, State {
                 connection.prepareStatement(statement).execute()
             }
         }
-        catch (exception: Exception) {
-
+        catch (e: Exception) {
+            logger.error("${e.message}")
+            return
         }
     }
 
     override fun kill() {
-        TODO("Not yet implemented")
+        database.close() // Kill database connection
     }
 
     // Query the database, returns results

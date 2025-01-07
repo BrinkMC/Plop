@@ -48,7 +48,11 @@ class Plop : State, JavaPlugin() {
     }
 
     override fun onDisable() {
-
+        //TODO ascertain order to kill
+        plots.kill()
+        shops.kill()
+        configManager.kill()
+        DB.kill()
     }
 
     /*
@@ -98,8 +102,7 @@ class Plop : State, JavaPlugin() {
             CommandPlotTp(plugin),
             CommandShopList(plugin),
             CommandTrade(plugin)
-        )
-            .forEach { command -> annotationParser.parse(command) }
+        ).forEach { command -> annotationParser.parse(command) }
     }
 
     fun getFile(fileName: String): File? {

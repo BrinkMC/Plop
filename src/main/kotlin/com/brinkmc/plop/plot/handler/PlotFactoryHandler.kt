@@ -1,7 +1,6 @@
 package com.brinkmc.plop.plot.handler
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.modifier.FactoryLimit
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import org.bukkit.configuration.file.YamlConfiguration

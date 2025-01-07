@@ -2,16 +2,14 @@ package com.brinkmc.plop.shared.config.configs
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
+import com.brinkmc.plop.shared.config.BaseConfig
 
 data class MainConfig(
     override val plugin: Plop // Must be able to access the plugin
-): Addon {
-    val mainConfig = configManager.getMainConfig()
+): BaseConfig(plugin) {
 
-    var pluginName: String
-        get() = mainConfig?.node("name")?.string ?: ""
-        set(value) {
-            configManager.getMainConfig()?.node("name")?.set(value)
-        }
+    override val config = configManager.getMainConfig()
+
+    var pluginName: String by delegate("plugin-name")
 
 }

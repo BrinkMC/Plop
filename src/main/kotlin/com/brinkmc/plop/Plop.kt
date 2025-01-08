@@ -13,11 +13,13 @@ import com.brinkmc.plop.shared.command.plot.visit.CommandPlotVisit
 import com.brinkmc.plop.shared.command.shop.CommandShopList
 import com.brinkmc.plop.shared.command.shop.CommandTrade
 import com.brinkmc.plop.shared.config.ConfigReader
+import com.brinkmc.plop.shared.hooks.Listener
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.MessageService
 import com.brinkmc.plop.shared.util.PlopMessageSource
 import com.brinkmc.plop.shop.Shops
 import com.google.gson.Gson
+import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.execution.ExecutionCoordinator
@@ -40,6 +42,7 @@ class Plop : State, JavaPlugin() {
     private lateinit var messageSource: PlopMessageSource
     private lateinit var messageService: MessageService
     private lateinit var configManager: ConfigReader
+    private lateinit var listener: Listener
 
     lateinit var messaging: Gson
 
@@ -64,8 +67,10 @@ class Plop : State, JavaPlugin() {
         shops = Shops(plugin)
 
         // Enable gson library for messages
-
         this.messaging = Gson()
+
+        listener = Listener(this) // Register listener
+        Bukkit.getServer().pluginManager.registerEvents(listener, this)
 
         // Finally enable commands
         loadCmds()

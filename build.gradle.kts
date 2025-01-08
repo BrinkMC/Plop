@@ -19,6 +19,7 @@ repositories {
     maven("https://repo.doesnt-want-to.work/snapshots/")
     maven("https://maven.enginehub.org/repo/")
     maven("https://maven.noxcrew.com/public")
+    maven("https://repo.glaremasters.me/repository/public/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") {
         content { includeGroup("me.clip") }
     }
@@ -33,6 +34,7 @@ dependencies {
     compileOnly("dev.folia", "folia-api", "1.20.1-R0.1-SNAPSHOT")
     compileOnly("com.github.MilkBowl", "VaultAPI", "1.7.1")
     compileOnly("me.clip", "placeholderapi", "2.11.6")
+    compileOnly("me.glaremasters", "guilds", "3.5.7.0")
 
     compileOnly("com.sk89q.worldguard", "worldguard-core", "7.0.9")
     compileOnly("com.sk89q.worldguard", "worldguard-bukkit", "7.0.9")

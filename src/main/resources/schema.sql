@@ -102,3 +102,10 @@ create table if not exists `shops_shops`
     price float,
     primary key (shop_id)
 );
+
+create table if not exists `saved_inventories`
+(
+    player_uuid varchar(36) not null,
+    inventory text,
+    primary key (player_uuid)
+);

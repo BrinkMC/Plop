@@ -14,7 +14,7 @@ import kotlin.math.max
 
 class GuildPlotLayoutStrategy(override val plugin: Plop): State, Addon {
 
-    val guildPlotConfig = PlotConfig(plugin)
+    private val guildPlotConfig = PlotConfig(plugin)
 
     val openPlots = hashMapOf<StringLocation, Boolean>() // x:y:z format to OpenPlot
 

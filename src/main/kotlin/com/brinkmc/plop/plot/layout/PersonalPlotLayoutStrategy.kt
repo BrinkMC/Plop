@@ -12,7 +12,7 @@ import org.bukkit.WorldCreator
 
 class PersonalPlotLayoutStrategy(override val plugin: Plop): State, Addon {
 
-    val personalPlotConfig = PlotConfig(plugin)
+    private val personalPlotConfig = PlotConfig(plugin)
 
     val openPlots = hashMapOf<StringLocation, Boolean>() // x:y:z format to OpenPlot
 

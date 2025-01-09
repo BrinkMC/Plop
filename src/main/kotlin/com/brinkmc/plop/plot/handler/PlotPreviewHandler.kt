@@ -1,6 +1,8 @@
 package com.brinkmc.plop.plot.handler
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.layout.GuildPlotLayoutStrategy
+import com.brinkmc.plop.plot.layout.PersonalPlotLayoutStrategy
 import com.brinkmc.plop.plot.preview.PreviewInstance
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
@@ -15,15 +17,19 @@ Ensure that data is saved e.t.c
 
 class PlotPreviewHandler(override val plugin: Plop): Addon, State {
 
-    override fun load() {
+    lateinit var guildPlotLayoutStrategy: GuildPlotLayoutStrategy
+    lateinit var personalPreviewHandler: PersonalPlotLayoutStrategy
 
+    val previews = mutableListOf<PreviewInstance>()
+
+    override fun load() {
+        guildPlotLayoutStrategy = GuildPlotLayoutStrategy(plugin)
+        personalPreviewHandler = PersonalPlotLayoutStrategy(plugin)
     }
 
     override fun kill() {
         previews.clear()
     }
-
-    val previews = mutableListOf<PreviewInstance>()
 
     // All functions available to player
     fun startPreview(player: UUID) {
@@ -41,6 +47,7 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
             bukkitPlayer.location.clone(),
             stacksToBase64(bukkitPlayer.inventory.contents)
         )
+
         // Add to the loaded instances
         previews.add(previewInstance)
 

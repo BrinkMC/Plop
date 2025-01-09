@@ -22,9 +22,23 @@ fun ItemStack.name(name: String): ItemStack {
     return this
 }
 
+fun ItemStack.name(name: Component): ItemStack {
+    itemMeta = itemMeta.also { meta ->
+        meta.displayName(name)
+    }
+    return this
+}
+
 fun ItemStack.description(description: String): ItemStack {
     itemMeta = itemMeta.also { meta ->
         meta.lore(listOf(Component.text(description)))
+    }
+    return this
+}
+
+fun ItemStack.description(description: Component): ItemStack {
+    itemMeta = itemMeta.also { meta ->
+        meta.lore(listOf(description))
     }
     return this
 }

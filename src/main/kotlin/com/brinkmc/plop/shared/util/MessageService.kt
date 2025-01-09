@@ -11,25 +11,26 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.minimessage.tag.standard.StandardTags
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.entity.Player
+import javax.annotation.Nullable
 
 class MessageService(override val plugin: Plop): Addon {
 
     private val profileTags = ProfileTags(plugin)
-    private lateinit var miniMessage: MiniMessage
+    private var miniMessage: MiniMessage = MiniMessage.builder()
+        .tags(TagResolver.builder() // Define some of the tags
+            .resolver(StandardTags.defaults())
+            .build()
+        )
+        .build()
 
     val plopMessageSource = plugin.plopMessageSource()
 
-    fun init() {
-        miniMessage = MiniMessage.builder()
-            .tags(TagResolver.builder() // Define some of the tags
-                .resolver(StandardTags.defaults())
-                .build()
-            )
-            .build()
+    fun get(string: String): String {
+        return plopMessageSource.findMessage(string) ?: "<red>No message set!"
     }
 
-    fun notAdmin(): String {
-        return plopMessageSource.findMessage("plop.notadmin") ?: "<red>No message set!"
+    fun getC(string: String, player: Player? = null): Component {
+        return miniMessage.deserialize(plopMessageSource.findMessage(string) ?: "<red>No message set!", profileTags.name(player))
     }
 
     // Provide functionality to the Addon reference

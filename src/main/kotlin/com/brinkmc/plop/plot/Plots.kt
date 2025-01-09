@@ -10,8 +10,10 @@ import com.brinkmc.plop.plot.handler.PlotSizeHandler
 import com.brinkmc.plop.plot.handler.PlotUpgradeHandler
 import com.brinkmc.plop.plot.handler.PlotVisitorHandler
 import com.brinkmc.plop.plot.plot.base.Plot
+import com.brinkmc.plop.plot.plot.data.PlotVisit
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shared.gui.preview.HotbarPreview
 import com.brinkmc.plop.shared.storage.PlotKey
 import org.bukkit.entity.Player
 import java.util.UUID
@@ -30,8 +32,28 @@ class Plots(override val plugin: Plop): Addon, State {
     lateinit var plotShopHandler: PlotShopHandler
     lateinit var plotSizeHandler: PlotSizeHandler
 
+    val hotbarPreview = HotbarPreview(plugin)
+
     override fun load() {
         plotHandler = PlotHandler(plugin)
+        plotVisitorHandler = PlotVisitorHandler(plugin)
+        plotUpgradeHandler = PlotUpgradeHandler(plugin)
+        plotPreviewHandler = PlotPreviewHandler(plugin)
+        plotFactoryHandler = PlotFactoryHandler(plugin)
+        plotClaimHandler = PlotClaimHandler(plugin)
+        plotShopHandler = PlotShopHandler(plugin)
+        plotSizeHandler = PlotSizeHandler(plugin)
+
+        listOf(
+            plotHandler,
+            plotVisitorHandler,
+            plotUpgradeHandler,
+            plotPreviewHandler,
+            plotFactoryHandler,
+            plotClaimHandler,
+            plotShopHandler,
+            plotSizeHandler
+        ).forEach { handler -> (handler as State).load() }
     }
 
     override fun kill() {
@@ -47,10 +69,6 @@ class Plots(override val plugin: Plop): Addon, State {
         // Get a list of all the plots player owns. 1-to-1 relationship
         return plotHandler.getPlotByOwner(uniqueId)
 
-    }
-
-    fun Player.personalPlot(): Plot? {
-        return Plot
     }
 
     fun Player.guildPlot(): Plot? {

@@ -32,11 +32,11 @@ internal interface Addon {
     val configManager: ConfigReader
         get() = plugin.getConfigManager()
 
-    val messages: MessageService
+    val lang: MessageService
         get() = plugin.getMessageService()
 
     // Provide an easy way to get formatted MiniMessage messages with custom tags also replaced properly
     fun Player.sendFormattedMessage(message: String) {
-        with (messages) { sendFormattedMessage(message) }
+        with (lang) { sendFormattedMessage(message) }
     }
 }

@@ -16,5 +16,6 @@ enum class Direction {
 data class StringLocation(
     val x: Double,
     val y: Double,
-    val z: Double
+    val z: Double,
+    var open: Boolean = false
 )

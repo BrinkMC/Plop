@@ -13,7 +13,9 @@ import com.brinkmc.plop.shared.command.plot.visit.CommandPlotVisit
 import com.brinkmc.plop.shared.command.shop.CommandShopList
 import com.brinkmc.plop.shared.command.shop.CommandTrade
 import com.brinkmc.plop.shared.config.ConfigReader
-import com.brinkmc.plop.shared.hooks.Listener
+import com.brinkmc.plop.shared.hooks.listener.GeneralListener
+import com.brinkmc.plop.shared.hooks.listener.InventoryClick
+import com.brinkmc.plop.shared.hooks.listener.PlayerInteract
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.MessageService
 import com.brinkmc.plop.shared.util.PlopMessageSource
@@ -42,7 +44,10 @@ class Plop : State, JavaPlugin() {
     private lateinit var messageSource: PlopMessageSource
     private lateinit var messageService: MessageService
     private lateinit var configManager: ConfigReader
-    private lateinit var listener: Listener
+
+    private lateinit var generalListener: GeneralListener
+    private lateinit var inventoryClickListener: InventoryClick
+    private lateinit var playerInteractListener: PlayerInteract
 
     lateinit var messaging: Gson
 
@@ -69,8 +74,8 @@ class Plop : State, JavaPlugin() {
         // Enable gson library for messages
         this.messaging = Gson()
 
-        listener = Listener(this) // Register listener
-        Bukkit.getServer().pluginManager.registerEvents(listener, this)
+        // Register listener
+        loadListeners()
 
         // Finally enable commands
         loadCmds()
@@ -79,6 +84,18 @@ class Plop : State, JavaPlugin() {
     override fun kill() {
         plots.kill()
         shops.kill()
+    }
+
+    private fun loadListeners() {
+        generalListener = GeneralListener(this)
+        inventoryClickListener = InventoryClick(this)
+        playerInteractListener = PlayerInteract(this)
+
+        listOf(
+            generalListener,
+            inventoryClickListener,
+            playerInteractListener
+        ).forEach { listener -> Bukkit.getServer().pluginManager.registerEvents(listener, this) }
     }
 
     private fun loadCmds() {

@@ -32,8 +32,6 @@ class Plots(override val plugin: Plop): Addon, State {
     lateinit var plotShopHandler: PlotShopHandler
     lateinit var plotSizeHandler: PlotSizeHandler
 
-    val hotbarPreview = HotbarPreview(plugin)
-
     override fun load() {
         plotHandler = PlotHandler(plugin)
         plotVisitorHandler = PlotVisitorHandler(plugin)

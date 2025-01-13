@@ -22,6 +22,7 @@ import com.brinkmc.plop.shared.util.PlopMessageSource
 import com.brinkmc.plop.shop.Shops
 import com.google.gson.Gson
 import org.bukkit.Bukkit
+import org.bukkit.NamespacedKey
 import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.execution.ExecutionCoordinator
@@ -142,4 +143,7 @@ class Plop : State, JavaPlugin() {
     fun plopMessageSource(): PlopMessageSource {
         return this.messageSource
     }
+
+    val namespacedKey: NamespacedKey
+        get() = NamespacedKey(plugin, "plop")
 }

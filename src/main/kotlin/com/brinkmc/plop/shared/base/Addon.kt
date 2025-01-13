@@ -7,6 +7,7 @@ import com.brinkmc.plop.shared.config.ConfigReader
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.MessageService
 import com.brinkmc.plop.shop.Shops
+import org.bukkit.NamespacedKey
 import org.bukkit.Server
 import org.bukkit.entity.Player
 
@@ -39,4 +40,6 @@ internal interface Addon {
     fun Player.sendFormattedMessage(message: String) {
         with (lang) { sendFormattedMessage(message) }
     }
+
+
 }

@@ -10,10 +10,8 @@ import com.brinkmc.plop.plot.handler.PlotSizeHandler
 import com.brinkmc.plop.plot.handler.PlotUpgradeHandler
 import com.brinkmc.plop.plot.handler.PlotVisitorHandler
 import com.brinkmc.plop.plot.plot.base.Plot
-import com.brinkmc.plop.plot.plot.data.PlotVisit
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.gui.preview.HotbarPreview
 import com.brinkmc.plop.shared.storage.PlotKey
 import org.bukkit.entity.Player
 import java.util.UUID

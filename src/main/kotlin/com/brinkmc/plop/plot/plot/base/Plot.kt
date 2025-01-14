@@ -7,6 +7,7 @@ import com.brinkmc.plop.plot.plot.modifier.PlotSize
 import com.brinkmc.plop.plot.plot.modifier.ShopLimit
 import com.brinkmc.plop.plot.plot.modifier.VisitorLimit
 import com.brinkmc.plop.plot.plot.structure.Totem
+import me.glaremasters.guilds.guild.Guild
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import java.util.*

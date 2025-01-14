@@ -46,11 +46,14 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
     }
 
     private fun generateOpenPositions() {
+        openPlots.clear()
+
         val avoidList = hashSetOf<StringLocation>() // List of pre-existing plots
 
         for (plot in plugin.plots.plotHandler.plotMap.values) {
             avoidList.add(
                 StringLocation(
+                    plot.claim.world,
                     plot.claim.centre.x,
                     plot.claim.centre.y,
                     plot.claim.centre.z
@@ -93,11 +96,12 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
                 }
             }
 
-            val isClaimed = avoidList.contains(StringLocation(initialLocation.x, initialLocation.y, initialLocation.z))
+            val isClaimed = avoidList.contains(StringLocation(initialLocation.world.name,initialLocation.x, initialLocation.y, initialLocation.z))
 
             if (!isClaimed) {
                 openPlots.append(
                     StringLocation(
+                        initialLocation.world.name,
                         initialLocation.x,
                         initialLocation.y,
                         initialLocation.z,
@@ -109,7 +113,7 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
         } while (openPlots.size < maxPreviewLimit)
     }
 
-    fun getFirstFree(): Node<StringLocation> ? {
+    fun getFirstFree(): Node<StringLocation>? {
         var next = openPlots.first() // Get the first node
         while (next != null && next.value.open == false) { // Loop while no free plots
             next = next.next

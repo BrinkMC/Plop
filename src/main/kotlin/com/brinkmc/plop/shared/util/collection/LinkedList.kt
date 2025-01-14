@@ -66,6 +66,10 @@ class LinkedList<T> {
         return newNode
     }
 
+    fun remove(node: Node<T>) {
+        node.prev?.next = node.next // Hopefully removes the node
+    }
+
     private fun isEmpty(): Boolean {
         return size == 0
     }

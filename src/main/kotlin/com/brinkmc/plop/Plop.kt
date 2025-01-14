@@ -10,12 +10,14 @@ import com.brinkmc.plop.shared.command.plot.nexus.CommandPlotVisitClose
 import com.brinkmc.plop.shared.command.plot.nexus.CommandPlotVisitOpen
 import com.brinkmc.plop.shared.command.plot.preview.CommandPlotPreview
 import com.brinkmc.plop.shared.command.plot.visit.CommandPlotVisit
+import com.brinkmc.plop.shared.command.processors.GeneralSuggestionProcessor
 import com.brinkmc.plop.shared.command.shop.CommandShopList
 import com.brinkmc.plop.shared.command.shop.CommandTrade
 import com.brinkmc.plop.shared.config.ConfigReader
 import com.brinkmc.plop.shared.hooks.listener.GeneralListener
 import com.brinkmc.plop.shared.hooks.listener.InventoryClick
 import com.brinkmc.plop.shared.hooks.listener.PlayerInteract
+import com.brinkmc.plop.shared.pdc.PersistentDataReader
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.MessageService
 import com.brinkmc.plop.shared.util.PlopMessageSource
@@ -39,6 +41,7 @@ class Plop : State, JavaPlugin() {
     lateinit var plots: Plots
     lateinit var shops: Shops
     lateinit var DB: HikariManager
+    lateinit var persistentDataReader: PersistentDataReader
 
     private lateinit var commandManager: PaperCommandManager<Source>
     private lateinit var annotationParser: AnnotationParser<Source>
@@ -50,7 +53,7 @@ class Plop : State, JavaPlugin() {
     private lateinit var inventoryClickListener: InventoryClick
     private lateinit var playerInteractListener: PlayerInteract
 
-    lateinit var messaging: Gson
+    lateinit var gson: Gson
 
     override fun onEnable() {
         load()
@@ -73,7 +76,8 @@ class Plop : State, JavaPlugin() {
         shops = Shops(plugin)
 
         // Enable gson library for messages
-        this.messaging = Gson()
+        this.gson = Gson()
+        this.persistentDataReader = PersistentDataReader(this)
 
         // Register listener
         loadListeners()
@@ -109,6 +113,8 @@ class Plop : State, JavaPlugin() {
         // The plugin will be using coroutines extensively for scheduling
         annotationParser.installCoroutineSupport()
 
+        annotationParser.parse(GeneralSuggestionProcessor(plugin))
+
         listOf(
             CommandClaimPlot(plugin),
             CommandCreateShop(plugin),
@@ -125,7 +131,9 @@ class Plop : State, JavaPlugin() {
             CommandPlotTp(plugin),
             CommandShopList(plugin),
             CommandTrade(plugin)
-        ).forEach { command -> annotationParser.parse(command) }
+        ).forEach { command ->
+            annotationParser.parseContainers(command)
+        }
     }
 
     fun getFile(fileName: String): File? {

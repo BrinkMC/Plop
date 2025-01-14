@@ -1,5 +1,8 @@
 package com.brinkmc.plop.plot.preview
 
+import org.bukkit.Bukkit
+import org.bukkit.Location
+
 enum class Direction {
     NORTH, EAST, SOUTH, WEST;
 
@@ -14,8 +17,13 @@ enum class Direction {
 }
 
 data class StringLocation(
+    val world: String,
     val x: Double,
     val y: Double,
     val z: Double,
-    var open: Boolean = false
-)
+    var open: Boolean = true
+) {
+    fun toLocation(): Location {
+        return Location(Bukkit.getWorld(world), x, y, z)
+    }
+}

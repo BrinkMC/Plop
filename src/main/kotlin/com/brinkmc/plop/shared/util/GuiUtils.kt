@@ -1,11 +1,9 @@
 package com.brinkmc.plop.shared.util
 
 import com.brinkmc.plop.Plop
-import com.google.j2objc.annotations.Property
+import com.brinkmc.plop.shared.pdc.PersistentData
 import net.kyori.adventure.text.Component
-import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.PlayerInventory
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.util.io.BukkitObjectInputStream
 import org.bukkit.util.io.BukkitObjectOutputStream
@@ -48,20 +46,6 @@ fun ItemStack.description(description: Component): ItemStack {
     }
     return this
 }
-
-/*
-Persistent data, stored in the item as json
-Identified by player and property name
- */
-fun ItemStack.setPData(plugin: Plop, player: UUID, property: KProperty<*>): ItemStack {
-    itemMeta.persistentDataContainer.set(
-        plugin.namespacedKey,
-        PersistentDataType.STRING,
-        PersistentDataInterpreter(player, property.name).toJson() // Json version of the persistent data interpreter
-    )
-    return this
-}
-
 
 /*
 Utility taken from SaveInventory https://github.com/PretzelJohn/SaveInventory/blob/main/src/com/pretzel/dev/saveinventory/lib/Util.java

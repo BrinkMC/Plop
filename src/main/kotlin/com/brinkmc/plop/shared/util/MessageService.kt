@@ -3,15 +3,11 @@ package com.brinkmc.plop.shared.util
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.ComponentBuilder
 import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.minimessage.tag.standard.StandardTags
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.entity.Player
-import javax.annotation.Nullable
 
 class MessageService(override val plugin: Plop): Addon {
 
@@ -25,11 +21,7 @@ class MessageService(override val plugin: Plop): Addon {
 
     val plopMessageSource = plugin.plopMessageSource()
 
-    fun get(string: String): String {
-        return plopMessageSource.findMessage(string) ?: "<red>No message set!"
-    }
-
-    fun getC(string: String, player: Player? = null): Component {
+    fun get(string: String, player: Player? = null): Component {
         return miniMessage.deserialize(plopMessageSource.findMessage(string) ?: "<red>No message set!", profileTags.name(player))
     }
 

@@ -130,10 +130,10 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
     fun getNextFreePlot(node: Node<StringLocation>): Node<StringLocation>? {
         var looked = false
         var next = node.next // Next node
-        while (next != null && next.value.open == false) { // Loop while no free plots
+        while (next != null && !next.value.open) { // Loop while no free plots
             next = next.next
 
-            if (next == null && looked == true) {
+            if (next == null && looked) {
                 logger.error("No plot available forwards?? Bizarre")
                 return null
             }
@@ -150,10 +150,10 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
     fun getPreviousFreePlot(node: Node<StringLocation>): Node<StringLocation>? {
         var looked = false
         var previous = node.prev // Previous node
-        while (previous != null && previous.value.open == false) { // Loop while no free plots
+        while (previous != null && !previous.value.open) { // Loop while no free plots
             previous = previous.next
 
-            if (previous == null && looked == true) {
+            if (previous == null && looked) {
                 logger.error("No plot available backwards?? Bizarre")
                 return null
             }

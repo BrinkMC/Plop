@@ -1,9 +1,11 @@
 package com.brinkmc.plop.shared.hooks.listener
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.preview.PreviewInstance
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.pdc.PersistentData
+import com.brinkmc.plop.shared.pdc.retrieveData
 import com.brinkmc.plop.shared.pdc.types.PDButtonInstance
 import com.google.gson.Gson
 import org.bukkit.event.EventHandler
@@ -34,27 +36,22 @@ class InventoryClick(override val plugin: Plop): Addon, State, Listener {
             return
         }
 
-        val potentialPreview = plots.plotPreviewHandler.previews.find { it.player == inventoryClickEvent.whoClicked.uniqueId }
-
-        if (potentialPreview == null) { // Check is in preview
-            return
-        }
+        val potentialPreview = plots.plotPreviewHandler.previews[inventoryClickEvent.whoClicked.uniqueId] ?: return // Check is in preview
 
         if (inventoryClickEvent.click.isRightClick) { // Allow right_clicks
-            previewItem(inventoryClickEvent)
+            previewItem(inventoryClickEvent, potentialPreview)
             return
         }
 
         inventoryClickEvent.isCancelled = true // Prevent anything else
     }
 
-    private fun previewItem(inventoryClickEvent: InventoryClickEvent) {
+    private fun previewItem(inventoryClickEvent: InventoryClickEvent, preview: PreviewInstance) {
         val item = inventoryClickEvent.currentItem
-        val container = item?.itemMeta?.persistentDataContainer
 
+        var data = item?.retrieveData(PDButtonInstance::class.java) as PDButtonInstance
         // Try and get plop data
 
-        pdr.getData<PDButtonInstance>(item)
 
         val rawData = container?.get(plugin.namespacedKey, PersistentDataType.STRING)
         val readData: PersistentData = Gson().fromJson(rawData, PersistentData::class.java)

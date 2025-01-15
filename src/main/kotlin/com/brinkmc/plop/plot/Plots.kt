@@ -30,7 +30,7 @@ class Plots(override val plugin: Plop): Addon, State {
     lateinit var plotShopHandler: PlotShopHandler
     lateinit var plotSizeHandler: PlotSizeHandler
 
-    override fun load() {
+    override suspend fun load() {
         plotHandler = PlotHandler(plugin)
         plotVisitorHandler = PlotVisitorHandler(plugin)
         plotUpgradeHandler = PlotUpgradeHandler(plugin)
@@ -52,7 +52,7 @@ class Plots(override val plugin: Plop): Addon, State {
         ).forEach { handler -> (handler as State).load() }
     }
 
-    override fun kill() {
+    override suspend fun kill() {
         TODO("Not yet implemented")
     }
 

@@ -13,8 +13,9 @@ import com.brinkmc.plop.plot.plot.structure.TOTEM_TYPE
 import com.brinkmc.plop.plot.plot.structure.Totem
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.util.fullString
-import com.brinkmc.plop.shared.util.toLocation
+import com.brinkmc.plop.shared.util.Funcs.fullString
+import com.brinkmc.plop.shared.util.Funcs.toLocation
+import com.brinkmc.plop.shared.util.async
 import org.bukkit.Location
 import java.sql.ResultSet
 import java.sql.Timestamp
@@ -26,11 +27,11 @@ Implements all methods used to communicate with the database + cache
 
 internal class DatabasePlot(override val plugin: Plop): Addon, State {
 
-    override fun load() {}
+    override suspend fun load() {}
 
-    override fun kill() {}
+    override suspend fun kill() {}
 
-    fun load(uuid: UUID): Plot? {
+    suspend fun load(uuid: UUID): Plot? = async {
         val query = """
         SELECT * FROM plots_plots plots WHERE plots.plot_id = ?
         INNER JOIN plots_claims claim ON claim.plot_id = plots.plot_id
@@ -41,10 +42,10 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
         INNER JOIN plots_visits visit ON visits.plot_id = plots.plot_id
     """.trimIndent() // Draws complete dataset for 1 plot
         val resultSet = DB.query(query, uuid.toString())
-        return resultSet?.let { mapToPlot(it) }
+        return@async resultSet?.let { mapToPlot(it) }
     }
 
-    private fun mapToPlot(resultSet: ResultSet): Plot {
+    private suspend fun mapToPlot(resultSet: ResultSet): Plot = async {
         resultSet.next() // Get the first result (should be the only result)
 
         val plotId = UUID.fromString(resultSet.getString("plot_id"))
@@ -55,6 +56,7 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
             maxLength = resultSet.getInt("max_length"),
             centre = resultSet.getString("centre").toLocation() ?: throw IllegalArgumentException("Invalid centre location"), // If it fails to load, throw exception
             home = resultSet.getString("home").toLocation() ?: throw IllegalArgumentException("Invalid home location"),
+            world = resultSet.getString("world") ?: throw IllegalArgumentException("Invalid world"),
             visit = resultSet.getString("visit").toLocation() ?: throw IllegalArgumentException("Invalid visit location")
         )
 
@@ -98,7 +100,7 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
         val subVisitsResultSet = DB.query("SELECT * FROM plots_visit_records WHERE plot_id = ?", plotId)
 
         if (subTotemResultSet == null || subVisitsResultSet == null) {
-            return Plot(plotId,
+            return@async Plot(plotId,
                 type,
                 ownerId,
                 claim,
@@ -131,7 +133,7 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
 
         val plotVisit = PlotVisit(resultSet.getBoolean("allow_visitors"), visitRecords)
 
-        return Plot(plotId,
+        return@async Plot(plotId,
             type,
             ownerId,
             claim,
@@ -144,7 +146,7 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
         )
     }
 
-    fun create(plot: Plot) {
+    suspend fun create(plot: Plot) = async {
         DB.update("INSERT INTO plots_plots (plot_id, type, owner_id) VALUES(?, ?, ?)",
             plot.plotId,
             plot.type.toString(),
@@ -183,7 +185,7 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
         // No visitor records
     }
 
-    fun save(plot: Plot) {
+    suspend fun save(plot: Plot) = async {
         DB.update("INSERT INTO plots_plots (plot_id, type, owner_id) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE type=?, owner_id=?",
             plot.plotId,
             plot.type.toString(),
@@ -252,7 +254,7 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
     }
 
     // Should hopefully never have to be called
-    fun delete(plot: Plot) {
+    suspend fun delete(plot: Plot) = async {
         val deleteUpdate =  """
             DELETE FROM plots_plots, plots_claims, plots_totems, plots_sizes, plots_factory_limits, plots_factory_locations, plots_shop_limits, plots_visitor_limits, plots_visits, plots_visit_records) WHERE plot_id=?
         """.trimIndent() // Delete all references to the plot

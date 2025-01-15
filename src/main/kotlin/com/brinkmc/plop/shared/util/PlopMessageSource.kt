@@ -15,11 +15,11 @@ class PlopMessageSource(override val plugin: Plop): State, Addon {
 
     private lateinit var loader: YamlConfigurationLoader
 
-    override fun load() {
+    override suspend fun load() {
         readLocale()
     }
 
-    override fun kill() {
+    override suspend fun kill() {
         hashOfStrings.clear()
         loader
     }

@@ -15,9 +15,9 @@ abstract class BaseConfig(override val plugin: Plop): Addon, State {
 
     protected val resultCache = hashMapOf<String, Any>()
 
-    override fun load() {} // The config values will load dynamically
+    override suspend fun load() {} // The config values will load dynamically
 
-    override fun kill() {
+    override suspend fun kill() {
         resultCache.clear()
     }
 

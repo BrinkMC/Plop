@@ -17,7 +17,7 @@ class ConfigReader(override val plugin: Plop): Addon, State {
     private lateinit var shopConfigLoader: YamlConfigurationLoader
     private lateinit var totemConfigLoader: YamlConfigurationLoader
 
-    override fun load() {
+    override suspend fun load() {
         readMainConfig()
         readDatabaseConfig()
         readPlotConfig()
@@ -25,7 +25,7 @@ class ConfigReader(override val plugin: Plop): Addon, State {
         readTotemConfig()
     }
 
-    override fun kill() {
+    override suspend fun kill() {
         saveMainConfig()
         saveDatabaseConfig()
         savePlotConfig()

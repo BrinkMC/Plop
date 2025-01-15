@@ -8,12 +8,12 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
 
 class GeneralListener(override val plugin: Plop): Addon, State, Listener {
-    override fun load() {}
+    override suspend fun load() {}
 
-    override fun kill() {}
+    override suspend fun kill() {}
 
     @EventHandler
-    fun onPlayerQuit(playerQuitEvent: PlayerQuitEvent) {
+    suspend fun onPlayerQuit(playerQuitEvent: PlayerQuitEvent) {
         onPlayerQuitPotentialPreview(playerQuitEvent)
     }
 

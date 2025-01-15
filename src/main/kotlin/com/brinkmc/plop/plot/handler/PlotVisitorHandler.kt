@@ -11,7 +11,7 @@ class PlotVisitorHandler(override val plugin: Plop): Addon, State {
 
     val levels = mutableListOf<Int>()
 
-    override fun load() {
+    override suspend fun load() {
         try {
             val conf = YamlConfiguration.loadConfiguration(File(plugin.dataFolder, "plot/upgrades.yml")) // Get relevant config
             val factorySection = conf.getConfigurationSection("visitor.limit") ?: return // Check filled in
@@ -24,7 +24,7 @@ class PlotVisitorHandler(override val plugin: Plop): Addon, State {
         }
     }
 
-    override fun kill() {
+    override suspend fun kill() {
         levels.clear()
     }
 }

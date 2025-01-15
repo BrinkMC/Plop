@@ -9,12 +9,12 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerQuitEvent
 
 class PlayerInteract(override val plugin: Plop): Addon, State, Listener {
-    override fun load() {}
+    override suspend fun load() {}
 
-    override fun kill() {}
+    override suspend fun kill() {}
 
     @EventHandler
-    fun onPlayerInteract(playerInteractEvent: PlayerInteractEvent) {
+    suspend fun onPlayerInteract(playerInteractEvent: PlayerInteractEvent) {
 
     }
 }

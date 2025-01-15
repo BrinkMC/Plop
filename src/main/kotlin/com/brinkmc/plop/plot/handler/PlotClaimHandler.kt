@@ -6,16 +6,20 @@ import com.brinkmc.plop.shared.base.State
 import java.util.UUID
 
 class PlotClaimHandler(override val plugin: Plop): Addon, State {
-    override fun load() {
+    override suspend fun load() {
         TODO("Not yet implemented")
     }
 
-    override fun kill() {
+    override suspend fun kill() {
         TODO("Not yet implemented")
     }
 
     fun initiateClaim(player: UUID) {
         val previewInstance = plots.plotPreviewHandler.previews[player]
 
+
+        TODO("Integrate with Guilds, Integrate with WorldGuard")
+
+        plots.plotPreviewHandler.claimPlot(player)
     }
 }

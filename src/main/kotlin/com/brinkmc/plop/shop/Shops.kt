@@ -9,11 +9,11 @@ class Shops(override val plugin: Plop): Addon,State {
 
     val shopList: MutableList<Shop> = mutableListOf()
 
-    override fun load() {
+    override suspend fun load() {
         TODO("Not yet implemented")
     }
 
-    override fun kill() {
+    override suspend fun kill() {
         TODO("Not yet implemented")
     }
 

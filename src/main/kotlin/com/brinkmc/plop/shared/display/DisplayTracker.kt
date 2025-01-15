@@ -4,11 +4,11 @@ import com.brinkmc.plop.shared.base.State
 import java.util.*
 
 internal interface DisplayTracker: State {
-    override fun kill() {
+    override suspend fun kill() {
         TODO("Not yet implemented")
     }
 
-    override fun load() {
+    override suspend fun load() {
         TODO("Not yet implemented")
     }
 

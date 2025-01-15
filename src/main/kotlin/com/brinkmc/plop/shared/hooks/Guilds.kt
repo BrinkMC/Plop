@@ -10,11 +10,11 @@ class Guilds(override val plugin: Plop): Addon, State {
 
     lateinit var guildAPI: GuildsAPI // Guild API
 
-    override fun load() {
+    override suspend fun load() {
         guildAPI = Guilds.getApi()
     }
 
-    override fun kill() {
+    override suspend fun kill() {
         TODO("Not yet implemented")
     }
 

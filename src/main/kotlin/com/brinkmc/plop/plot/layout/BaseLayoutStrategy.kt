@@ -25,7 +25,7 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
     lateinit var world: World
     lateinit var centrePlot: Location
 
-    override fun load() {
+    override suspend fun load() {
         // Create world if it doesn't exist already
         if (plugin.server.getWorld(worldName) == null) {
             plugin.server.createWorld(WorldCreator.name(worldName).generator(worldGen))
@@ -40,7 +40,7 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
         generateOpenPositions()
     }
 
-    override fun kill() {
+    override suspend fun kill() {
         plotConfig.kill()
         openPlots.clear()
     }

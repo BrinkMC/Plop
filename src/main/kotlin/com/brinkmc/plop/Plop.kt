@@ -70,7 +70,7 @@ class Plop : State, JavaPlugin() {
     /*
     Putting everything inside a load function results in easy reload of the entire plugin if necessary based off of the state system
      */
-    override fun load() {
+    override suspend fun load() {
         // Load the two parts of the plugin
         plots = Plots(plugin)
         shops = Shops(plugin)
@@ -86,7 +86,7 @@ class Plop : State, JavaPlugin() {
         loadCmds()
     }
 
-    override fun kill() {
+    override suspend fun kill() {
         plots.kill()
         shops.kill()
     }

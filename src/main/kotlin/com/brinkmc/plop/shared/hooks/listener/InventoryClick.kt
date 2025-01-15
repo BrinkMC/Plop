@@ -7,7 +7,11 @@ import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.pdc.PersistentData
 import com.brinkmc.plop.shared.pdc.retrieveData
 import com.brinkmc.plop.shared.pdc.types.PDButtonInstance
+import com.brinkmc.plop.shared.util.sync
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
@@ -15,9 +19,9 @@ import org.bukkit.inventory.PlayerInventory
 import org.bukkit.persistence.PersistentDataType
 
 class InventoryClick(override val plugin: Plop): Addon, State, Listener {
-    override fun load() {}
+    override suspend fun load() {}
 
-    override fun kill() {}
+    override suspend fun kill() {}
 
     /*
     Persistent data key will be plop so that I can identify if the item is mine
@@ -26,7 +30,7 @@ class InventoryClick(override val plugin: Plop): Addon, State, Listener {
     The data will also contain the exact button it is
      */
     @EventHandler
-    fun onInventoryClick(inventoryClickEvent: InventoryClickEvent) {
+    suspend fun onInventoryClick(inventoryClickEvent: InventoryClickEvent) {
         preventChangeDuringPreview(inventoryClickEvent) // Check preview
     }
 

@@ -7,7 +7,7 @@ import com.brinkmc.plop.plot.plot.base.PLOT_TYPE
 import com.brinkmc.plop.plot.preview.PreviewInstance
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.util.stacksToBase64
+import com.brinkmc.plop.shared.util.GuiUtils.stacksToBase64
 import org.bukkit.Bukkit
 import java.util.UUID
 

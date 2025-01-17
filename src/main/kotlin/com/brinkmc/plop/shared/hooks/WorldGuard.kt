@@ -1,6 +1,7 @@
 package com.brinkmc.plop.shared.hooks
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.plot.base.PlotOwner
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.sk89q.worldedit.bukkit.BukkitAdapter
@@ -57,7 +58,21 @@ class WorldGuard(override val plugin: Plop): Addon, State {
     }
 
     fun createRegion(uuid: UUID) { // Create a region to claim around the new plot, the plot has uuid as its name
-        val plot = plots.getPlot(uuid)
-        val protectedRegion = ProtectedCuboidRegion(plot?.ownerId)
+        val plot = plots.getPlot(uuid) ?: run {
+            logger.error("Critical problem in creating a region, plot doesn't exist")
+            return
+        }
+
+        val owner = plot.getOwner()
+
+        when (owner::class.java) {
+            PlotOwner.GuildOwner::class.java -> {
+
+            }
+            PlotOwner.PlayerOwner::class.java -> {
+
+            }
+        }
+        val protectedRegion = ProtectedCuboidRegion(p)
     }
 }

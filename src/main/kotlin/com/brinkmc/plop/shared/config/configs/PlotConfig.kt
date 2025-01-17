@@ -23,4 +23,5 @@ class PlotConfig(
     var personalPlotWorld: String by delegate("personal", "plot", "world")
     var personalPlotWorldGenerator: String by delegate("personal", "plot", "generator")
 
+    var factoryLevels: List<Int> by delegate("factory", "levels")
 }

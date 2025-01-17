@@ -14,6 +14,7 @@ import com.brinkmc.plop.shared.command.processors.GeneralSuggestionProcessor
 import com.brinkmc.plop.shared.command.shop.CommandShopList
 import com.brinkmc.plop.shared.command.shop.CommandTrade
 import com.brinkmc.plop.shared.config.ConfigReader
+import com.brinkmc.plop.shared.config.configs.MainConfig
 import com.brinkmc.plop.shared.hooks.listener.GeneralListener
 import com.brinkmc.plop.shared.hooks.listener.InventoryClick
 import com.brinkmc.plop.shared.hooks.listener.PlayerInteract
@@ -162,4 +163,7 @@ class Plop : State, SuspendingJavaPlugin() {
 
     val namespacedKey: NamespacedKey
         get() = NamespacedKey(plugin, "plop")
+
+    val mainConfig = MainConfig(plugin)
+    val
 }

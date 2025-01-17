@@ -17,7 +17,7 @@ class PlotClaimHandler(override val plugin: Plop): Addon, State {
     fun initiateClaim(player: UUID) {
         val previewInstance = plots.plotPreviewHandler.previews[player]
 
-
+        previewInstance
         TODO("Integrate with Guilds, Integrate with WorldGuard")
 
         plots.plotPreviewHandler.claimPlot(player)

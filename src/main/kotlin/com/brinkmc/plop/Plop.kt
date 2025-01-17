@@ -21,8 +21,16 @@ import com.brinkmc.plop.shared.pdc.PersistentDataReader
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.MessageService
 import com.brinkmc.plop.shared.util.PlopMessageSource
+import com.brinkmc.plop.shared.util.async
+import com.brinkmc.plop.shared.util.sync
 import com.brinkmc.plop.shop.Shops
+import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
+import com.github.shynixn.mccoroutine.bukkit.launch
+import com.github.shynixn.mccoroutine.bukkit.registerSuspendingEvents
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.plugin.java.JavaPlugin
@@ -35,7 +43,7 @@ import org.incendo.cloud.paper.util.sender.Source
 import java.io.File
 
 
-class Plop : State, JavaPlugin() {
+class Plop : State, SuspendingJavaPlugin() {
     private val plugin = this
 
     lateinit var plots: Plots
@@ -55,11 +63,11 @@ class Plop : State, JavaPlugin() {
 
     lateinit var gson: Gson
 
-    override fun onEnable() {
+    override suspend fun onEnableAsync() {
         load()
     }
 
-    override fun onDisable() {
+    override suspend fun onDisableAsync() {
         //TODO ascertain order to kill
         plots.kill()
         shops.kill()
@@ -100,7 +108,7 @@ class Plop : State, JavaPlugin() {
             generalListener,
             inventoryClickListener,
             playerInteractListener
-        ).forEach { listener -> Bukkit.getServer().pluginManager.registerEvents(listener, this) }
+        ).forEach { listener -> Bukkit.getServer().pluginManager.registerSuspendingEvents(listener, this) }
     }
 
     private fun loadCmds() {
@@ -132,7 +140,7 @@ class Plop : State, JavaPlugin() {
             CommandShopList(plugin),
             CommandTrade(plugin)
         ).forEach { command ->
-            annotationParser.parseContainers(command)
+            annotationParser.parse(command)
         }
     }
 

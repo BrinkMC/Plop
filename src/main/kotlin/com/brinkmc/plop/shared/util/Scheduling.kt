@@ -50,3 +50,9 @@ private object DispatcherContainer {
         MinecraftCoroutineDispatcher(JavaPlugin.getPlugin(Plop::class.java))
     }
 }
+
+val Dispatchers.async: CoroutineContext
+    get() =  DispatcherContainer.async
+
+val Dispatchers.sync: CoroutineContext
+    get() =  DispatcherContainer.sync

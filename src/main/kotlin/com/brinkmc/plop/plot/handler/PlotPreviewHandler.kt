@@ -8,8 +8,12 @@ import com.brinkmc.plop.plot.preview.PreviewInstance
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.GuiUtils.stacksToBase64
+import com.brinkmc.plop.shared.util.sync
+import com.github.shynixn.mccoroutine.bukkit.launch
+import kotlinx.coroutines.Dispatchers
 import org.bukkit.Bukkit
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 
 /*
 Keep track of all active preview instances

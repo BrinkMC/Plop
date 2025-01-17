@@ -8,6 +8,7 @@ import com.sk89q.worldguard.LocalPlayer
 import com.sk89q.worldguard.WorldGuard
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin
 import com.sk89q.worldguard.internal.platform.WorldGuardPlatform
+import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion
 import com.sk89q.worldguard.protection.regions.ProtectedRegion
 import com.sk89q.worldguard.protection.regions.RegionContainer
 import org.bukkit.Bukkit
@@ -55,7 +56,8 @@ class WorldGuard(override val plugin: Plop): Addon, State {
         return worldGuardRegionContainer.get(localWorld(world))?.regions?.get(uuid.toString())
     }
 
-    fun createRegion(uuid: UUID) {
-        val protectedRegion = ProtectedRegion()
+    fun createRegion(uuid: UUID) { // Create a region to claim around the new plot, the plot has uuid as its name
+        val plot = plots.getPlot(uuid)
+        val protectedRegion = ProtectedCuboidRegion(plot?.ownerId)
     }
 }

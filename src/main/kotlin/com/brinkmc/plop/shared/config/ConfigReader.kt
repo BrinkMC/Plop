@@ -3,6 +3,7 @@ package com.brinkmc.plop.shared.config
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shared.util.async
 import com.sun.org.apache.xalan.internal.utils.ConfigurationError
 import org.spongepowered.configurate.ConfigurateException
 import org.spongepowered.configurate.ConfigurationNode
@@ -17,7 +18,7 @@ class ConfigReader(override val plugin: Plop): Addon, State {
     private lateinit var shopConfigLoader: YamlConfigurationLoader
     private lateinit var totemConfigLoader: YamlConfigurationLoader
 
-    override suspend fun load() {
+    override suspend fun load() = async {
         readMainConfig()
         readDatabaseConfig()
         readPlotConfig()
@@ -25,7 +26,7 @@ class ConfigReader(override val plugin: Plop): Addon, State {
         readTotemConfig()
     }
 
-    override suspend fun kill() {
+    override suspend fun kill() = async {
         saveMainConfig()
         saveDatabaseConfig()
         savePlotConfig()

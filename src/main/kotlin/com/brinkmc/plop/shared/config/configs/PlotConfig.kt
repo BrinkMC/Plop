@@ -17,11 +17,20 @@ class PlotConfig(
     var guildPlotWorld: String by delegate("guild", "plot", "world")
     var guildPlotWorldGenerator: String by delegate("guild", "plot", "generator")
 
+    // Plot upgrades
+    var guildFactoryLevels: List<Int> by delegate("guild", "factory", "levels")
+    var guildPlotSizeLevels: List<Int> by delegate("guild","size", "levels")
+    var guildShopLevels: List<Int> by delegate("guild", "shop", "levels")
+    var guildTotemLimit: List<Int> by delegate("guild", "totem", "levels")
 
     // Get values for the personal plot configuration
     var personalPlotMaxSize: Int by delegate("personal", "plot", "max-size")
     var personalPlotWorld: String by delegate("personal", "plot", "world")
     var personalPlotWorldGenerator: String by delegate("personal", "plot", "generator")
 
-    var factoryLevels: List<Int> by delegate("factory", "levels")
+    // Plot upgrades
+    var personalFactoryLevels: List<Int> by delegate("personal", "factory", "levels")
+    var personalPlotSizeLevels: List<Int> by delegate("personal","size", "levels")
+    var personalShopLevels: List<Int> by delegate("personal", "shop", "levels")
+    var personalTotemLimit: List<Int> by delegate("personal", "totem", "levels")
 }

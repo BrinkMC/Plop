@@ -7,11 +7,11 @@ import com.brinkmc.plop.plot.plot.modifier.PlotSize
 import com.brinkmc.plop.plot.plot.modifier.ShopLimit
 import com.brinkmc.plop.plot.plot.modifier.VisitorLimit
 import com.brinkmc.plop.plot.plot.structure.Totem
+import com.brinkmc.plop.shared.hooks.Locals.localWorld
+import com.sk89q.worldguard.WorldGuard
+import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion
 import me.glaremasters.guilds.Guilds
-import me.glaremasters.guilds.api.GuildsAPI
-import me.glaremasters.guilds.guild.Guild
 import org.bukkit.Bukkit
-import org.bukkit.entity.Player
 import java.util.*
 
 /*
@@ -19,14 +19,14 @@ I find best practice for data classes tends to be separate the logic into extens
 This works well in keeping the data class itself relatively clean
  */
 
-enum class PLOT_TYPE {
-    Personal,
-    Guild
+enum class plotType {
+    PERSONAL,
+    GUILD
 }
 
 data class Plot(
     val plotId: UUID, // Unique ID for the plot
-    val type: PLOT_TYPE,
+    val type: plotType,
 
     // Primary
     val ownerId: UUID, // It may be a Player UUID OR Guild UUID
@@ -43,11 +43,15 @@ data class Plot(
     val plotVisit: PlotVisit,
 ) {
     fun getOwner(): PlotOwner {
-        return if (type == PLOT_TYPE.Guild) {
+        return if (type == plotType.GUILD) {
             PlotOwner.GuildOwner(Guilds.getApi().getGuild(ownerId))
         }
         else {
             PlotOwner.PlayerOwner(Bukkit.getOfflinePlayer(ownerId))
         }
+    }
+
+    fun getRegion(worldGuard: WorldGuard): ProtectedCuboidRegion {
+        return worldGuard.platform.regionContainer.get(this.claim.world.localWorld())?.regions?.get(this.plotId.toString()) as ProtectedCuboidRegion
     }
 }

@@ -11,10 +11,10 @@ import com.brinkmc.plop.shared.util.collection.Node
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.WorldCreator
+import java.util.concurrent.atomic.AtomicBoolean
 
 abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
 
-    protected abstract val plotConfig: PlotConfig
     protected abstract val maxPlotLength: Double
     protected abstract val maxPreviewLimit: Int
     protected abstract val worldName: String
@@ -50,7 +50,7 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
 
         val avoidList = hashSetOf<StringLocation>() // List of pre-existing plots
 
-        for (plot in plugin.plots.plotHandler.plotMap.values) {
+        for (plot in plugin.plots.plotMap.values) {
             avoidList.add(
                 StringLocation(
                     plot.claim.world,
@@ -105,7 +105,7 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
                         initialLocation.x,
                         initialLocation.y,
                         initialLocation.z,
-                        false
+                        AtomicBoolean(false)
                     )
                 ) // Location isn't being looked at
             }

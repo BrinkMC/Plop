@@ -10,7 +10,6 @@ import java.io.File
 
 class PlotFactoryHandler(override val plugin: Plop): Addon, State {
 
-    val plotConfig = PlotConfig(plugin)
     val levels = mutableListOf<Int>()
 
     override suspend fun load() {

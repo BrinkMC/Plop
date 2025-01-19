@@ -15,6 +15,14 @@ import com.brinkmc.plop.shared.command.shop.CommandShopList
 import com.brinkmc.plop.shared.command.shop.CommandTrade
 import com.brinkmc.plop.shared.config.ConfigReader
 import com.brinkmc.plop.shared.config.configs.MainConfig
+import com.brinkmc.plop.shared.config.configs.PlotConfig
+import com.brinkmc.plop.shared.config.configs.SQLConfig
+import com.brinkmc.plop.shared.config.configs.ShopConfig
+import com.brinkmc.plop.shared.config.configs.TotemConfig
+import com.brinkmc.plop.shared.hooks.Guilds
+import com.brinkmc.plop.shared.hooks.MythicMobs
+import com.brinkmc.plop.shared.hooks.ProtocolLib
+import com.brinkmc.plop.shared.hooks.WorldGuard
 import com.brinkmc.plop.shared.hooks.listener.GeneralListener
 import com.brinkmc.plop.shared.hooks.listener.InventoryClick
 import com.brinkmc.plop.shared.hooks.listener.PlayerInteract
@@ -45,6 +53,7 @@ import java.io.File
 
 
 class Plop : State, SuspendingJavaPlugin() {
+
     private val plugin = this
 
     lateinit var plots: Plots
@@ -57,6 +66,12 @@ class Plop : State, SuspendingJavaPlugin() {
     private lateinit var messageSource: PlopMessageSource
     private lateinit var messageService: MessageService
     private lateinit var configManager: ConfigReader
+
+    // Hooks
+    lateinit var hooks: Plop.Hooks
+
+    // Configs
+    lateinit var configs: Plop.Configs
 
     private lateinit var generalListener: GeneralListener
     private lateinit var inventoryClickListener: InventoryClick
@@ -80,9 +95,15 @@ class Plop : State, SuspendingJavaPlugin() {
     Putting everything inside a load function results in easy reload of the entire plugin if necessary based off of the state system
      */
     override suspend fun load() {
+        // Load configs initially to get all necessary data
+        configs = Configs(plugin)
+
         // Load the two parts of the plugin
         plots = Plots(plugin)
         shops = Shops(plugin)
+
+        // Get instance of hooks
+        hooks = Hooks(plugin)
 
         // Enable gson library for messages
         this.gson = Gson()
@@ -164,6 +185,21 @@ class Plop : State, SuspendingJavaPlugin() {
     val namespacedKey: NamespacedKey
         get() = NamespacedKey(plugin, "plop")
 
-    val mainConfig = MainConfig(plugin)
-    val
+
+
+    // Enable hooks
+    class Hooks(val plugin: Plop) {
+        val guilds = Guilds(plugin)
+        val protocolLib = ProtocolLib(plugin)
+        val mythicMobs = MythicMobs(plugin)
+        val worldGuard = WorldGuard(plugin)
+    }
+
+    class Configs(val plugin: Plop) {
+        val mainConfig = MainConfig(plugin)
+        val plotConfig = PlotConfig(plugin)
+        val shopConfig = ShopConfig(plugin)
+        val SQLConfig = SQLConfig(plugin)
+        val totemConfig = TotemConfig(plugin)
+    }
 }

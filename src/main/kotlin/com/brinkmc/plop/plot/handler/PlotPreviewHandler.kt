@@ -3,17 +3,13 @@ package com.brinkmc.plop.plot.handler
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.layout.GuildPlotLayoutStrategy
 import com.brinkmc.plop.plot.layout.PersonalPlotLayoutStrategy
-import com.brinkmc.plop.plot.plot.base.PLOT_TYPE
+import com.brinkmc.plop.plot.plot.base.plotType
 import com.brinkmc.plop.plot.preview.PreviewInstance
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.GuiUtils.stacksToBase64
-import com.brinkmc.plop.shared.util.sync
-import com.github.shynixn.mccoroutine.bukkit.launch
-import kotlinx.coroutines.Dispatchers
 import org.bukkit.Bukkit
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicBoolean
 
 /*
 Keep track of all active preview instances
@@ -36,7 +32,7 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
         previews.clear()
     }
 
-    fun startPreview(player: UUID, type: PLOT_TYPE) {
+    fun startPreview(player: UUID, type: plotType) {
 
         val bukkitPlayer = Bukkit.getPlayer(player)
 
@@ -56,14 +52,14 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
         previewInstance.type = type
 
         when (type) {
-            PLOT_TYPE.Personal -> {
+            plotType.PERSONAL -> {
                 previewInstance.viewPlot = personalPreviewHandler.getFirstFree() ?: run {
                     logger.error("No free personal plots :(") // Handle having no free plots
                     return
                 }
             }
 
-            PLOT_TYPE.Guild -> {
+            plotType.GUILD -> {
                 previewInstance.viewPlot = guildPlotLayoutStrategy.getFirstFree() ?: run {
                     logger.error("No free guild plots :(") // Handle having no free plots
                     return
@@ -106,10 +102,10 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
         }
 
         when(previewInstance.type) {
-            PLOT_TYPE.Personal -> {
+            plotType.PERSONAL -> {
                 personalPreviewHandler.openPlots.remove(previewInstance.viewPlot)
             }
-            PLOT_TYPE.Guild -> {
+            plotType.GUILD -> {
                 guildPlotLayoutStrategy.openPlots.remove(previewInstance.viewPlot)
             }
         }
@@ -129,13 +125,13 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
 
         previewInstance.viewPlot.value.open = true
         when (previewInstance.type) { // Handle guild vs personal logic
-            PLOT_TYPE.Personal ->  {
+            plotType.PERSONAL ->  {
                 previewInstance.viewPlot = personalPreviewHandler.getNextFreePlot(previewInstance.viewPlot) ?: run {
                     logger.error("No free personal plots forwards :(") // Handle having no free plots
                     return
                 }
             }
-            PLOT_TYPE.Guild -> {
+            plotType.GUILD -> {
                 previewInstance.viewPlot = guildPlotLayoutStrategy.getNextFreePlot(previewInstance.viewPlot) ?: run {
                     logger.error("No free guild plots forwards :(") // Handle having no free plots
                     return
@@ -158,13 +154,13 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
 
         previewInstance.viewPlot.value.open = true
         when (previewInstance.type) { // Handle guild vs personal logic
-            PLOT_TYPE.Personal ->  {
+            plotType.PERSONAL ->  {
                 previewInstance.viewPlot = personalPreviewHandler.getPreviousFreePlot(previewInstance.viewPlot) ?: run {
                     logger.error("No free personal plots backwards :(") // Handle having no free plots
                     return
                 }
             }
-            PLOT_TYPE.Guild -> {
+            plotType.GUILD -> {
                 previewInstance.viewPlot = guildPlotLayoutStrategy.getPreviousFreePlot(previewInstance.viewPlot) ?: run {
                     logger.error("No free guild plots backwards :(") // Handle having no free plots
                     return

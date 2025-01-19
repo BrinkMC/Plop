@@ -5,6 +5,5 @@ import java.util.UUID
 
 data class ShopLimit(
     var level: Int,
-    var shops: List<UUID>,
-    @Transient var shopLimit: Int
+    var shops: List<UUID>
 )

@@ -1,30 +1,37 @@
 package com.brinkmc.plop.plot.handler
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.plot.base.plotType
+import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import org.bukkit.configuration.file.YamlConfiguration
-import org.spongepowered.configurate.ConfigurateException
-import java.io.File
 
 class PlotSizeHandler(override val plugin: Plop): Addon, State {
 
-    val levels = mutableListOf<Int>()
+    val guildLevels = mutableListOf<Int>()
+    val personalLevels = mutableListOf<Int>()
 
     override suspend fun load() {
-        try {
-            val conf = YamlConfiguration.loadConfiguration(File(plugin.dataFolder, "plot/upgrades.yml")) // Get relevant config
-            val factorySection = conf.getConfigurationSection("size.limit") ?: return // Check filled in
-
-            for (key in factorySection.getKeys(false)) {
-                levels.add(factorySection.getInt("$key.limit")) // Add a level per child node
-            }
-        } catch (e: ConfigurateException) {
-            logger.error("Failed to configurate plot size limits :(") // Didn't work did it
-        }
+        guildLevels.addAll(plotConfig.guildPlotSizeLevels) // Add all guild plot size levels
+        personalLevels.addAll(plotConfig.personalPlotSizeLevels)
     }
 
     override suspend fun kill() {
-        levels.clear()
+        guildLevels.clear() // Remove all values
+        personalLevels.clear()
+    }
+
+    fun getCurrentPlotSize(plot: Plot): Int {
+        return when (plot.type) {
+            plotType.GUILD -> guildLevels[plot.plotSize.level]
+            plotType.PERSONAL -> personalLevels[plot.plotSize.level]
+        }
+    }
+
+    fun getPlotSizeLimit(plot: Plot): Int {
+        return when (plot.type) {
+            plotType.GUILD -> plotConfig.guildPlotSizeLevels.size
+            plotType.PERSONAL -> plotConfig.personalPlotSizeLevels.size
+        }
     }
 }

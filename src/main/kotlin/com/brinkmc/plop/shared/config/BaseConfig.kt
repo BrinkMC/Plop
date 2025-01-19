@@ -6,6 +6,8 @@ import com.brinkmc.plop.shared.base.State
 import org.spongepowered.configurate.ConfigurationNode
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
+import kotlin.text.get
+
 /*
 Arguably the most convoluted configuration class I've ever seen built on top of an even more ridiculous framework
  */
@@ -34,11 +36,18 @@ abstract class BaseConfig(override val plugin: Plop): Addon, State {
 
     protected inline fun <reified T> delegate(vararg node: Any) = object : ReadWriteProperty<Any?, T> { // Save me even more work for the config
         override operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
-            return getOrPutAny(property, node) // Getter for each value
+            return if (property.returnType.classifier == List::class) { // If the return type is a list, read children
+                val section = config?.node(*node) ?: return emptyList<Any>() as T // Get section, if empty return empty
+                section.childrenMap().values.mapNotNull { childNode ->
+                    childNode.get(T::class.java) // Get the child as the type specified
+                } as T
+            } else {
+                getOrPutAny(property, *node) // Otherwise handle normally
+            }
         }
 
         override operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-            setNodeValue(property, value, node) // Setter for each value
+            setNodeValue(property, value, *node) // Setter for each value
         }
     }
 }

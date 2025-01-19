@@ -11,19 +11,18 @@ Plot can either have
  */
 data class PlotKey(
     val plotId: UUID? = null,
-    val ownerId: UUID? = null,
-    val guildId: UUID? = null
+    val ownerId: UUID? = null
 ) {
     // Literally overrides the == sign for PlotKeys lol
     override fun equals(other: Any?): Boolean {
         if (this === other) return true // Check if both references point to the same object
         if (javaClass != other?.javaClass) return false // Check if the object is the same as PlotKey
         other as PlotKey // Cast to PlotKey because it's the same, and we can treat it as such
-        return ( plotId == other.plotId || ownerId == other.ownerId || guildId == other.guildId ) // Finally compare if the two are the same
+        return ( plotId == other.plotId || ownerId == other.ownerId ) // Finally compare if the two are the same
     }
 
     override fun hashCode(): Int {
-        return Objects.hash(plotId, ownerId, guildId) // Create hash from all 3 things put together ( 2 things )
+        return Objects.hash(plotId, ownerId) // Create hash from all 2 things put together
     }
 }
 

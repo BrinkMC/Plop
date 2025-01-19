@@ -10,6 +10,5 @@ import java.io.File
 
 data class FactoryLimit(
     var level: Int,
-    var factories: List<Location>,
-    @Transient var factoryLimit: Int
+    var factories: List<Location>
 )

@@ -19,6 +19,7 @@ repositories {
     maven("https://repo.doesnt-want-to.work/snapshots/")
     maven("https://maven.enginehub.org/repo/")
     maven("https://maven.noxcrew.com/public")
+    maven("https://eldonexus.de/repository/maven-releases/")
     maven("https://repo.glaremasters.me/repository/public/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") {
         content { includeGroup("me.clip") }
@@ -67,6 +68,7 @@ dependencies {
     implementation("com.zaxxer", "HikariCP", "6.2.1")
     implementation("org.bstats", "bstats-bukkit", "3.0.2")
     implementation("io.papermc", "paperlib", "1.0.8")
+    implementation("com.github.yannicklamprecht", "worldborderapi", "1.214.0")
 
     implementation("xyz.jpenilla:reflection-remapper:0.1.0-SNAPSHOT")
 }

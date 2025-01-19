@@ -1,7 +1,7 @@
 package com.brinkmc.plop.plot.storage
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.base.PLOT_TYPE
+import com.brinkmc.plop.plot.plot.base.plotType
 import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.data.Claim
 import com.brinkmc.plop.plot.plot.data.PlotVisit
@@ -49,11 +49,10 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
         resultSet.next() // Get the first result (should be the only result)
 
         val plotId = UUID.fromString(resultSet.getString("plot_id"))
-        val type: PLOT_TYPE = PLOT_TYPE.valueOf(resultSet.getString("type"))
+        val type: plotType = plotType.valueOf(resultSet.getString("type"))
         val ownerId = UUID.fromString(resultSet.getString("owner_id"))
 
         val claim = Claim(
-            maxLength = resultSet.getInt("max_length"),
             centre = resultSet.getString("centre").toLocation() ?: throw IllegalArgumentException("Invalid centre location"), // If it fails to load, throw exception
             home = resultSet.getString("home").toLocation() ?: throw IllegalArgumentException("Invalid home location"),
             world = resultSet.getString("world") ?: throw IllegalArgumentException("Invalid world"),
@@ -63,12 +62,10 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
         val visitorLimit = VisitorLimit(
             level = resultSet.getInt("visitor_lim.level"), // Get the stored level
             amount = 0, // Server startup surely no one is at the plot //TODO Verify
-            visitorLimit = plots.plotVisitorHandler.levels[resultSet.getInt("visitor_lim.level")] // Read from config
         )
 
         val plotSize = PlotSize(
-            level = resultSet.getInt("size.level"),
-            size = plots.plotSizeHandler.levels[resultSet.getInt("size.level")]
+            level = resultSet.getInt("size.level")
         )
 
         // Get list of factories
@@ -80,8 +77,7 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
 
         val factoryLimit = FactoryLimit(
             level = resultSet.getInt("factory_lim.level"),
-            factories = factoryList,
-            factoryLimit = plots.plotFactoryHandler.levels[resultSet.getInt("factory_lim.level")]
+            factories = factoryList
         )
 
         // Get list of shops
@@ -92,8 +88,7 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
         } while (subShopQuerySet.next())
         val shopLimit = ShopLimit(
             level = resultSet.getInt("shop_lim.level"),
-            shops = shopList,
-            shopLimit = plots.plotShopHandler.levels[resultSet.getInt("shop_lim.level")]
+            shops = shopList
         )
 
         val subTotemResultSet = DB.query("SELECT * FROM plots_totems WHERE plot_id = ?", plotId)
@@ -153,7 +148,6 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
             plot.ownerId
         )
         DB.update("INSERT INTO plots_claims (max_length, centre, home, visit, plot_id) VALUES (?, ?, ?, ?, ?)",
-            plot.claim.maxLength,
             plot.claim.centre.fullString(false),
             plot.claim.home.fullString(),
             plot.claim.visit.fullString(),
@@ -194,12 +188,10 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
             plot.ownerId
         )
         DB.update("INSERT INTO plots_claims (max_length, centre, home, visit, plot_id) VALUES(?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE max_length=?, centre=?, home=?, visit=?",
-            plot.claim.maxLength,
             plot.claim.centre.fullString(false),
             plot.claim.home.fullString(),
             plot.claim.visit.fullString(),
             plot.plotId,
-            plot.claim.maxLength,
             plot.claim.centre.fullString(false),
             plot.claim.home.fullString(),
             plot.claim.visit.fullString(),
@@ -260,6 +252,4 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
         """.trimIndent() // Delete all references to the plot
         DB.update(deleteUpdate, plot.plotId)
     }
-
-    
 }

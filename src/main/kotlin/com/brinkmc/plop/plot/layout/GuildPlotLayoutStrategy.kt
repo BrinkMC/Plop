@@ -17,10 +17,9 @@ import kotlin.times
 
 class GuildPlotLayoutStrategy(override val plugin: Plop): BaseLayoutStrategy(plugin) {
 
-    override val plotConfig = PlotConfig(plugin)
     override val maxPlotLength: Double = plotConfig.guildPlotMaxSize.toDouble()
     override val maxPreviewLimit: Int
-        get() = (plugin.plots.plotHandler.plotMap.size * 3) + 100
+        get() = (plugin.plots.plotMap.size * 3) + 100
     override val worldName: String = plotConfig.guildPlotWorld
     override val worldGen: String = plotConfig.guildPlotWorldGenerator
 

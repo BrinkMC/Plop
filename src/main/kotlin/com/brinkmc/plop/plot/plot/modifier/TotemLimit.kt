@@ -5,6 +5,5 @@ import java.util.UUID
 
 data class TotemLimit(
     var level: Int,
-    var totems: List<UUID>,
-    @Transient var totemLimit: Int
+    var totems: List<UUID>
 )

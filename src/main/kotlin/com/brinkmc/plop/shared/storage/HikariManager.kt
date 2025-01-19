@@ -13,15 +13,13 @@ import java.sql.ResultSet
 
 class HikariManager(override val plugin: Plop): Addon, State {
 
-    private lateinit var config: SQLConfig
     private lateinit var database: HikariDataSource
 
     override suspend fun load() = async {
-        config = SQLConfig(plugin) // Initiate the config
 
-        database.jdbcUrl = "jdbc:mariadb://${config.host}/${config.database}"
-        database.username = config.user
-        database.password = config.password
+        database.jdbcUrl = "jdbc:mariadb://${SQLConfig.host}/${SQLConfig.database}"
+        database.username = SQLConfig.user
+        database.password = SQLConfig.password
 
         // Get connection and create tables
         try {

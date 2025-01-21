@@ -3,7 +3,7 @@ package com.brinkmc.plop.plot.handler
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.layout.GuildPlotLayoutStrategy
 import com.brinkmc.plop.plot.layout.PersonalPlotLayoutStrategy
-import com.brinkmc.plop.plot.plot.base.plotType
+import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.preview.PreviewInstance
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
@@ -32,7 +32,7 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
         previews.clear()
     }
 
-    fun startPreview(player: UUID, type: plotType) {
+    fun startPreview(player: UUID, type: PlotType) {
 
         val bukkitPlayer = Bukkit.getPlayer(player)
 
@@ -52,14 +52,14 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
         previewInstance.type = type
 
         when (type) {
-            plotType.PERSONAL -> {
+            PlotType.PERSONAL -> {
                 previewInstance.viewPlot = personalPreviewHandler.getFirstFree() ?: run {
                     logger.error("No free personal plots :(") // Handle having no free plots
                     return
                 }
             }
 
-            plotType.GUILD -> {
+            PlotType.GUILD -> {
                 previewInstance.viewPlot = guildPlotLayoutStrategy.getFirstFree() ?: run {
                     logger.error("No free guild plots :(") // Handle having no free plots
                     return
@@ -102,10 +102,10 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
         }
 
         when(previewInstance.type) {
-            plotType.PERSONAL -> {
+            PlotType.PERSONAL -> {
                 personalPreviewHandler.openPlots.remove(previewInstance.viewPlot)
             }
-            plotType.GUILD -> {
+            PlotType.GUILD -> {
                 guildPlotLayoutStrategy.openPlots.remove(previewInstance.viewPlot)
             }
         }
@@ -125,13 +125,13 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
 
         previewInstance.viewPlot.value.open = true
         when (previewInstance.type) { // Handle guild vs personal logic
-            plotType.PERSONAL ->  {
+            PlotType.PERSONAL ->  {
                 previewInstance.viewPlot = personalPreviewHandler.getNextFreePlot(previewInstance.viewPlot) ?: run {
                     logger.error("No free personal plots forwards :(") // Handle having no free plots
                     return
                 }
             }
-            plotType.GUILD -> {
+            PlotType.GUILD -> {
                 previewInstance.viewPlot = guildPlotLayoutStrategy.getNextFreePlot(previewInstance.viewPlot) ?: run {
                     logger.error("No free guild plots forwards :(") // Handle having no free plots
                     return
@@ -154,13 +154,13 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
 
         previewInstance.viewPlot.value.open = true
         when (previewInstance.type) { // Handle guild vs personal logic
-            plotType.PERSONAL ->  {
+            PlotType.PERSONAL ->  {
                 previewInstance.viewPlot = personalPreviewHandler.getPreviousFreePlot(previewInstance.viewPlot) ?: run {
                     logger.error("No free personal plots backwards :(") // Handle having no free plots
                     return
                 }
             }
-            plotType.GUILD -> {
+            PlotType.GUILD -> {
                 previewInstance.viewPlot = guildPlotLayoutStrategy.getPreviousFreePlot(previewInstance.viewPlot) ?: run {
                     logger.error("No free guild plots backwards :(") // Handle having no free plots
                     return

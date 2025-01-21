@@ -51,11 +51,11 @@ object LocationUtils {
     }
 
     @JvmStatic
-    fun getSafeDestination(loc: Location): Location? {
-        val world: World = loc.world ?: return null
-        var x = loc.blockX
-        var y = loc.y.toInt()
-        var z = loc.blockZ
+    fun Location.getSafeDestination(): Location? {
+        val world: World = this.world ?: return null
+        var x = this.blockX
+        var y = this.y.toInt()
+        var z = this.blockZ
         val origX = x
         val origY = y
         val origZ = z
@@ -67,8 +67,8 @@ object LocationUtils {
             }
         }
         if (isBlockUnsafe(world, x, y, z)) {
-            x = if (loc.x.toInt() == origX) x - 1 else x + 1
-            z = if (loc.z.toInt() == origZ) z - 1 else z + 1
+            x = if (this.x.toInt() == origX) x - 1 else x + 1
+            z = if (this.z.toInt() == origZ) z - 1 else z + 1
         }
         var i = 0
         while (isBlockUnsafe(world, x, y, z)) {
@@ -95,11 +95,11 @@ object LocationUtils {
             if (y <= 1) {
                 x += 1
                 y = world.getHighestBlockYAt(x, z)
-                if (x - 48 > loc.blockX) {
+                if (x - 48 > this.blockX) {
                     return null
                 }
             }
         }
-        return Location(world, x + 0.5, y.toDouble(), z + 0.5, loc.yaw, loc.pitch)
+        return Location(world, x + 0.5, y.toDouble(), z + 0.5, this.yaw, this.pitch)
     }
 }

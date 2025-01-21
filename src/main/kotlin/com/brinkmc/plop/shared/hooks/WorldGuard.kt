@@ -26,9 +26,9 @@ import kotlin.toString
 class WorldGuard(override val plugin: Plop): Addon, State {
 
     lateinit var worldGuardAPI: WorldGuard
-    val worldGuardPlatform: WorldGuardPlatform
+    private val worldGuardPlatform: WorldGuardPlatform
         get() = worldGuardAPI.platform
-    val worldGuardRegionContainer: RegionContainer
+    private val worldGuardRegionContainer: RegionContainer
         get() = worldGuardPlatform.regionContainer
 
     override suspend fun load() {
@@ -40,14 +40,14 @@ class WorldGuard(override val plugin: Plop): Addon, State {
     }
 
     fun getRegion(world: String, uuid: UUID): ProtectedRegion? {
-        val world = Bukkit.getWorld(world)
+        val bukkitWorld = Bukkit.getWorld(world)
 
-        if (world == null) {
+        if (bukkitWorld == null) {
             logger.error("Catastrophic error trying to get region")
             return null
         }
 
-        return worldGuardRegionContainer.get(world.localWorld())?.regions?.get(uuid.toString())
+        return worldGuardRegionContainer.get(bukkitWorld.localWorld())?.regions?.get(uuid.toString())
     }
 
     fun getRegion(location: Location): ProtectedRegion? {

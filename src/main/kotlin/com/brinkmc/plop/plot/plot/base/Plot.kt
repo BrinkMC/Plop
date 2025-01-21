@@ -19,14 +19,14 @@ I find best practice for data classes tends to be separate the logic into extens
 This works well in keeping the data class itself relatively clean
  */
 
-enum class plotType {
+enum class PlotType {
     PERSONAL,
     GUILD
 }
 
 data class Plot(
     val plotId: UUID, // Unique ID for the plot
-    val type: plotType,
+    val type: PlotType,
 
     // Primary
     val ownerId: UUID, // It may be a Player UUID OR Guild UUID
@@ -43,7 +43,7 @@ data class Plot(
     val plotVisit: PlotVisit,
 ) {
     fun getOwner(): PlotOwner {
-        return if (type == plotType.GUILD) {
+        return if (type == PlotType.GUILD) {
             PlotOwner.GuildOwner(Guilds.getApi().getGuild(ownerId))
         }
         else {

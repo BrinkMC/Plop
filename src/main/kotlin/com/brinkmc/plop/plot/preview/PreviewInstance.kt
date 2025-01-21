@@ -1,7 +1,7 @@
 package com.brinkmc.plop.plot.preview
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.base.plotType
+import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.hotbar.preview.HotbarPreview
 import com.brinkmc.plop.shared.util.collection.Node
@@ -27,7 +27,7 @@ class PreviewInstance(
         get() = Bukkit.getPlayer(player)
 
     lateinit var viewPlot: Node<StringLocation>
-    lateinit var type: plotType
+    lateinit var type: PlotType
 
 
     fun returnInventory() { // Reset player inventory back to normal

@@ -1,7 +1,7 @@
 package com.brinkmc.plop.plot.storage
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.base.plotType
+import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.data.Claim
 import com.brinkmc.plop.plot.plot.data.PlotVisit
@@ -49,7 +49,7 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
         resultSet.next() // Get the first result (should be the only result)
 
         val plotId = UUID.fromString(resultSet.getString("plot_id"))
-        val type: plotType = plotType.valueOf(resultSet.getString("type"))
+        val type: PlotType = PlotType.valueOf(resultSet.getString("type"))
         val ownerId = UUID.fromString(resultSet.getString("owner_id"))
 
         val claim = Claim(

@@ -1,7 +1,7 @@
 package com.brinkmc.plop.plot.handler
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.base.plotType
+import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
@@ -23,15 +23,15 @@ class PlotSizeHandler(override val plugin: Plop): Addon, State {
 
     fun getCurrentPlotSize(plot: Plot): Int {
         return when (plot.type) {
-            plotType.GUILD -> guildLevels[plot.plotSize.level]
-            plotType.PERSONAL -> personalLevels[plot.plotSize.level]
+            PlotType.GUILD -> guildLevels[plot.plotSize.level]
+            PlotType.PERSONAL -> personalLevels[plot.plotSize.level]
         }
     }
 
     fun getPlotSizeLimit(plot: Plot): Int {
         return when (plot.type) {
-            plotType.GUILD -> plotConfig.guildPlotSizeLevels.size
-            plotType.PERSONAL -> plotConfig.personalPlotSizeLevels.size
+            PlotType.GUILD -> plotConfig.guildPlotSizeLevels.size
+            PlotType.PERSONAL -> plotConfig.personalPlotSizeLevels.size
         }
     }
 }

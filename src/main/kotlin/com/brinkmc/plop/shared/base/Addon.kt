@@ -3,22 +3,33 @@ package com.brinkmc.plop.shared.base
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.Plots
 import com.brinkmc.plop.plot.plot.base.Plot
+import com.brinkmc.plop.plot.plot.modifier.PlotSize
+import com.brinkmc.plop.plot.plot.modifier.PlotVisitLimit
 import com.brinkmc.plop.shared.config.ConfigReader
 import com.brinkmc.plop.shared.config.configs.*
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.MessageService
+import com.brinkmc.plop.shared.util.async
 import com.brinkmc.plop.shop.Shops
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import net.kyori.adventure.text.Component
 import org.bukkit.Server
 import org.bukkit.entity.Player
+import org.slf4j.Logger
 
 internal interface Addon {
 
     val plugin: Plop
 
+    val mutex: Mutex
+        get() = plugin.mutex
+
     val server: Server
         get() = plugin.server
 
-    val logger: org.slf4j.Logger
+    val logger: Logger
         get() = plugin.slF4JLogger
 
     val DB: HikariManager
@@ -65,4 +76,14 @@ internal interface Addon {
     fun Player.sendFormattedMessage(message: String) {
         with (lang) { sendFormattedMessage(message) }
     }
+
+    fun Player.sendFormattedMessage(message: Component) {
+        with (lang) { sendFormattedMessage(message) }
+    }
+
+    val PlotSize.amount: Int
+        get() = plotConfig.getPlotSizeLevels(this.plotType)[this.level]
+
+    val PlotVisitLimit.amount: Int
+        get() = plotConfig.getPlotSizeLevels(this.plotType)[this.level]
 }

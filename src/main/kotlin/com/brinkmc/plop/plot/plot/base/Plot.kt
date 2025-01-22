@@ -1,12 +1,12 @@
 package com.brinkmc.plop.plot.plot.base
 
-import com.brinkmc.plop.plot.plot.data.Claim
-import com.brinkmc.plop.plot.plot.data.PlotVisit
-import com.brinkmc.plop.plot.plot.modifier.FactoryLimit
+import com.brinkmc.plop.plot.plot.data.PlotClaim
+import com.brinkmc.plop.plot.plot.data.PlotVisitState
+import com.brinkmc.plop.plot.plot.modifier.PlotFactory
 import com.brinkmc.plop.plot.plot.modifier.PlotSize
-import com.brinkmc.plop.plot.plot.modifier.ShopLimit
-import com.brinkmc.plop.plot.plot.modifier.VisitorLimit
-import com.brinkmc.plop.plot.plot.structure.Totem
+import com.brinkmc.plop.plot.plot.modifier.PlotShop
+import com.brinkmc.plop.plot.plot.modifier.PlotTotem
+import com.brinkmc.plop.plot.plot.modifier.PlotVisitLimit
 import com.brinkmc.plop.shared.hooks.Locals.localWorld
 import com.sk89q.worldguard.WorldGuard
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion
@@ -31,19 +31,17 @@ data class Plot(
     // Primary
     val ownerId: UUID, // It may be a Player UUID OR Guild UUID
 
-    //Inherited from Plot interface
-    val claim: Claim,
-    var visitorLimit: VisitorLimit,
-    var plotSize: PlotSize,
-    var factoryLimit: FactoryLimit,
-    var shopLimit: ShopLimit,
-
-    // Might not exist in database
-    val totems: MutableList<Totem>,
-    val plotVisit: PlotVisit,
+    // Plot data
+    val claim: PlotClaim,
+    val visitState: PlotVisitState,
+    var visitLimit: PlotVisitLimit,
+    var size: PlotSize,
+    var factory: PlotFactory,
+    var shop: PlotShop,
+    var totem: PlotTotem
 ) {
-    fun getOwner(): PlotOwner {
-        return if (type == PlotType.GUILD) {
+    val owner: PlotOwner by lazy {
+        if (type == PlotType.GUILD) {
             PlotOwner.GuildOwner(Guilds.getApi().getGuild(ownerId))
         }
         else {

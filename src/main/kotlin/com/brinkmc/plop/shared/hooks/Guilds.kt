@@ -1,6 +1,8 @@
 package com.brinkmc.plop.shared.hooks
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.plot.base.Plot
+import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import me.glaremasters.guilds.Guilds
@@ -17,6 +19,4 @@ class Guilds(override val plugin: Plop): Addon, State {
     override suspend fun kill() {
         TODO("Not yet implemented")
     }
-
-
 }

@@ -60,6 +60,7 @@ dependencies {
     implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-api","2.20.0")
     implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-core","2.20.0")
     implementation("com.noxcrew.interfaces", "interfaces", "1.2.0")
+    implementation("org.jetbrains.kotlinx", "atomicfu", "0.27.0")
 
     implementation(platform("org.spongepowered:configurate-bom:4.1.2"))
     implementation("org.spongepowered", "configurate-yaml")

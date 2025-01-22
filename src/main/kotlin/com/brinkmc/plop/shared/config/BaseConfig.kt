@@ -4,6 +4,7 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import org.spongepowered.configurate.ConfigurationNode
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 import kotlin.text.get
@@ -15,7 +16,7 @@ abstract class BaseConfig(override val plugin: Plop): Addon, State {
 
     protected abstract val config: ConfigurationNode?
 
-    protected val resultCache = hashMapOf<String, Any>()
+    protected val resultCache = ConcurrentHashMap<String, Any>()
 
     override suspend fun load() {} // The config values will load dynamically
 

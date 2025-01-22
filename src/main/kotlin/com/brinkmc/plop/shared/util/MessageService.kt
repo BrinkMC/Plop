@@ -26,15 +26,15 @@ class MessageService(override val plugin: Plop): Addon {
     }
 
     // Provide functionality to the Addon reference
-    override fun Player.sendFormattedMessage(message: String) {
-
-        if (player == null) {
-            logger.error("Failed to send message!")
-            return
-        }
-
-        player?.sendMessage(
+    fun sendFormattedMessage(player: Player, message: String) {
+        player.sendMessage(
             miniMessage.deserialize(message, profileTags.name(player))
+        )
+    }
+
+    fun sendFormattedMessage(player: Player, message: Component) {
+        player.sendMessage(
+            message
         )
     }
 }

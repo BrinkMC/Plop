@@ -6,6 +6,7 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hooks.Locals.localLocation
 import com.brinkmc.plop.shared.hooks.Locals.localWorld
+import com.brinkmc.plop.shared.util.sync
 import com.sk89q.worldedit.bukkit.BukkitAdapter
 import com.sk89q.worldedit.math.BlockVector3
 import com.sk89q.worldguard.LocalPlayer
@@ -58,15 +59,15 @@ class WorldGuard(override val plugin: Plop): Addon, State {
         return worldGuardRegionContainer.createQuery().getApplicableRegions(player.location.localLocation()).regions.first()
     }
 
-    fun createRegion(uuid: UUID) { // Create a region to claim around the new plot, the plot has uuid as its name
+    suspend fun createRegion(uuid: UUID) = sync { // Create a region to claim around the new plot, the plot has uuid as its name
         val plot = plots.getPlot(uuid) ?: run {
             logger.error("Critical problem in creating a region, plot doesn't exist")
-            return
+            return@sync
         }
 
         val plotWorld = Bukkit.getWorld(plot.claim.world) ?: run {
             logger.error("No such world exists")
-            return
+            return@sync
         }
 
         val owner = plot.getOwner()

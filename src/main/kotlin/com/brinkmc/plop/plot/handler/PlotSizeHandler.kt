@@ -8,12 +8,12 @@ import com.brinkmc.plop.shared.base.State
 
 class PlotSizeHandler(override val plugin: Plop): Addon, State {
 
-    val guildLevels = mutableListOf<Int>()
-    val personalLevels = mutableListOf<Int>()
+    private val guildLevels = mutableListOf<Int>()
+    private val personalLevels = mutableListOf<Int>()
 
     override suspend fun load() {
-        guildLevels.addAll(plotConfig.guildPlotSizeLevels) // Add all guild plot size levels
-        personalLevels.addAll(plotConfig.personalPlotSizeLevels)
+        guildLevels.addAll(plotConfig.getPlotSizeLevels(PlotType.GUILD)) // Add all guild plot size levels
+        personalLevels.addAll(plotConfig.getPlotSizeLevels(PlotType.PERSONAL))
     }
 
     override suspend fun kill() {
@@ -21,17 +21,17 @@ class PlotSizeHandler(override val plugin: Plop): Addon, State {
         personalLevels.clear()
     }
 
-    fun getCurrentPlotSize(plot: Plot): Int {
+    fun getCurrentPlotSize(plot: Plot): Int { // Getter
         return when (plot.type) {
-            PlotType.GUILD -> guildLevels[plot.plotSize.level]
-            PlotType.PERSONAL -> personalLevels[plot.plotSize.level]
+            PlotType.GUILD -> guildLevels[plot.size.level]
+            PlotType.PERSONAL -> personalLevels[plot.size.level]
         }
     }
 
     fun getPlotSizeLimit(plot: Plot): Int {
         return when (plot.type) {
-            PlotType.GUILD -> plotConfig.guildPlotSizeLevels.size
-            PlotType.PERSONAL -> plotConfig.personalPlotSizeLevels.size
+            PlotType.GUILD -> plotConfig.getPlotSizeLevels(PlotType.GUILD).size
+            PlotType.PERSONAL -> plotConfig.getPlotSizeLevels(PlotType.PERSONAL).size
         }
     }
 }

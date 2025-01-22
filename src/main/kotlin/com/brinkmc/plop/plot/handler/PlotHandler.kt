@@ -2,15 +2,29 @@ package com.brinkmc.plop.plot.handler
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.Plot
+import com.brinkmc.plop.plot.plot.base.PlotOwner
 import com.brinkmc.plop.shared.base.Addon
+import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.storage.PlotKey
+import com.brinkmc.plop.shared.util.sync
 import org.bukkit.Location
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.filter
 
-class PlotHandler(override val plugin: Plop): Addon {
+class PlotHandler(override val plugin: Plop): Addon, State  {
 
-    private val plotMap = plots.plotMap
+    private val plotMap: ConcurrentHashMap<PlotKey, Plot> = ConcurrentHashMap() // Ensure it is thread safe when accessed
+
+    override suspend fun load() {
+
+    }
+
+    override suspend fun kill() {
+        for (plot in plotMap) {
+            plots.databasePlot.save(plot.value) // Save before refresh
+        }
+    }
 
     // Search functions
     fun getPlotById(plotId: UUID): Plot? {
@@ -22,22 +36,22 @@ class PlotHandler(override val plugin: Plop): Addon {
         return plotMap[PlotKey(ownerId = ownerId)]
     }
 
-    // Get plot by guild name (for GuildPlot)
-    fun getPlotByGuild(guildId: UUID): Plot? {
-        return plotMap[PlotKey(guildId = guildId)]
-    }
-
     // Get plot by owner or guild name (depending on the type)
-    fun getPlotsByOwnerOrGuild(ownerId: UUID): List<Plot> {
+    fun getPlotByGuildOwner(ownerId: UUID): Plot? {
         val potentialGuild = plugin.hooks.guilds.guildAPI.getGuild(ownerId)
-        return plotMap.filter { (key, _) ->
-            (key.ownerId == ownerId || key.ownerId == )
-        }.map { it.value }
+        return plotMap[PlotKey(potentialGuild?.guildMaster?.uuid)]
     }
 
-    fun addPlot(plot: Plot) {
+    fun getPlotByPlayer(playerId: UUID): List<Plot> {
+        return plotMap.filter {
+            it.value.plotId == playerId || ((it.value.owner) as PlotOwner.GuildOwner).members.contains(playerId)
+        }.values.toList()
+    }
+
+    suspend fun addPlot(plot: Plot) = sync {
         val plotKey = PlotKey(plotId = plot.plotId, ownerId = plot.ownerId)
-        plotMap[plotKey] = plot
+        plotMap[plotKey] = plot // Update cache synchronously
+        plots.databasePlot.create(plot) // Run database update on IO
     }
 
     fun updateBorder(player: UUID) {

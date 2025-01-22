@@ -5,6 +5,7 @@ import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.config.BaseConfig
+import kotlinx.coroutines.sync.withLock
 
 class PlotConfig(
     override val plugin: Plop // Must be able to access the plugin

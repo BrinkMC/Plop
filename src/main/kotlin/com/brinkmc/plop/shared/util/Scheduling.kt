@@ -5,6 +5,9 @@ import com.sun.org.apache.bcel.internal.classfile.JavaClass
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
@@ -20,6 +23,7 @@ suspend fun <T> async(
     block: suspend CoroutineScope.() -> T // Block
 ): T =
     withContext(DispatcherContainer.async, block) // Runs with coroutine context .async
+
 
 class MinecraftCoroutineDispatcher(private val plop: Plop) : CoroutineDispatcher() {
     override fun dispatch(context: CoroutineContext, block: Runnable) {

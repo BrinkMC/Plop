@@ -9,7 +9,7 @@ import java.util.UUID
 sealed class PlotOwner {
     data class GuildOwner(val guild: Guild?): PlotOwner() {
 
-        private val members: MutableList<UUID> = mutableListOf()
+        val members: MutableList<UUID> = guild?.members?.map { it.uuid }?.toMutableList() ?: mutableListOf()
 
         fun getMembers(): List<OfflinePlayer> {
             return members.map { uuid -> Bukkit.getOfflinePlayer(uuid) }

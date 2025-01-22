@@ -40,6 +40,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.plugin.java.JavaPlugin
@@ -55,6 +56,7 @@ import java.io.File
 class Plop : State, SuspendingJavaPlugin() {
 
     private val plugin = this
+    val mutex = Mutex()
 
     lateinit var plots: Plots
     lateinit var shops: Shops

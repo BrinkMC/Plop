@@ -3,12 +3,13 @@ package com.brinkmc.plop.plot.storage
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.plot.base.Plot
-import com.brinkmc.plop.plot.plot.data.Claim
-import com.brinkmc.plop.plot.plot.data.PlotVisit
-import com.brinkmc.plop.plot.plot.modifier.FactoryLimit
+import com.brinkmc.plop.plot.plot.data.PlotClaim
+import com.brinkmc.plop.plot.plot.data.PlotVisitState
+import com.brinkmc.plop.plot.plot.modifier.PlotFactory
 import com.brinkmc.plop.plot.plot.modifier.PlotSize
-import com.brinkmc.plop.plot.plot.modifier.ShopLimit
-import com.brinkmc.plop.plot.plot.modifier.VisitorLimit
+import com.brinkmc.plop.plot.plot.modifier.PlotShop
+import com.brinkmc.plop.plot.plot.modifier.PlotTotem
+import com.brinkmc.plop.plot.plot.modifier.PlotVisitLimit
 import com.brinkmc.plop.plot.plot.structure.TOTEM_TYPE
 import com.brinkmc.plop.plot.plot.structure.Totem
 import com.brinkmc.plop.shared.base.Addon
@@ -25,7 +26,7 @@ import java.util.UUID
 Implements all methods used to communicate with the database + cache
  */
 
-internal class DatabasePlot(override val plugin: Plop): Addon, State {
+class DatabasePlot(override val plugin: Plop): Addon, State {
 
     override suspend fun load() {}
 
@@ -49,23 +50,28 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
         resultSet.next() // Get the first result (should be the only result)
 
         val plotId = UUID.fromString(resultSet.getString("plot_id"))
-        val type: PlotType = PlotType.valueOf(resultSet.getString("type"))
+        val plotType: PlotType = PlotType.valueOf(resultSet.getString("type"))
         val ownerId = UUID.fromString(resultSet.getString("owner_id"))
 
-        val claim = Claim(
+        val plotClaim = PlotClaim(
             centre = resultSet.getString("centre").toLocation() ?: throw IllegalArgumentException("Invalid centre location"), // If it fails to load, throw exception
             home = resultSet.getString("home").toLocation() ?: throw IllegalArgumentException("Invalid home location"),
             world = resultSet.getString("world") ?: throw IllegalArgumentException("Invalid world"),
             visit = resultSet.getString("visit").toLocation() ?: throw IllegalArgumentException("Invalid visit location")
         )
 
-        val visitorLimit = VisitorLimit(
+        // Set visitor
+        val plotVisitLimit = PlotVisitLimit(
             level = resultSet.getInt("visitor_lim.level"), // Get the stored level
-            amount = 0, // Server startup surely no one is at the plot //TODO Verify
+            currentAmount = resultSet.getInt("visitor_lim.amount"),
+            plotType = plotType
         )
 
         val plotSize = PlotSize(
-            level = resultSet.getInt("size.level")
+            level = resultSet.getInt("size.level"),
+            plotType = plotType
+            // amount = plotConfig.getPlotSizeLevels(plotType)[resultSet.getInt("size.level")]
+
         )
 
         // Get list of factories
@@ -75,9 +81,10 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
             factoryList.add(subFactoriesQuerySet.getString("factory_location").toLocation()!!) // Must be a location
         } while (subFactoriesQuerySet.next())
 
-        val factoryLimit = FactoryLimit(
+        val plotFactory = PlotFactory(
             level = resultSet.getInt("factory_lim.level"),
-            factories = factoryList
+            factories = factoryList,
+            plotType = plotType
         )
 
         // Get list of shops
@@ -86,58 +93,58 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
         if (subShopQuerySet != null) do { // Only execute if there are shops
             shopList.add(UUID.fromString(subShopQuerySet.getString("shop_id"))) // Can't be null
         } while (subShopQuerySet.next())
-        val shopLimit = ShopLimit(
+        val plotShop = PlotShop(
             level = resultSet.getInt("shop_lim.level"),
-            shops = shopList
+            shops = shopList,
+            plotType = plotType
         )
 
         val subTotemResultSet = DB.query("SELECT * FROM plots_totems WHERE plot_id = ?", plotId)
         val subVisitsResultSet = DB.query("SELECT * FROM plots_visit_records WHERE plot_id = ?", plotId)
 
-        if (subTotemResultSet == null || subVisitsResultSet == null) {
-            return@async Plot(plotId,
-                type,
-                ownerId,
-                claim,
-                visitorLimit,
-                plotSize,
-                factoryLimit,
-                shopLimit,
-                mutableListOf(), // Set totems to empty
-                PlotVisit() // Default state of a plot visit settings
-            )
-        }
-
         val totems = mutableListOf<Totem>()
         val visitRecords = mutableListOf<Timestamp>()
 
         // Add all totems
-        do {
+        while (subTotemResultSet?.next() == true) {
             val totemId = subTotemResultSet.getInt("totem_id")
             val totemType = TOTEM_TYPE.valueOf(subTotemResultSet.getString("totem_type"))
-            val totemLocation = subTotemResultSet.getString("totem_location").toLocation() ?: throw IllegalArgumentException("Invalid totem location")
+            val totemLocation = subTotemResultSet.getString("totem_location").toLocation()
+                ?: throw IllegalArgumentException("Invalid totem location")
             totems.add(Totem(totemId, totemType, totemLocation))
-
-        } while (subTotemResultSet.next())
+        }
 
         // Add all visit timestamps
-        do {
+        while (subVisitsResultSet?.next() == true) {
             val visitTimestamp = subVisitsResultSet.getTimestamp("record")
             visitRecords.add(visitTimestamp)
-        } while (subVisitsResultSet.next())
+        }
 
-        val plotVisit = PlotVisit(resultSet.getBoolean("allow_visitors"), visitRecords)
+        val plotTotem = PlotTotem(
+            level = resultSet.getInt("totem_level"),
+            totems = totems,
+            plotType = plotType
+        )
 
-        return@async Plot(plotId,
-            type,
-            ownerId,
-            claim,
-            visitorLimit,
-            plotSize,
-            factoryLimit,
-            shopLimit,
-            totems, // Actual list of totems
-            plotVisit // Real plot visits loaded
+        val plotVisitState = PlotVisitState(
+            resultSet.getBoolean("allow_visitors"),
+            visits = visitRecords,
+
+        )
+
+        val plotVisit = PlotVisitState(resultSet.getBoolean("allow_visitors"), visitRecords)
+
+        return@async Plot(
+            plotId,
+            type = plotType,
+            ownerId = ownerId,
+            claim = plotClaim,
+            visitState = plotVisitState,
+            visitLimit = plotVisitLimit,
+            size = plotSize,
+            factory = plotFactory,
+            shop = plotShop,
+            totem = plotTotem
         )
     }
 
@@ -155,25 +162,25 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
         )
         // Skip totems, none placed
         DB.update("INSERT INTO plots_sizes (level, plot_id) VALUES(?, ?)",
-            plot.plotSize.level,
+            plot.size.level,
             plot.plotId
         )
         DB.update("INSERT INTO plots_factory_limits (level, plot_id) VALUES(?, ?)",
-            plot.factoryLimit.level,
+            plot.factory.level,
             plot.plotId
         )
         // Skip factories placed, none placed
         DB.update("INSERT INTO plots_shop_limits (level, plot_id) VALUES(?, ?)",
-            plot.shopLimit.level,
+            plot.shop.level,
             plot.plotId
         )
         // Skip shops placed, none placed
         DB.update("INSERT INTO plots_visitor_limits (level, plot_id) VALUES(?, ?)",
-            plot.visitorLimit.level,
+            plot.visitLimit.level,
             plot.plotId
         )
         DB.update("INSERT INTO plots_visits (allow_visitors, plot_id) VALUES(?, ?)",
-            plot.plotVisit.open,
+            plot.visitState.visitable,
             plot.plotId
         )
         // No visitor records
@@ -196,7 +203,7 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
             plot.claim.home.fullString(),
             plot.claim.visit.fullString(),
         )
-        for (totem in plot.totems) {
+        for (totem in plot.totem.totems) {
             DB.update("INSERT INTO plots_totems (totem_location, totem_type, plot_id) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE totem_type=?",
                 totem.location.fullString(false),
                 totem.totemType.toString(),
@@ -205,16 +212,16 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
             )
         }
         DB.update("INSERT INTO plots_sizes (level, plot_id) VALUES(?, ?) ON DUPLICATE KEY UPDATE level=?",
-            plot.plotSize.level,
+            plot.size.level,
             plot.plotId,
-            plot.plotSize.level
+            plot.size.level
         )
         DB.update("INSERT INTO plots_factory_limits (level, plot_id) VALUES(?, ?) ON DUPLICATE KEY UPDATE level=?",
-            plot.factoryLimit.level,
+            plot.factory.level,
             plot.plotId,
-            plot.factoryLimit.level
+            plot.factory.level
         )
-        for (shop in plot.shopLimit.shops) {
+        for (shop in plot.shop.shops) {
             DB.update("INSERT INTO plots_shop_locations (shop_id, plot_id) VALUES(?, ?) ON DUPLICATE KEY UPDATE plot_id?",
                 shop,
                 plot.plotId,
@@ -222,11 +229,11 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
             )
         }
         DB.update("INSERT INTO plots_shop_limits (level, plot_id) VALUES(?, ?) ON DUPLICATE KEY UPDATE level=?",
-            plot.shopLimit.level,
+            plot.shop.level,
             plot.plotId,
-            plot.shopLimit.level
+            plot.shop.level
         )
-        for (factory in plot.factoryLimit.factories) {
+        for (factory in plot.factory.factories) {
             DB.update("INSERT INTO plots_factory_locations (factory_location, plot_id) VALUES(?, ?) ON DUPLICATE KEY UPDATE plot_id=?",
                 factory.fullString(false),
                 plot.plotId,
@@ -234,14 +241,14 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
             )
         }
         DB.update("INSERT INTO plots_visitor_limits (level, plot_id) VALUES(?, ?) ON DUPLICATE KEY UPDATE level=?",
-            plot.visitorLimit.level,
+            plot.visitLimit.level,
             plot.plotId,
-            plot.visitorLimit.level
+            plot.visitLimit.level
         )
         DB.update("INSERT INTO plots_visits (allow_visitors, plot_id) VALUES(?, ?) ON DUPLICATE KEY UPDATE allow_visitors=?",
-            plot.plotVisit.open,
+            plot.visitState.visitable,
             plot.plotId,
-            plot.plotVisit.open
+            plot.visitState.visitable
         )
     }
 

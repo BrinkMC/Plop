@@ -1,10 +1,5 @@
 package com.brinkmc.plop.shop
 
-import com.brinkmc.plop.plot.plot.modifier.FactoryLimit
-import com.brinkmc.plop.plot.plot.modifier.PlotSize
-import com.brinkmc.plop.plot.plot.modifier.ShopLimit
-import com.brinkmc.plop.plot.plot.modifier.VisitorLimit
-import com.brinkmc.plop.plot.plot.structure.Totem
 import org.bukkit.Location
 import org.bukkit.entity.Item
 import java.util.UUID

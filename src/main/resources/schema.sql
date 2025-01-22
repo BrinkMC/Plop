@@ -70,6 +70,7 @@ create table if not exists `plots_shop_locations`
 create table if not exists `plots_visitor_limits`
 (
     level int not null,
+    current_amount int,
     plot_id varchar(36) not null,
     primary key (plot_id),
     foreign key (plot_id) references plots_plots(plot_id)
@@ -86,7 +87,7 @@ create table if not exists `plots_visits`
 create table if not exists `plots_visit_records`
 (
     visit_record_id int auto_increment primary key not null,
-    plot_id int not null,
+    plot_id varchar(36) not null,
     visit_timestamp timestamp not null default current_timestamp,
     foreign key (plot_id) references plots_plots(plot_id)
 );

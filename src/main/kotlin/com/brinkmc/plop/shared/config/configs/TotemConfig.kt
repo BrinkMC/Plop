@@ -1,6 +1,15 @@
 package com.brinkmc.plop.shared.config.configs
 
-data class TotemConfig(
+import com.brinkmc.plop.Plop
+import com.brinkmc.plop.shared.config.BaseConfig
+import org.spongepowered.configurate.ConfigurationNode
 
-    var
-)
+data class TotemConfig(
+    override val plugin: Plop // Must be able to access the plugin
+): BaseConfig(plugin) {
+
+    override suspend fun loadConfig(): ConfigurationNode? {
+        return configManager.getTotemConfig()
+    } // Totem config file
+
+}

@@ -18,7 +18,7 @@ class GeneralListener(override val plugin: Plop): Addon, State, Listener {
     }
 
     private fun onPlayerQuitPotentialPreview(playerQuitEvent: PlayerQuitEvent) {
-        val potentialPreview = plots.plotPreviewHandler.previews.find { it.player == playerQuitEvent.player.uniqueId }
+        val potentialPreview = plots.previewHandler.getPreview(playerQuitEvent.player.uniqueId)
 
         if (potentialPreview == null) { // Check is in preview
             return

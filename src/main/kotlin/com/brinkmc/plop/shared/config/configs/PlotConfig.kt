@@ -6,15 +6,18 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.config.BaseConfig
 import kotlinx.coroutines.sync.withLock
+import org.spongepowered.configurate.ConfigurationNode
 
 class PlotConfig(
     override val plugin: Plop // Must be able to access the plugin
 ): BaseConfig(plugin) {
 
-    override val config = configManager.getPlotConfig() // Database config file
+    override suspend fun loadConfig(): ConfigurationNode? {
+        return configManager.getPlotConfig()
+    } // Plot config file
 
     // Get values for the guild plot configuration
-    // guildPlotSizeMax -> guild.plot-size.max in config
+    // guildPlotSizeMax turns into guild.plot-size.max in config
     private var guildPlotMaxSize: Int by delegate("guild", "plot", "max-size")
     private var guildPlotWorld: String by delegate("guild", "plot", "world")
     private var guildPlotWorldGenerator: String by delegate("guild", "plot", "generator")
@@ -69,4 +72,7 @@ class PlotConfig(
     fun getVisitorLimit(plotType: PlotType): List<Int> {
         return if (plotType == PlotType.GUILD) guildVisitorLimit else personalVisitorLimit
     }
+
+    var nexusBaseId: String by delegate("nexus", "id")
+    var totemBasePrefix: String by delegate("totem", "prefix")
 }

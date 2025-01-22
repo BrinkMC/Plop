@@ -20,7 +20,7 @@ class GuildPlotLayoutStrategy(override val plugin: Plop): BaseLayoutStrategy(plu
 
     override val maxPlotLength: Double = plotConfig.getPlotMaxSize(PlotType.GUILD).toDouble()
     override val maxPreviewLimit: Int
-        get() = (plugin.plots.plotMap.size * 3) + 100
+        get() = (plugin.plots.handler.getPlotMap().size * 3) + 100
     override val worldName: String = plotConfig.getPlotWorld(PlotType.GUILD)
     override val worldGen: String = plotConfig.getPlotWorldGenerator(PlotType.GUILD)
 

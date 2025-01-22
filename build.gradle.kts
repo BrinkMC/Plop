@@ -1,11 +1,11 @@
-import xyz.jpenilla.runpaper.task.RunServer
+//import xyz.jpenilla.runpaper.task.RunServer
 
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm") version "1.9.20"
     alias(libs.plugins.indra)
     alias(libs.plugins.indraGit)
     alias(libs.plugins.indraLicenseHeader)
-    alias(libs.plugins.runPaper)
+    //alias(libs.plugins.runPaper)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.shadow)
 }
@@ -21,12 +21,11 @@ repositories {
     maven("https://maven.noxcrew.com/public")
     maven("https://eldonexus.de/repository/maven-releases/")
     maven("https://repo.glaremasters.me/repository/public/")
+    maven("https://mvn.lumine.io/repository/maven-public/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") {
         content { includeGroup("me.clip") }
     }
-    maven("https://jitpack.io") {
-        content { includeGroupByRegex("com\\.github\\..*") }
-    }
+    maven("https://jitpack.io")
 }
 
 dependencies {
@@ -36,11 +35,14 @@ dependencies {
     compileOnly("com.github.MilkBowl", "VaultAPI", "1.7.1")
     compileOnly("me.clip", "placeholderapi", "2.11.6")
     compileOnly("me.glaremasters", "guilds", "3.5.7.0")
+    compileOnly("io.lumine", "Mythic-Dist", "5.7.2")
+    compileOnly(fileTree("libs/") { include("*.jar") })
 
-    compileOnly("com.sk89q.worldguard", "worldguard-core", "7.0.9")
-    compileOnly("com.sk89q.worldguard", "worldguard-bukkit", "7.0.9")
-    compileOnly("com.sk89q.worldedit", "worldedit-core", "7.2.9")
-    compileOnly("com.sk89q.worldedit", "worldedit-core", "7.2.9")
+
+    compileOnly("com.sk89q.worldguard", "worldguard-core", "7.0.11")
+    compileOnly("com.sk89q.worldguard", "worldguard-bukkit", "7.0.11")
+    compileOnly("com.sk89q.worldedit", "worldedit-core", "7.3.9")
+    compileOnly("com.sk89q.worldedit", "worldedit-core", "7.3.9")
 
     // Kyori
     implementation(platform("net.kyori:adventure-bom:4.17.0"))
@@ -60,7 +62,6 @@ dependencies {
     implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-api","2.20.0")
     implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-core","2.20.0")
     implementation("com.noxcrew.interfaces", "interfaces", "1.2.0")
-    implementation("org.jetbrains.kotlinx", "atomicfu", "0.27.0")
 
     implementation(platform("org.spongepowered:configurate-bom:4.1.2"))
     implementation("org.spongepowered", "configurate-yaml")
@@ -69,7 +70,8 @@ dependencies {
     implementation("com.zaxxer", "HikariCP", "6.2.1")
     implementation("org.bstats", "bstats-bukkit", "3.0.2")
     implementation("io.papermc", "paperlib", "1.0.8")
-    implementation("com.github.yannicklamprecht", "worldborderapi", "1.214.0")
+
+    compileOnly("com.github.yannicklamprecht:worldborderapi:1.201.0:dev") // Weird import
 
     implementation("xyz.jpenilla:reflection-remapper:0.1.0-SNAPSHOT")
 }
@@ -77,9 +79,10 @@ dependencies {
 version = (version as String)//.decorateVersion()
 
 java {
-    disableAutoTargetJvm()
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21)) // Always targets JDK 21
+    }
 }
-
 kotlin {
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
@@ -88,7 +91,10 @@ kotlin {
 
 tasks {
     compileKotlin {
-        kotlinOptions.javaParameters = true
+        kotlinOptions {
+            jvmTarget = "21"
+            javaParameters = true
+        }
     }
     jar {
         archiveClassifier.set("not-shadowed")
@@ -128,16 +134,9 @@ tasks {
     assemble {
         dependsOn(shadowJar)
     }
-    runServer {
-        minecraftVersion("1.20.1")
-    }
-    withType<RunServer> {
-        javaLauncher.set(
-            project.javaToolchains.launcherFor {
-                languageVersion.set(JavaLanguageVersion.of(21))
-            }
-        )
-    }
+//    runServer {
+//        minecraftVersion("1.20.1")
+//    }
     register("format") {
         group = "formatting"
         description = "Formats source code according to project style."
@@ -157,7 +156,7 @@ tasks {
     }
 }
 
-runPaper.folia.registerTask()
+//runPaper.folia.registerTask()
 
 //fun String.decorateVersion(): String =
 //  if (endsWith("-SNAPSHOT")) "$this+${lastCommitHash()}" else this

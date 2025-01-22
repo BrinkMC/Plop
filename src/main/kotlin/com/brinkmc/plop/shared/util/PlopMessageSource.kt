@@ -24,7 +24,7 @@ class PlopMessageSource(override val plugin: Plop): State, Addon {
         loader
     }
 
-    private fun readLocale() {
+    private suspend fun readLocale() {
         val localesFile = plugin.getFile("locales.yml")
 
         // Ensure the plugin stalls if no locale is found

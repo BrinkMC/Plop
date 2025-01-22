@@ -3,17 +3,15 @@ package com.brinkmc.plop.shared.base
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.Plots
 import com.brinkmc.plop.plot.plot.base.Plot
+import com.brinkmc.plop.plot.plot.modifier.PlotFactory
 import com.brinkmc.plop.plot.plot.modifier.PlotSize
-import com.brinkmc.plop.plot.plot.modifier.PlotVisitLimit
+import com.brinkmc.plop.plot.plot.modifier.PlotVisit
 import com.brinkmc.plop.shared.config.ConfigReader
 import com.brinkmc.plop.shared.config.configs.*
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.MessageService
-import com.brinkmc.plop.shared.util.async
 import com.brinkmc.plop.shop.Shops
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import net.kyori.adventure.text.Component
 import org.bukkit.Server
 import org.bukkit.entity.Player
@@ -62,28 +60,43 @@ internal interface Addon {
     val totemConfig: TotemConfig
         get() = plugin.configs.totemConfig
 
-    // EXTENSION FUNCTIONS
+    // Extension functions
 
-    fun Plot.getCurrentPlotSize(): Int { // Handle extension functions inside Addon class
-        return plots.plotSizeHandler.getCurrentPlotSize(this)
-    }
+    // PlotSizeHandler extensions
+    val PlotSize.current: Int
+        get() = plots.sizeHandler.getCurrentPlotSize(this.plotType, this.level)
 
-    fun Plot.getPlotSizeLimit(): Int { // Handle plot size limits
-        return plots.plotSizeHandler.getPlotSizeLimit(this)
-    }
+    val PlotSize.max: Int
+        get() = plots.sizeHandler.getMaximumPlotSize(this.plotType)
+
+    // PlotFactoryHandler extensions
+    val PlotFactory.limit: Int
+        get() = plots.factoryHandler.getCurrentFactoryLimit(this.plotType, this.level)
+
+    val PlotFactory.max: Int
+        get() = plots.factoryHandler.getMaximumFactoryLimit(this.plotType)
+
+    val PlotVisit.amount: Int
+        get() = plotConfig.getPlotSizeLevels(this.plotType)[this.level]
+
+
 
     // Provide an easy way to get formatted MiniMessage messages with custom tags also replaced properly
     fun Player.sendFormattedMessage(message: String) {
-        with (lang) { sendFormattedMessage(message) }
+        lang.sendFormattedMessage(this, message)
     }
 
     fun Player.sendFormattedMessage(message: Component) {
-        with (lang) { sendFormattedMessage(message) }
+        lang.sendFormattedMessage(this, message)
     }
 
-    val PlotSize.amount: Int
-        get() = plotConfig.getPlotSizeLevels(this.plotType)[this.level]
+    // Extension functions for Bukkit
+    fun Player.personalPlot(): Plot? {
+        // Get a list of all the plots player owns. 1-to-1 relationship
+        return plots.handler.getPlotByOwner(uniqueId)
+    }
 
-    val PlotVisitLimit.amount: Int
-        get() = plotConfig.getPlotSizeLevels(this.plotType)[this.level]
+    fun Player.guildPlot(): Plot? {
+        return plots.handler.getPlotByOwner(plugin.hooks.guilds.guildAPI.getGuildByPlayerId(this.uniqueId)?.id)
+    }
 }

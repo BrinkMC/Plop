@@ -4,7 +4,6 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.config.configs.SQLConfig
-import com.brinkmc.plop.shared.util.DispatcherContainer.sync
 import com.brinkmc.plop.shared.util.async
 import com.brinkmc.plop.shared.util.sync
 import com.zaxxer.hikari.HikariConfig

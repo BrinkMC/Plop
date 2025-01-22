@@ -60,3 +60,6 @@ val Dispatchers.async: CoroutineContext
 
 val Dispatchers.sync: CoroutineContext
     get() =  DispatcherContainer.sync
+
+val asyncScope = CoroutineScope(Dispatchers.async)
+val syncScope = CoroutineScope(Dispatchers.sync)

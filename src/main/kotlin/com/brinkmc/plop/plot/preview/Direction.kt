@@ -22,12 +22,12 @@ data class StringLocation(
     val x: Double,
     val y: Double,
     val z: Double,
-    private var _open: AtomicBoolean = AtomicBoolean(true)
+    private var _free: AtomicBoolean = AtomicBoolean(true)
 ) {
-    var open: Boolean
-        get() = _open.get()
+    var free: Boolean
+        get() = _free.get()
         set(value) {
-            _open.set(value)
+            _free.set(value)
         }
 
     fun toLocation(): Location {

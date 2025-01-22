@@ -35,27 +35,27 @@ class ConfigReader(override val plugin: Plop): Addon, State {
     }
 
     // MAIN CONFIG
-    private fun readMainConfig() {
+    private suspend fun readMainConfig() = async {
         val configFile = plugin.getFile("config.yml")
 
         // Ensure the plugin stalls if no locale is found
         if (configFile == null) {
             logger.error("No such file!")
             plugin.kill()
-            return
+            return@async
         }
 
         // Load Configurate library's yaml reader
         mainConfigLoader = YamlConfigurationLoader.builder().file(configFile).build()
     }
 
-    private fun saveMainConfig() { // Save the config file
+    private suspend fun saveMainConfig() = async { // Save the config file
         val root = getMainConfig()
         mainConfigLoader.save(root)
     }
 
-    fun getMainConfig(): ConfigurationNode? {
-        return try {
+    suspend fun getMainConfig(): ConfigurationNode? = async {
+        return@async try {
             mainConfigLoader.load() // Allows for direct reading of node values
         } catch (e: ConfigurateException) {
             logger.error(e.message)
@@ -65,27 +65,27 @@ class ConfigReader(override val plugin: Plop): Addon, State {
     }
 
     // DATABASE CONFIG
-    private fun readDatabaseConfig() {
+    private suspend fun readDatabaseConfig() = async {
         val databaseConfigFile = plugin.getFile("database.yml")
 
         // Ensure the plugin fails if there is no database
         if (databaseConfigFile == null) {
             logger.error("No such file for database!")
             plugin.kill()
-            return
+            return@async
         }
 
         // Load Configurate library's yaml reader
         databaseConfigLoader = YamlConfigurationLoader.builder().file(databaseConfigFile).build()
     }
 
-    private fun saveDatabaseConfig() { // Save the config file
+    private suspend fun saveDatabaseConfig() = async { // Save the config file
         val root = getDatabaseConfig()
         databaseConfigLoader.save(root)
     }
 
-    fun getDatabaseConfig(): ConfigurationNode? {
-        return try {
+    suspend fun getDatabaseConfig(): ConfigurationNode? = async {
+        return@async try {
             val root = databaseConfigLoader.load()
             root // Returns sql data if valid
 
@@ -97,27 +97,27 @@ class ConfigReader(override val plugin: Plop): Addon, State {
     }
 
     // PLOT CONFIG
-    private fun readPlotConfig() {
+    private suspend fun readPlotConfig() = async {
         val plotConfigFile = plugin.getFile("plot.yml")
 
         // Ensure the plugin fails if there is no database
         if (plotConfigFile == null) {
             logger.error("No such file for plot!")
             plugin.kill()
-            return
+            return@async
         }
 
         // Load Configurate library's yaml reader
         plotConfigLoader = YamlConfigurationLoader.builder().file(plotConfigFile).build()
     }
 
-    private fun savePlotConfig() { // Save the config file
+    private suspend fun savePlotConfig() = async { // Save the config file
         val root = getPlotConfig()
         plotConfigLoader.save(root)
     }
 
-    fun getPlotConfig(): ConfigurationNode? {
-        return try {
+    suspend fun getPlotConfig(): ConfigurationNode? = async {
+        return@async try {
             val root = plotConfigLoader.load()
             root // Returns sql data if valid
 
@@ -129,27 +129,27 @@ class ConfigReader(override val plugin: Plop): Addon, State {
     }
 
     // SHOP CONFIG
-    private fun readShopConfig() {
+    private suspend fun readShopConfig() = async {
         val shopConfigFile = plugin.getFile("shop.yml")
 
         // Ensure the plugin fails if there is no database
         if (shopConfigFile == null) {
             logger.error("No such file for shop!")
             plugin.kill()
-            return
+            return@async
         }
 
         // Load Configurate library's yaml reader
         shopConfigLoader = YamlConfigurationLoader.builder().file(shopConfigFile).build()
     }
 
-    private fun saveShopConfig() { // Save the config file
+    private suspend fun saveShopConfig() = async { // Save the config file
         val root = getShopConfig()
         shopConfigLoader.save(root)
     }
 
-    fun getShopConfig(): ConfigurationNode? {
-        return try {
+    suspend fun getShopConfig(): ConfigurationNode? = async {
+        return@async try {
             val root = shopConfigLoader.load()
             root // Returns sql data if valid
 
@@ -160,27 +160,27 @@ class ConfigReader(override val plugin: Plop): Addon, State {
         }
     }
 
-    private fun readTotemConfig() {
+    private suspend fun readTotemConfig() = async {
         val totemConfigFile = plugin.getFile("totems.yml")
 
         // Ensure the plugin fails if there is no database
         if (totemConfigFile == null) {
             logger.error("No such file for totems!")
             plugin.kill()
-            return
+            return@async
         }
 
         // Load Configurate library's yaml reader
         totemConfigLoader = YamlConfigurationLoader.builder().file(totemConfigFile).build()
     }
 
-    private fun saveTotemConfig() { // Save the config file
+    private suspend fun saveTotemConfig() = async { // Save the config file
         val root = getTotemConfig()
         totemConfigLoader.save(root)
     }
 
-    fun getTotemConfig(): ConfigurationNode? {
-        return try {
+    suspend fun getTotemConfig(): ConfigurationNode? = async {
+        return@async try {
             val root = totemConfigLoader.load()
             root // Returns sql data if valid
 

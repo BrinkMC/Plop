@@ -14,7 +14,8 @@ internal class CommandPlotClaim(override val plugin: Plop): Addon {
     suspend fun plotClaim(
         sender: Player
     ) = async {
-        val potentialPreview = plots.plotPreviewHandler.previews[sender.uniqueId]
+        val potentialPreview = plots.previewHandler.getPreview(sender.uniqueId)
+
 
         if (potentialPreview == null) {
             sender.sendFormattedMessage(lang.get("command.no-preview", sender))

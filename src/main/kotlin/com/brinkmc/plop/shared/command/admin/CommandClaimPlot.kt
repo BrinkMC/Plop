@@ -13,7 +13,7 @@ internal class CommandClaimPlot(override val plugin: Plop) : Addon {
         player: Player
     ) {
         if (!player.hasPermission("plop.admin.claim")) {
-            player.sendFormattedMessage(messages.notAdmin())
+            player.sendFormattedMessage(lang.get("no-permission"))
             return
         }
 

@@ -50,7 +50,7 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
 
         val avoidList = hashSetOf<StringLocation>() // List of pre-existing plots
 
-        for (plot in plugin.plots.plotMap.values) {
+        for (plot in plugin.plots.handler.getPlotMap().values) {
             avoidList.add(
                 StringLocation(
                     plot.claim.world,
@@ -115,7 +115,7 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
 
     fun getFirstFree(): Node<StringLocation>? {
         var next = openPlots.first() // Get the first node
-        while (next != null && next.value.open == false) { // Loop while no free plots
+        while (next != null && !next.value.free) { // Loop while no free plots
             next = next.next
 
             if (next == null) {
@@ -130,7 +130,7 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
     fun getNextFreePlot(node: Node<StringLocation>): Node<StringLocation>? {
         var looked = false
         var next = node.next // Next node
-        while (next != null && !next.value.open) { // Loop while no free plots
+        while (next != null && !next.value.free) { // Loop while no free plots
             next = next.next
 
             if (next == null && looked) {
@@ -150,7 +150,7 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
     fun getPreviousFreePlot(node: Node<StringLocation>): Node<StringLocation>? {
         var looked = false
         var previous = node.prev // Previous node
-        while (previous != null && !previous.value.open) { // Loop while no free plots
+        while (previous != null && !previous.value.free) { // Loop while no free plots
             previous = previous.next
 
             if (previous == null && looked) {

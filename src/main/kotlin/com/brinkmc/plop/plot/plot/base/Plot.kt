@@ -1,12 +1,11 @@
 package com.brinkmc.plop.plot.plot.base
 
-import com.brinkmc.plop.plot.plot.data.PlotClaim
-import com.brinkmc.plop.plot.plot.data.PlotVisitState
+import com.brinkmc.plop.plot.plot.modifier.PlotClaim
 import com.brinkmc.plop.plot.plot.modifier.PlotFactory
 import com.brinkmc.plop.plot.plot.modifier.PlotSize
 import com.brinkmc.plop.plot.plot.modifier.PlotShop
 import com.brinkmc.plop.plot.plot.modifier.PlotTotem
-import com.brinkmc.plop.plot.plot.modifier.PlotVisitLimit
+import com.brinkmc.plop.plot.plot.modifier.PlotVisit
 import com.brinkmc.plop.shared.hooks.Locals.localWorld
 import com.sk89q.worldguard.WorldGuard
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion
@@ -33,8 +32,7 @@ data class Plot(
 
     // Plot data
     val claim: PlotClaim,
-    val visitState: PlotVisitState,
-    var visitLimit: PlotVisitLimit,
+    var visit: PlotVisit,
     var size: PlotSize,
     var factory: PlotFactory,
     var shop: PlotShop,

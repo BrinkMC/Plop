@@ -1,8 +1,10 @@
 package com.brinkmc.plop.shop
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.plot.base.PlotOwner
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import me.glaremasters.guilds.guild.Guild
 import org.bukkit.entity.Player
 
 class Shops(override val plugin: Plop): Addon,State {
@@ -17,8 +19,13 @@ class Shops(override val plugin: Plop): Addon,State {
         TODO("Not yet implemented")
     }
 
-    fun Player.shops(): List<Shop> {
-        // One-liner to return only guild plots, which have the player as a member or the player as the leader
-        return shopList.filter { shop -> plots.getPlot(shop.plot).owner == player?.uniqueId }
+    suspend fun Player.personalShops(): List<Shop> {
+        // One-liner to return all shops found on a player plot
+        return shopList.filter { shop -> (plots.handler.getPlotFromLocation(shop.location)?.owner as PlotOwner.PlayerOwner).player.uniqueId == this.uniqueId }
+    }
+
+    suspend fun Guild.guildShops(): List<Shop> {
+        // One-liner to return all shops found on a guild plot
+        return shopList.filter { shop -> (plots.handler.getPlotFromLocation(shop.location)?.owner as PlotOwner.GuildOwner).guild?.id == this.id }
     }
 }

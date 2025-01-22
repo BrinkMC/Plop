@@ -21,17 +21,17 @@ class PlotSizeHandler(override val plugin: Plop): Addon, State {
         personalLevels.clear()
     }
 
-    fun getCurrentPlotSize(plot: Plot): Int { // Getter
-        return when (plot.type) {
-            PlotType.GUILD -> guildLevels[plot.size.level]
-            PlotType.PERSONAL -> personalLevels[plot.size.level]
+    fun getCurrentPlotSize(plotType: PlotType, level: Int): Int { // Getter
+        return when (plotType) {
+            PlotType.GUILD -> guildLevels[level]
+            PlotType.PERSONAL -> personalLevels[level]
         }
     }
 
-    fun getPlotSizeLimit(plot: Plot): Int {
-        return when (plot.type) {
-            PlotType.GUILD -> plotConfig.getPlotSizeLevels(PlotType.GUILD).size
-            PlotType.PERSONAL -> plotConfig.getPlotSizeLevels(PlotType.PERSONAL).size
+    fun getMaximumPlotSize(plotType: PlotType): Int {
+        return when (plotType) {
+            PlotType.GUILD -> plotConfig.getPlotSizeLevels(PlotType.GUILD).last() // Last gets largest item
+            PlotType.PERSONAL -> plotConfig.getPlotSizeLevels(PlotType.PERSONAL).last()
         }
     }
 }

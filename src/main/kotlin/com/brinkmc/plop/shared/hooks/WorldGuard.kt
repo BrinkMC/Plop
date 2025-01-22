@@ -51,16 +51,16 @@ class WorldGuard(override val plugin: Plop): Addon, State {
         return worldGuardRegionContainer.get(bukkitWorld.localWorld())?.regions?.get(uuid.toString())
     }
 
-    fun getRegion(location: Location): ProtectedRegion? {
-        return worldGuardRegionContainer.createQuery().getApplicableRegions(location.localLocation()).regions.first()
+    fun getRegions(location: Location): Set<ProtectedRegion?>? {
+        return worldGuardRegionContainer.createQuery().getApplicableRegions(location.localLocation()).regions
     }
 
-    fun getRegion(player: Player): ProtectedRegion? {
-        return worldGuardRegionContainer.createQuery().getApplicableRegions(player.location.localLocation()).regions.first()
+    fun getRegions(player: Player): Set<ProtectedRegion?>? {
+        return worldGuardRegionContainer.createQuery().getApplicableRegions(player.location.localLocation()).regions
     }
 
     suspend fun createRegion(uuid: UUID) = sync { // Create a region to claim around the new plot, the plot has uuid as its name
-        val plot = plots.getPlot(uuid) ?: run {
+        val plot = plots.handler.getPlotById(uuid) ?: run {
             logger.error("Critical problem in creating a region, plot doesn't exist")
             return@sync
         }
@@ -70,11 +70,11 @@ class WorldGuard(override val plugin: Plop): Addon, State {
             return@sync
         }
 
-        val owner = plot.getOwner()
+        val owner = plot.owner
 
 
-        val min = BlockVector3.at(plot.claim.centre.blockX - plot.getPlotSizeLimit(), plotWorld.minHeight, plot.claim.centre.blockZ - plot.getPlotSizeLimit())
-        val max = BlockVector3.at(plot.claim.centre.blockX + plot.getPlotSizeLimit() - 1, plotWorld.maxHeight, plot.claim.centre.blockZ + plot.getPlotSizeLimit() - 1) // Define region size and location
+        val min = BlockVector3.at(plot.claim.centre.blockX - plot.size.max, plotWorld.minHeight, plot.claim.centre.blockZ - plot.size.max)
+        val max = BlockVector3.at(plot.claim.centre.blockX + plot.size.max - 1, plotWorld.maxHeight, plot.claim.centre.blockZ + plot.size.max - 1) // Define region size and location
 
         val domain = DefaultDomain()
         val protectedRegion: ProtectedCuboidRegion = when (owner) {
@@ -115,5 +115,10 @@ object Locals {
 
     fun Location.localLocation(): com.sk89q.worldedit.util.Location {
         return BukkitAdapter.adapt(this)
+    }
+
+    // Not a local
+    fun String.world(): World? {
+        return Bukkit.getWorld(this)
     }
 }

@@ -8,6 +8,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.minimessage.tag.standard.StandardTags
 import org.bukkit.entity.Player
+import sun.net.www.content.text.plain
 
 class MessageService(override val plugin: Plop): Addon {
 
@@ -22,7 +23,11 @@ class MessageService(override val plugin: Plop): Addon {
     val plopMessageSource = plugin.plopMessageSource()
 
     fun get(string: String, player: Player? = null): Component {
-        return miniMessage.deserialize(plopMessageSource.findMessage(string) ?: "<red>No message set!", profileTags.name(player))
+        return if (player == null) {
+            miniMessage.deserialize(plopMessageSource.findMessage(string) ?: "<red>No message set!")
+        } else {
+            miniMessage.deserialize(plopMessageSource.findMessage(string) ?: "<red>No message set!", profileTags.name(player))
+        }
     }
 
     // Provide functionality to the Addon reference
@@ -41,33 +46,27 @@ class MessageService(override val plugin: Plop): Addon {
 
 class ProfileTags(override val plugin: Plop) : Addon {
 
-    fun all(player: Player?): TagResolver {
+    fun all(player: Player): TagResolver {
 
         return TagResolver.resolver(
-            name(player)
-            plot(player)
-            shop(player)
+            name(player),
+            personalPlotResolver(player),
+            guildPlotResolver(player)
         )
 
     }
 
-    fun name(player: Player?): TagResolver {
-        return Placeholder.component("name", player!!.displayName())
+    fun name(player: Player): TagResolver {
+        return Placeholder.component("name", player.displayName())
     }
 
-    fun plot(player: Player?): TagResolver {
-        with (plots) {
-            player?.personalPlot()
-        }
-
+    fun personalPlotResolver(player: Player): TagResolver {
+        return Placeholder.component("guildPlot", Component.text(plugin.hooks.guilds.guildAPI.getGuildByPlayerId(player.uniqueId)?.name ?: ""))
     }
 
-    fun shop(player: Player?): TagResolver {
-        with (shops) {
-            player?.shops()
-        }
+    fun guildPlotResolver(player: Player): TagResolver {
+        return Placeholder.component("guildPlot", Component.text(plugin.hooks.guilds.guildAPI.getGuildByPlayerId(player.uniqueId)?.name ?: ""))
     }
-
 }
 
 

@@ -13,18 +13,21 @@ import com.brinkmc.plop.shared.command.plot.visit.CommandPlotVisit
 import com.brinkmc.plop.shared.command.processors.GeneralSuggestionProcessor
 import com.brinkmc.plop.shared.command.shop.CommandShopList
 import com.brinkmc.plop.shared.command.shop.CommandTrade
+import com.brinkmc.plop.shared.config.BaseConfig
 import com.brinkmc.plop.shared.config.ConfigReader
 import com.brinkmc.plop.shared.config.configs.MainConfig
 import com.brinkmc.plop.shared.config.configs.PlotConfig
 import com.brinkmc.plop.shared.config.configs.SQLConfig
 import com.brinkmc.plop.shared.config.configs.ShopConfig
 import com.brinkmc.plop.shared.config.configs.TotemConfig
+import com.brinkmc.plop.shared.gui.HotbarPreview
 import com.brinkmc.plop.shared.hooks.Guilds
 import com.brinkmc.plop.shared.hooks.MythicMobs
 import com.brinkmc.plop.shared.hooks.ProtocolLib
 import com.brinkmc.plop.shared.hooks.WorldGuard
 import com.brinkmc.plop.shared.hooks.listener.GeneralListener
-import com.brinkmc.plop.shared.hooks.listener.InventoryClick
+import com.brinkmc.plop.shared.hooks.listener.MovementListener
+import com.brinkmc.plop.shared.hooks.listener.MythicListener
 import com.brinkmc.plop.shared.hooks.listener.PlayerInteract
 import com.brinkmc.plop.shared.pdc.PersistentDataReader
 import com.brinkmc.plop.shared.storage.HikariManager
@@ -37,12 +40,16 @@ import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.registerSuspendingEvents
 import com.google.gson.Gson
+import com.noxcrew.interfaces.InterfacesListeners
+import com.noxcrew.interfaces.interfaces.Interface
+import com.noxcrew.interfaces.view.InterfaceView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
+import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.execution.ExecutionCoordinator
@@ -51,6 +58,7 @@ import org.incendo.cloud.paper.PaperCommandManager
 import org.incendo.cloud.paper.util.sender.PaperSimpleSenderMapper
 import org.incendo.cloud.paper.util.sender.Source
 import java.io.File
+import java.util.UUID
 
 
 class Plop : State, SuspendingJavaPlugin() {
@@ -60,6 +68,7 @@ class Plop : State, SuspendingJavaPlugin() {
 
     lateinit var plots: Plots
     lateinit var shops: Shops
+    lateinit var menus: Menus
     lateinit var DB: HikariManager
     lateinit var persistentDataReader: PersistentDataReader
 
@@ -76,7 +85,8 @@ class Plop : State, SuspendingJavaPlugin() {
     lateinit var configs: Plop.Configs
 
     private lateinit var generalListener: GeneralListener
-    private lateinit var inventoryClickListener: InventoryClick
+    private lateinit var mythicListener: MythicListener
+    private lateinit var movementListener: MovementListener
     private lateinit var playerInteractListener: PlayerInteract
 
     lateinit var gson: Gson
@@ -99,13 +109,19 @@ class Plop : State, SuspendingJavaPlugin() {
     override suspend fun load() {
         // Load configs initially to get all necessary data
         configs = Configs(plugin)
+        configs.load()
 
         // Load the two parts of the plugin
         plots = Plots(plugin)
+        plots.load()
         shops = Shops(plugin)
+        shops.load()
 
         // Get instance of hooks
         hooks = Hooks(plugin)
+
+        // Enable all menus
+        menus = Menus(plugin)
 
         // Enable gson library for messages
         this.gson = Gson()
@@ -124,13 +140,17 @@ class Plop : State, SuspendingJavaPlugin() {
     }
 
     private fun loadListeners() {
+        InterfacesListeners.install(this)
+
         generalListener = GeneralListener(this)
-        inventoryClickListener = InventoryClick(this)
+        movementListener = MovementListener(this)
+        mythicListener = MythicListener(this)
         playerInteractListener = PlayerInteract(this)
 
         listOf(
             generalListener,
-            inventoryClickListener,
+            mythicListener,
+            movementListener,
             playerInteractListener
         ).forEach { listener -> Bukkit.getServer().pluginManager.registerSuspendingEvents(listener, this) }
     }
@@ -197,11 +217,40 @@ class Plop : State, SuspendingJavaPlugin() {
         val worldGuard = WorldGuard(plugin)
     }
 
-    class Configs(val plugin: Plop) {
+    class Configs(val plugin: Plop): State {
+
         val mainConfig = MainConfig(plugin)
         val plotConfig = PlotConfig(plugin)
         val shopConfig = ShopConfig(plugin)
         val SQLConfig = SQLConfig(plugin)
         val totemConfig = TotemConfig(plugin)
+
+        override suspend fun load() { // Load all configs safely
+            listOf<BaseConfig>(
+                mainConfig,
+                plotConfig,
+                shopConfig,
+                SQLConfig,
+                totemConfig
+            ).forEach { config -> config.load() }
+        }
+
+        override suspend fun kill() { // Kill all configs safely
+            listOf<BaseConfig>(
+                mainConfig,
+                plotConfig,
+                shopConfig,
+                SQLConfig,
+                totemConfig
+            ).forEach { config -> config.kill() }
+        }
+    }
+
+    class Menus(val plugin: Plop) {
+        val hotbarPreview = HotbarPreview(plugin)
+
+        suspend fun openHotbarPreview(player: Player, prev: InterfaceView? = null): InterfaceView {
+            return hotbarPreview.create().open(player, prev)
+        }
     }
 }

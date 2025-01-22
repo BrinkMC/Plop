@@ -9,7 +9,6 @@ create table if not exists `plots_plots`
 
 create table if not exists `plots_claims`
 (
-    max_length int not null,
     centre text not null,
     home text null,
     visit text null,
@@ -69,16 +68,9 @@ create table if not exists `plots_shop_locations`
 
 create table if not exists `plots_visitor_limits`
 (
+    allow_visitors binary not null,
     level int not null,
     current_amount int,
-    plot_id varchar(36) not null,
-    primary key (plot_id),
-    foreign key (plot_id) references plots_plots(plot_id)
-);
-
-create table if not exists `plots_visits`
-(
-    allow_visitors binary not null,
     plot_id varchar(36) not null,
     primary key (plot_id),
     foreign key (plot_id) references plots_plots(plot_id)

@@ -11,7 +11,9 @@ data class SQLConfig(
     override val plugin: Plop, // Must be able to access the plugin
 ): BaseConfig(plugin) {
 
-    override val config = configManager.getDatabaseConfig() // Database config file
+    override suspend fun loadConfig(): ConfigurationNode? {
+        return configManager.getDatabaseConfig()
+    } // Database config file
 
     // Get values for the SQL Config, this lays out the schema of the file
     var user: String by delegate("user")

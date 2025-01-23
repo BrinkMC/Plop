@@ -1,7 +1,7 @@
 //import xyz.jpenilla.runpaper.task.RunServer
 
 plugins {
-    kotlin("jvm") version "1.9.20"
+    kotlin("jvm") version "1.9.25"
     alias(libs.plugins.indra)
     alias(libs.plugins.indraGit)
     alias(libs.plugins.indraLicenseHeader)
@@ -80,12 +80,12 @@ version = (version as String)//.decorateVersion()
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21)) // Always targets JDK 21
+        languageVersion.set(JavaLanguageVersion.of(21)) // Forces Java 21 for all Java tasks
     }
 }
 kotlin {
     jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(21)) // Aligns Kotlin compiler target
     }
 }
 
@@ -95,6 +95,10 @@ tasks {
             jvmTarget = "21"
             javaParameters = true
         }
+    }
+    withType<JavaCompile> {
+        sourceCompatibility = "21"
+        targetCompatibility = "21"
     }
     jar {
         archiveClassifier.set("not-shadowed")

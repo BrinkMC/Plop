@@ -11,7 +11,7 @@ Credit to Andross for the code, and HawkFalcon for commissioning it
 
 object LocationUtils {
 
-    private val HOLLOW_MATERIALS: Set<Material> = Material.values().filter { it.isTransparent }.toSet()
+    private val HOLLOW_MATERIALS: Set<Material> = Material.values().filter { it.isEmpty }.toSet()
 
     private fun isBlockUnsafe(world: World, x: Int, y: Int, z: Int): Boolean {
         return isBlockDamaging(world, x, y, z) || isBlockAboveAir(world, x, y, z)

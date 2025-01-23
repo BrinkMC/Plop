@@ -83,11 +83,11 @@ internal interface Addon {
 
     // Provide an easy way to get formatted MiniMessage messages with custom tags also replaced properly
     fun Player.sendFormattedMessage(message: String) {
-        lang.sendFormattedMessage(this, message)
+        lang.sendFormattedMessageStr(this, message)
     }
 
     fun Player.sendFormattedMessage(message: Component) {
-        lang.sendFormattedMessage(this, message)
+        lang.sendFormattedMessageComp(this, message)
     }
 
     // Extension functions for Bukkit

@@ -8,7 +8,6 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.minimessage.tag.standard.StandardTags
 import org.bukkit.entity.Player
-import sun.net.www.content.text.plain
 
 class MessageService(override val plugin: Plop): Addon {
 
@@ -31,13 +30,13 @@ class MessageService(override val plugin: Plop): Addon {
     }
 
     // Provide functionality to the Addon reference
-    fun sendFormattedMessage(player: Player, message: String) {
+    fun sendFormattedMessageStr(player: Player, message: String) {
         player.sendMessage(
             miniMessage.deserialize(message, profileTags.name(player))
         )
     }
 
-    fun sendFormattedMessage(player: Player, message: Component) {
+    fun sendFormattedMessageComp(player: Player, message: Component) {
         player.sendMessage(
             message
         )

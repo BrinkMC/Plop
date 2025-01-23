@@ -11,10 +11,6 @@ sealed class PlotOwner {
 
         val members: MutableList<UUID> = guild?.members?.map { it.uuid }?.toMutableList() ?: mutableListOf()
 
-        fun getMembers(): List<OfflinePlayer> {
-            return members.map { uuid -> Bukkit.getOfflinePlayer(uuid) }
-        }
-
         fun addMember(newMember: UUID) {
             members.add(newMember)
         }

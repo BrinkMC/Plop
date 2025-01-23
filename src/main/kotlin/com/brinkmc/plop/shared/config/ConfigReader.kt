@@ -4,7 +4,6 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.async
-import com.sun.org.apache.xalan.internal.utils.ConfigurationError
 import org.spongepowered.configurate.ConfigurateException
 import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.loader.ConfigurationLoader

@@ -1,19 +1,15 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 //import xyz.jpenilla.runpaper.task.RunServer
 
 plugins {
     kotlin("jvm") version "1.9.25"
-    alias(libs.plugins.indra)
-    alias(libs.plugins.indraGit)
-    alias(libs.plugins.indraLicenseHeader)
-    //alias(libs.plugins.runPaper)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.shadow)
 }
 
 repositories {
     mavenCentral()
-    sonatype.s01Snapshots()
-    sonatype.ossSnapshots()
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.jpenilla.xyz/snapshots/")
     maven("https://repo.doesnt-want-to.work/snapshots/")
@@ -72,21 +68,18 @@ dependencies {
     implementation("io.papermc", "paperlib", "1.0.8")
 
     compileOnly("com.github.yannicklamprecht:worldborderapi:1.201.0:dev") // Weird import
-
-    implementation("xyz.jpenilla:reflection-remapper:0.1.0-SNAPSHOT")
 }
 
 version = (version as String)//.decorateVersion()
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21)) // Forces Java 21 for all Java tasks
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
+
 kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(21)) // Aligns Kotlin compiler target
-    }
+    jvmToolchain(21)
 }
 
 tasks {
@@ -125,7 +118,6 @@ tasks {
             "org.bstats",
             "kotlin",
             "dev.triumphteam",
-            "xyz.jpenilla.reflectionremapper",
             "net.fabricmc.mappingio"
         ).forEach { pkg ->
             relocate(pkg, "$prefix.$pkg")
@@ -144,20 +136,20 @@ tasks {
     register("format") {
         group = "formatting"
         description = "Formats source code according to project style."
-        dependsOn(licenseFormat, ktlintFormat)
+        dependsOn( ktlintFormat)
     }
-    processResources {
-        val props = mapOf(
-            "version" to project.version,
-            "website" to "https://github.com/VQ9/Plop",
-            "description" to project.description,
-            "apiVersion" to "1.20",
-        )
-        inputs.properties(props)
-        filesMatching("plugin.yml") {
-            expand(props)
-        }
-    }
+//    processResources {
+//        val props = mapOf(
+//            "version" to project.version,
+//            "website" to "https://github.com/VQ9/Plop",
+//            "description" to project.description,
+//            "apiVersion" to "1.20",
+//        )
+//        inputs.properties(props)
+//        filesMatching("plugin.yml") {
+//            expand(props)
+//        }
+//    }
 }
 
 //runPaper.folia.registerTask()

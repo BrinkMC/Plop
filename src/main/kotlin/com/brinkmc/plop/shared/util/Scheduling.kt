@@ -1,7 +1,6 @@
 package com.brinkmc.plop.shared.util
 
 import com.brinkmc.plop.Plop
-import com.sun.org.apache.bcel.internal.classfile.JavaClass
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

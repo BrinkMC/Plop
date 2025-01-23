@@ -147,6 +147,7 @@ class Plop : State, SuspendingJavaPlugin() {
         mythicListener = MythicListener(this)
         playerInteractListener = PlayerInteract(this)
 
+        // Listeners
         listOf(
             generalListener,
             mythicListener,

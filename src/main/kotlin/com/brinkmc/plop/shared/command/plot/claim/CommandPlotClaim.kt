@@ -22,6 +22,6 @@ internal class CommandPlotClaim(override val plugin: Plop): Addon {
             return@async
         }
 
-        potentialPreview.type
+        plots.claimHandler.initiateClaim(sender.uniqueId, potentialPreview.type)
     }
 }

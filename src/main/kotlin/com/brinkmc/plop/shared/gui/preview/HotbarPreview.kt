@@ -1,28 +1,20 @@
-package com.brinkmc.plop.shared.gui
+package com.brinkmc.plop.shared.gui.preview
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.pdc.storeData
-import com.brinkmc.plop.shared.pdc.types.PDButtonInstance
 import com.brinkmc.plop.shared.util.GuiUtils.description
 import com.brinkmc.plop.shared.util.GuiUtils.name
 import com.brinkmc.plop.shared.util.RegistrableInterface
-import com.brinkmc.plop.shared.util.async
 import com.brinkmc.plop.shared.util.asyncScope
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.Interface
 import com.noxcrew.interfaces.interfaces.buildPlayerInterface
 import com.noxcrew.interfaces.properties.interfaceProperty
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
-import java.util.UUID
-import java.util.concurrent.CompletableFuture.runAsync
 
 class HotbarPreview(override val plugin: Plop): Addon, RegistrableInterface {
 

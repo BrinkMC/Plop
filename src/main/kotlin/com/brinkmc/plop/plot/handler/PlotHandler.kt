@@ -64,10 +64,10 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
         plots.databaseHandler.create(plot) // Run database update on IO
     }
 
-    suspend fun getPlotFromLocation(location: Location): Plot? = async {
+    fun getPlotFromLocation(location: Location): Plot? {
         val worldGuardRegions = plugin.hooks.worldGuard.getRegions(location) // WorldGuard is async so it is fine to access async
-        if (worldGuardRegions?.size != 1) return@async null // Must only be one region player is standing in if it is a plot world
-        return@async getPlotById(UUID.fromString(worldGuardRegions.first()?.id))
+        if (worldGuardRegions?.size != 1) return null // Must only be one region player is standing in if it is a plot world
+        return getPlotById(UUID.fromString(worldGuardRegions.first()?.id))
     }
     
     fun getPlotWorlds(): List<World> {

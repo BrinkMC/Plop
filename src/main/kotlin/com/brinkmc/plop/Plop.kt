@@ -20,7 +20,7 @@ import com.brinkmc.plop.shared.config.configs.PlotConfig
 import com.brinkmc.plop.shared.config.configs.SQLConfig
 import com.brinkmc.plop.shared.config.configs.ShopConfig
 import com.brinkmc.plop.shared.config.configs.TotemConfig
-import com.brinkmc.plop.shared.gui.HotbarPreview
+import com.brinkmc.plop.shared.gui.preview.HotbarPreview
 import com.brinkmc.plop.shared.hooks.Guilds
 import com.brinkmc.plop.shared.hooks.MythicMobs
 import com.brinkmc.plop.shared.hooks.ProtocolLib
@@ -33,24 +33,16 @@ import com.brinkmc.plop.shared.pdc.PersistentDataReader
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.MessageService
 import com.brinkmc.plop.shared.util.PlopMessageSource
-import com.brinkmc.plop.shared.util.async
-import com.brinkmc.plop.shared.util.sync
 import com.brinkmc.plop.shop.Shops
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
-import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.registerSuspendingEvents
 import com.google.gson.Gson
 import com.noxcrew.interfaces.InterfacesListeners
-import com.noxcrew.interfaces.interfaces.Interface
 import com.noxcrew.interfaces.view.InterfaceView
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
-import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
@@ -58,7 +50,6 @@ import org.incendo.cloud.paper.PaperCommandManager
 import org.incendo.cloud.paper.util.sender.PaperSimpleSenderMapper
 import org.incendo.cloud.paper.util.sender.Source
 import java.io.File
-import java.util.UUID
 
 
 class Plop : State, SuspendingJavaPlugin() {

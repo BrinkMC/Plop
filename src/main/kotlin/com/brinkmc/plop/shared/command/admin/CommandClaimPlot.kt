@@ -8,7 +8,7 @@ import org.incendo.cloud.annotations.processing.CommandContainer
 
 internal class CommandClaimPlot(override val plugin: Plop) : Addon {
 
-    @Command("admin claim plot")
+    @Command("admin plot claim")
     suspend fun claimPlot(
         player: Player
     ) {
@@ -16,7 +16,6 @@ internal class CommandClaimPlot(override val plugin: Plop) : Addon {
             player.sendFormattedMessage(lang.get("no-permission"))
             return
         }
-
 
     }
 

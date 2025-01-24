@@ -12,6 +12,7 @@ import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.MessageService
 import com.brinkmc.plop.shop.Shops
 import kotlinx.coroutines.sync.Mutex
+import me.glaremasters.guilds.guild.Guild
 import net.kyori.adventure.text.Component
 import org.bukkit.Server
 import org.bukkit.entity.Player
@@ -88,6 +89,14 @@ internal interface Addon {
 
     fun Player.sendFormattedMessage(message: Component) {
         lang.sendFormattedMessageComp(this, message)
+    }
+
+    fun Player.guild(): Guild? {
+        return plugin.hooks.guilds.guildAPI.getGuildByPlayerId(this.uniqueId)
+    }
+
+    fun Player.inPlot(): Boolean {
+        return (plots.handler.getPlotFromLocation(location)?.plotId == player?.uniqueId) || (plots.handler.getPlotFromLocation(location)?.plotId == player?.guild()?.id)
     }
 
     // Extension functions for Bukkit

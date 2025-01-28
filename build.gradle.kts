@@ -26,6 +26,7 @@ repositories {
 
 dependencies {
     implementation(platform(kotlin("bom")))
+    implementation(kotlin("stdlib"))
 
     compileOnly("dev.folia", "folia-api", "1.20.1-R0.1-SNAPSHOT")
     compileOnly("com.github.MilkBowl", "VaultAPI", "1.7.1")
@@ -101,30 +102,28 @@ tasks {
             rename { "license_${rootProject.name.lowercase()}.txt" }
         }
 
-        minimize()
         archiveClassifier.set(null as String?)
         archiveBaseName.set(project.name) // Use uppercase name for final jar
 
-        val prefix = "${project.group}.${project.name.lowercase()}.lib"
+        val prefix = "com.brinkmc.plop.lib"
         sequenceOf(
             "com.typesafe.config",
             "io.leangen.geantyref",
             "io.papermc.lib",
             "net.kyori",
             "com.brinkmc.pluginbase",
-            "cloud.commandframework",
+            "org.incendo",
+            "com.noxcrew",
             "org.koin",
+            "com.zaxxer",
             "org.spongepowered.configurate",
+            "com.github.benmanes",
             "org.bstats",
             "kotlin",
-            "dev.triumphteam",
+            "kotlinx",
             "net.fabricmc.mappingio"
         ).forEach { pkg ->
             relocate(pkg, "$prefix.$pkg")
-        }
-
-        dependencies {
-            exclude(dependency("org.jetbrains:annotations"))
         }
     }
     assemble {
@@ -138,18 +137,6 @@ tasks {
         description = "Formats source code according to project style."
         dependsOn( ktlintFormat)
     }
-//    processResources {
-//        val props = mapOf(
-//            "version" to project.version,
-//            "website" to "https://github.com/VQ9/Plop",
-//            "description" to project.description,
-//            "apiVersion" to "1.20",
-//        )
-//        inputs.properties(props)
-//        filesMatching("plugin.yml") {
-//            expand(props)
-//        }
-//    }
 }
 
 //runPaper.folia.registerTask()

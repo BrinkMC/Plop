@@ -22,9 +22,6 @@ internal interface Addon {
 
     val plugin: Plop
 
-    val mutex: Mutex
-        get() = plugin.mutex
-
     val server: Server
         get() = plugin.server
 

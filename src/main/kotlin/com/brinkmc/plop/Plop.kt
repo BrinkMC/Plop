@@ -33,6 +33,7 @@ import com.brinkmc.plop.shared.pdc.PersistentDataReader
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.MessageService
 import com.brinkmc.plop.shared.util.PlopMessageSource
+import com.brinkmc.plop.shared.util.sync
 import com.brinkmc.plop.shop.Shops
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.bukkit.registerSuspendingEvents
@@ -55,7 +56,6 @@ import java.io.File
 class Plop : State, SuspendingJavaPlugin() {
 
     private val plugin = this
-    val mutex = Mutex()
 
     lateinit var plots: Plots
     lateinit var shops: Shops
@@ -97,16 +97,19 @@ class Plop : State, SuspendingJavaPlugin() {
     /*
     Putting everything inside a load function results in easy reload of the entire plugin if necessary based off of the state system
      */
-    override suspend fun load() {
-        // Load configs initially to get all necessary data
-        configs = Configs(plugin)
-        configs.load()
-
+    override suspend fun load() = sync {
         // Load the two parts of the plugin
         plots = Plots(plugin)
         plots.load()
         shops = Shops(plugin)
         shops.load()
+
+        // Load configs initially to get all necessary data
+        configs = Configs(plugin)
+        configs.load()
+
+        configManager = ConfigReader(plugin)
+        configManager.load()
 
         // Get instance of hooks
         hooks = Hooks(plugin)
@@ -115,8 +118,8 @@ class Plop : State, SuspendingJavaPlugin() {
         menus = Menus(plugin)
 
         // Enable gson library for messages
-        this.gson = Gson()
-        this.persistentDataReader = PersistentDataReader(this)
+        plugin.gson = Gson()
+        plugin.persistentDataReader = PersistentDataReader(plugin)
 
         // Register listener
         loadListeners()

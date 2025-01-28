@@ -12,8 +12,8 @@ internal class CommandPlotSetHome(override val plugin: Plop) : Addon {
     suspend fun setHome(
         player: Player
     ) {
-        if player.inPlot() {
-            player.sendFormattedMessage(lang.get("plot-sethome-already"))
+        if (!player.inPlot()) {
+            player.sendFormattedMessage(lang.get("plot.sethome.bad"))
             return
         }
     }

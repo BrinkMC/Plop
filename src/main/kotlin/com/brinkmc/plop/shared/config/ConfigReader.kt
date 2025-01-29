@@ -17,30 +17,33 @@ class ConfigReader(override val plugin: Plop): Addon, State {
     private lateinit var shopConfigLoader: YamlConfigurationLoader
     private lateinit var totemConfigLoader: YamlConfigurationLoader
 
-    override suspend fun load() = async {
+    override suspend fun load() {
         readMainConfig()
         readDatabaseConfig()
         readPlotConfig()
         readShopConfig()
         readTotemConfig()
+        return
     }
 
-    override suspend fun kill() = async {
+    override suspend fun kill() {
         saveMainConfig()
         saveDatabaseConfig()
         savePlotConfig()
         saveShopConfig()
         saveTotemConfig()
+        return
     }
 
     // MAIN CONFIG
     private suspend fun readMainConfig() = async {
+        logger.error("Load main config")
         val configFile = plugin.getFile("config.yml")
 
         // Ensure the plugin stalls if no locale is found
         if (configFile == null) {
-            logger.error("No such file!")
-            plugin.kill()
+            configFile?.createNewFile()
+            logger.error("No such file, creating file!")
             return@async
         }
 
@@ -69,8 +72,8 @@ class ConfigReader(override val plugin: Plop): Addon, State {
 
         // Ensure the plugin fails if there is no database
         if (databaseConfigFile == null) {
-            logger.error("No such file for database!")
-            plugin.kill()
+            databaseConfigFile?.createNewFile()
+            logger.error("No such file, creating file!")
             return@async
         }
 
@@ -101,8 +104,8 @@ class ConfigReader(override val plugin: Plop): Addon, State {
 
         // Ensure the plugin fails if there is no database
         if (plotConfigFile == null) {
-            logger.error("No such file for plot!")
-            plugin.kill()
+            plotConfigFile?.createNewFile()
+            logger.error("No such file, creating file!")
             return@async
         }
 
@@ -133,8 +136,8 @@ class ConfigReader(override val plugin: Plop): Addon, State {
 
         // Ensure the plugin fails if there is no database
         if (shopConfigFile == null) {
-            logger.error("No such file for shop!")
-            plugin.kill()
+            shopConfigFile?.createNewFile()
+            logger.error("No such file, creating file!")
             return@async
         }
 
@@ -164,8 +167,8 @@ class ConfigReader(override val plugin: Plop): Addon, State {
 
         // Ensure the plugin fails if there is no database
         if (totemConfigFile == null) {
-            logger.error("No such file for totems!")
-            plugin.kill()
+            totemConfigFile?.createNewFile()
+            logger.error("No such file, creating file!")
             return@async
         }
 

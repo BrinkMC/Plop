@@ -29,7 +29,6 @@ import com.brinkmc.plop.shared.hooks.listener.GeneralListener
 import com.brinkmc.plop.shared.hooks.listener.MovementListener
 import com.brinkmc.plop.shared.hooks.listener.MythicListener
 import com.brinkmc.plop.shared.hooks.listener.PlayerInteract
-import com.brinkmc.plop.shared.pdc.PersistentDataReader
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.MessageService
 import com.brinkmc.plop.shared.util.PlopMessageSource
@@ -40,6 +39,7 @@ import com.github.shynixn.mccoroutine.bukkit.registerSuspendingEvents
 import com.google.gson.Gson
 import com.noxcrew.interfaces.InterfacesListeners
 import com.noxcrew.interfaces.view.InterfaceView
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.sync.Mutex
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
@@ -61,7 +61,6 @@ class Plop : State, SuspendingJavaPlugin() {
     lateinit var shops: Shops
     lateinit var menus: Menus
     lateinit var DB: HikariManager
-    lateinit var persistentDataReader: PersistentDataReader
 
     private lateinit var commandManager: PaperCommandManager<Source>
     private lateinit var annotationParser: AnnotationParser<Source>
@@ -70,10 +69,10 @@ class Plop : State, SuspendingJavaPlugin() {
     private lateinit var configManager: ConfigReader
 
     // Hooks
-    lateinit var hooks: Plop.Hooks
+    lateinit var hooks: Hooks
 
     // Configs
-    lateinit var configs: Plop.Configs
+    lateinit var configs: Configs
 
     private lateinit var generalListener: GeneralListener
     private lateinit var mythicListener: MythicListener
@@ -98,28 +97,37 @@ class Plop : State, SuspendingJavaPlugin() {
     Putting everything inside a load function results in easy reload of the entire plugin if necessary based off of the state system
      */
     override suspend fun load() = sync {
+
+        // Load configs initially to get all necessary data
+        plugin.slF4JLogger.info("Initiating config manager")
+        configManager = ConfigReader(plugin)
+        configManager.load()
+        plugin.slF4JLogger.info("Finished loading config manager")
+        plugin.slF4JLogger.info("Initiating individual configs")
+        configs = Configs(plugin)
+        configs.load()
+        plugin.slF4JLogger.info("Finished loading individual configs")
+
         // Load the two parts of the plugin
+        plugin.slF4JLogger.info("Initiating plots")
         plots = Plots(plugin)
         plots.load()
+        plugin.slF4JLogger.info("Initiating shops")
         shops = Shops(plugin)
         shops.load()
 
-        // Load configs initially to get all necessary data
-        configs = Configs(plugin)
-        configs.load()
 
-        configManager = ConfigReader(plugin)
-        configManager.load()
 
         // Get instance of hooks
+        plugin.slF4JLogger.info("Hooking into other plugins")
         hooks = Hooks(plugin)
 
         // Enable all menus
+        plugin.slF4JLogger.info("Creating menus and hotbars")
         menus = Menus(plugin)
 
         // Enable gson library for messages
         plugin.gson = Gson()
-        plugin.persistentDataReader = PersistentDataReader(plugin)
 
         // Register listener
         loadListeners()
@@ -136,6 +144,7 @@ class Plop : State, SuspendingJavaPlugin() {
     private fun loadListeners() {
         InterfacesListeners.install(this)
 
+        plugin.slF4JLogger.info("Initiating listeners")
         generalListener = GeneralListener(this)
         movementListener = MovementListener(this)
         mythicListener = MythicListener(this)
@@ -148,6 +157,7 @@ class Plop : State, SuspendingJavaPlugin() {
             movementListener,
             playerInteractListener
         ).forEach { listener -> Bukkit.getServer().pluginManager.registerSuspendingEvents(listener, this) }
+        plugin.slF4JLogger.info("Finished hooking listeners")
     }
 
     private fun loadCmds() {

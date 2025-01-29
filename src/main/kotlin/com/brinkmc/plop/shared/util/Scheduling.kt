@@ -1,6 +1,7 @@
 package com.brinkmc.plop.shared.util
 
 import com.brinkmc.plop.Plop
+import com.github.shynixn.mccoroutine.bukkit.launch
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,48 +18,30 @@ import kotlin.coroutines.CoroutineContext
 suspend fun <T> sync( // Synchronous function
     block: suspend CoroutineScope.() -> T // Block as in a block of code
 ): T =
-    withContext(DispatcherContainer.sync, block) // Runs with coroutine context .sync
+    withContext(Dispatchers.sync, block) // Runs with coroutine context .sync
 suspend fun <T> async(
     block: suspend CoroutineScope.() -> T // Block
 ): T =
-    withContext(DispatcherContainer.async, block) // Runs with coroutine context .async
+    withContext(Dispatchers.async, block) // Runs with coroutine context .async
 
 
 class MinecraftCoroutineDispatcher(private val plop: Plop) : CoroutineDispatcher() {
     override fun dispatch(context: CoroutineContext, block: Runnable) {
-        if (Bukkit.isPrimaryThread()) {
-            block.run()
-        } else {
-            plop.server.scheduler.runTask(plop, block)
-        }
-    }
-}
-
-class AsyncCoroutineDispatcher(private val plop: Plop) : CoroutineDispatcher() {
-    override fun dispatch(context: CoroutineContext, block: Runnable) {
-        if (Bukkit.isPrimaryThread()) {
-            plop.server.scheduler.runTaskAsynchronously(plop, block)
-        } else {
-            block.run()
-        }
+        plop.launch { block.run() }
     }
 }
 
 private object DispatcherContainer {
-    val async: CoroutineContext by lazy {
-        AsyncCoroutineDispatcher(JavaPlugin.getPlugin(Plop::class.java))
-    }
-
-    val sync: CoroutineContext by lazy {
+    val sync: CoroutineDispatcher by lazy {
         MinecraftCoroutineDispatcher(JavaPlugin.getPlugin(Plop::class.java))
     }
 }
 
-val Dispatchers.async: CoroutineContext
-    get() =  DispatcherContainer.async
+val Dispatchers.async: CoroutineDispatcher
+    get() = Dispatchers.IO
 
-val Dispatchers.sync: CoroutineContext
-    get() =  DispatcherContainer.sync
+val Dispatchers.sync: CoroutineDispatcher
+    get() = DispatcherContainer.sync
 
 val asyncScope = CoroutineScope(Dispatchers.async)
 val syncScope = CoroutineScope(Dispatchers.sync)

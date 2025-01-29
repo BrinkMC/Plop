@@ -51,7 +51,6 @@ class PlotClaimHandler(override val plugin: Plop): Addon, State {
         plots.handler.addPlot(newPlot) // Register new plot in handler
 
         plugin.hooks.worldGuard.createRegion(newUUID)
-        TODO("Integrate with Guilds, Integrate with WorldGuard")
 
         plots.previewHandler.claimPlot(player)
     }

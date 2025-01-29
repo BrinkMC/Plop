@@ -44,7 +44,6 @@ class ConfigReader(override val plugin: Plop): Addon, State {
         if (configFile == null) {
             configFile?.createNewFile()
             logger.error("No such file, creating file!")
-            return@async
         }
 
         // Load Configurate library's yaml reader
@@ -74,7 +73,6 @@ class ConfigReader(override val plugin: Plop): Addon, State {
         if (databaseConfigFile == null) {
             databaseConfigFile?.createNewFile()
             logger.error("No such file, creating file!")
-            return@async
         }
 
         // Load Configurate library's yaml reader
@@ -106,7 +104,6 @@ class ConfigReader(override val plugin: Plop): Addon, State {
         if (plotConfigFile == null) {
             plotConfigFile?.createNewFile()
             logger.error("No such file, creating file!")
-            return@async
         }
 
         // Load Configurate library's yaml reader
@@ -138,7 +135,6 @@ class ConfigReader(override val plugin: Plop): Addon, State {
         if (shopConfigFile == null) {
             shopConfigFile?.createNewFile()
             logger.error("No such file, creating file!")
-            return@async
         }
 
         // Load Configurate library's yaml reader
@@ -169,7 +165,6 @@ class ConfigReader(override val plugin: Plop): Addon, State {
         if (totemConfigFile == null) {
             totemConfigFile?.createNewFile()
             logger.error("No such file, creating file!")
-            return@async
         }
 
         // Load Configurate library's yaml reader

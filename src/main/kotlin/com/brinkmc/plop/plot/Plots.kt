@@ -12,6 +12,9 @@ import com.brinkmc.plop.plot.handler.PlotVisitHandler
 import com.brinkmc.plop.plot.storage.DatabasePlot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shared.util.sync
+import org.bukkit.World
+import org.bukkit.WorldCreator
 
 class Plots(override val plugin: Plop): Addon, State {
 
@@ -28,7 +31,15 @@ class Plots(override val plugin: Plop): Addon, State {
     lateinit var shopHandler: PlotShopHandler
     lateinit var sizeHandler: PlotSizeHandler
 
-    override suspend fun load() {
+    override suspend fun load() = sync {
+
+        // Create worlds
+        server.createWorld(
+            WorldCreator("personalplot")
+                .environment(World.Environment.NORMAL)
+                .generator(PlotGenerator())
+        )
+
         handler = PlotHandler(plugin)
         visitorHandler = PlotVisitHandler(plugin)
         upgradeHandler = PlotUpgradeHandler(plugin)

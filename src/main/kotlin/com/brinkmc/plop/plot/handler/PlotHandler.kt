@@ -11,18 +11,38 @@ import com.brinkmc.plop.shared.storage.PlotKey
 import com.brinkmc.plop.shared.util.async
 import com.brinkmc.plop.shared.util.sync
 import com.github.yannicklamprecht.worldborder.api.WorldBorderApi
+import kotlinx.coroutines.delay
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.plugin.RegisteredServiceProvider
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
+import kotlin.collections.HashMap
 
 class PlotHandler(override val plugin: Plop): Addon, State  {
 
     private val plotMap: ConcurrentHashMap<PlotKey, Plot> = ConcurrentHashMap() // Ensure it is thread safe when accessed
     private val borderAPI: WorldBorderApi? = server.servicesManager.getRegistration<WorldBorderApi?>(WorldBorderApi::class.java)?.provider
 
-    override suspend fun load() {}
+    val toSave = HashMap<UUID, Plot>()
+
+    override suspend fun load() = sync {
+        repeatingSaveCache()
+    }
+
+    private suspend fun repeatingSaveCache() = async {
+        // This background task is a repeatable task which in this case is an endless loop.
+        while (true) {
+            // Save all cached player data every 10 minutes.
+            for (plot in toSave.values) {
+                plots.databaseHandler.save(plot)
+            }
+            // Runs it only every 10 minutes on the IO thread
+            toSave.clear()
+            delay(10 * 60 * 1000) // 10 minutes
+        }
+    }
 
     override suspend fun kill() = sync {
         for (plot in plotMap.toMap()) {
@@ -31,7 +51,7 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
     }
 
     fun getPlotMap(): Map<PlotKey, Plot> {
-        return Collections.unmodifiableMap(plotMap)
+        return Collections.unmodifiableMap(plotMap) // Return copy of map, prevent concurrency problems
     }
 
     // Search functions

@@ -38,7 +38,7 @@ private object DispatcherContainer {
 }
 
 val Dispatchers.async: CoroutineDispatcher
-    get() = Dispatchers.IO
+    get() = IO
 
 val Dispatchers.sync: CoroutineDispatcher
     get() = DispatcherContainer.sync

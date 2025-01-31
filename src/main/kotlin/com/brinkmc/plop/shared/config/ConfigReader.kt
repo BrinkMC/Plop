@@ -17,13 +17,13 @@ class ConfigReader(override val plugin: Plop): Addon, State {
     private lateinit var shopConfigLoader: YamlConfigurationLoader
     private lateinit var totemConfigLoader: YamlConfigurationLoader
 
-    override suspend fun load() {
+    override suspend fun load() = async {
         readMainConfig()
         readDatabaseConfig()
         readPlotConfig()
         readShopConfig()
         readTotemConfig()
-        return
+        return@async // Load all config files
     }
 
     override suspend fun kill() {
@@ -40,11 +40,7 @@ class ConfigReader(override val plugin: Plop): Addon, State {
         logger.error("Load main config")
         val configFile = plugin.getFile("config.yml")
 
-        // Ensure the plugin stalls if no locale is found
-        if (configFile == null) {
-            configFile?.createNewFile()
-            logger.error("No such file, creating file!")
-        }
+        configFile?.createNewFile()
 
         // Load Configurate library's yaml reader
         mainConfigLoader = YamlConfigurationLoader.builder().file(configFile).build()
@@ -69,11 +65,7 @@ class ConfigReader(override val plugin: Plop): Addon, State {
     private suspend fun readDatabaseConfig() = async {
         val databaseConfigFile = plugin.getFile("database.yml")
 
-        // Ensure the plugin fails if there is no database
-        if (databaseConfigFile == null) {
-            databaseConfigFile?.createNewFile()
-            logger.error("No such file, creating file!")
-        }
+        databaseConfigFile?.createNewFile()
 
         // Load Configurate library's yaml reader
         databaseConfigLoader = YamlConfigurationLoader.builder().file(databaseConfigFile).build()
@@ -100,12 +92,7 @@ class ConfigReader(override val plugin: Plop): Addon, State {
     private suspend fun readPlotConfig() = async {
         val plotConfigFile = plugin.getFile("plot.yml")
 
-        // Ensure the plugin fails if there is no database
-        if (plotConfigFile == null) {
-            plotConfigFile?.createNewFile()
-            logger.error("No such file, creating file!")
-        }
-
+        plotConfigFile?.createNewFile()
         // Load Configurate library's yaml reader
         plotConfigLoader = YamlConfigurationLoader.builder().file(plotConfigFile).build()
     }
@@ -131,12 +118,7 @@ class ConfigReader(override val plugin: Plop): Addon, State {
     private suspend fun readShopConfig() = async {
         val shopConfigFile = plugin.getFile("shop.yml")
 
-        // Ensure the plugin fails if there is no database
-        if (shopConfigFile == null) {
-            shopConfigFile?.createNewFile()
-            logger.error("No such file, creating file!")
-        }
-
+        shopConfigFile?.createNewFile()
         // Load Configurate library's yaml reader
         shopConfigLoader = YamlConfigurationLoader.builder().file(shopConfigFile).build()
     }
@@ -161,12 +143,7 @@ class ConfigReader(override val plugin: Plop): Addon, State {
     private suspend fun readTotemConfig() = async {
         val totemConfigFile = plugin.getFile("totems.yml")
 
-        // Ensure the plugin fails if there is no database
-        if (totemConfigFile == null) {
-            totemConfigFile?.createNewFile()
-            logger.error("No such file, creating file!")
-        }
-
+        totemConfigFile?.createNewFile()
         // Load Configurate library's yaml reader
         totemConfigLoader = YamlConfigurationLoader.builder().file(totemConfigFile).build()
     }

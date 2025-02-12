@@ -40,7 +40,13 @@ data class Plot(
 ) {
     val owner: PlotOwner by lazy {
         if (type == PlotType.GUILD) {
-            PlotOwner.GuildOwner(Guilds.getApi().getGuild(ownerId))
+            val guild = Guilds.getApi().getGuild(ownerId)
+            if (guild != null) {
+                PlotOwner.GuildOwner(guild)
+            }
+            else {
+                throw IllegalStateException("Guild not found for plot $plotId")
+            }
         }
         else {
             PlotOwner.PlayerOwner(Bukkit.getOfflinePlayer(ownerId))

@@ -6,7 +6,6 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hooks.Locals.localLocation
 import com.brinkmc.plop.shared.hooks.Locals.localWorld
-import com.brinkmc.plop.shared.util.sync
 import com.sk89q.worldedit.bukkit.BukkitAdapter
 import com.sk89q.worldedit.math.BlockVector3
 import com.sk89q.worldguard.LocalPlayer
@@ -26,7 +25,7 @@ import kotlin.toString
 
 class WorldGuard(override val plugin: Plop): Addon, State {
 
-    lateinit var worldGuardAPI: WorldGuard
+    private lateinit var worldGuardAPI: WorldGuard
     private val worldGuardPlatform: WorldGuardPlatform
         get() = worldGuardAPI.platform
     private val worldGuardRegionContainer: RegionContainer
@@ -59,7 +58,8 @@ class WorldGuard(override val plugin: Plop): Addon, State {
         return worldGuardRegionContainer.createQuery().getApplicableRegions(player.location.localLocation()).regions
     }
 
-    suspend fun createRegion(uuid: UUID) = sync { // Create a region to claim around the new plot, the plot has uuid as its name
+    // Create a region to claim around the new plot, the plot has uuid as its name
+    suspend fun createRegion(uuid: UUID) { plugin.sync {
         val plot = plots.handler.getPlotById(uuid) ?: run {
             logger.error("Critical problem in creating a region, plot doesn't exist")
             return@sync
@@ -80,12 +80,13 @@ class WorldGuard(override val plugin: Plop): Addon, State {
         val protectedRegion: ProtectedCuboidRegion = when (owner) {
             is PlotOwner.GuildOwner -> {
 
-                for (member in owner.guild?.members ?: listOf()) { // Add all guild members to region domain
+                for (member in owner.guild.members ?: listOf()) { // Add all guild members to region domain
                     domain.addPlayer(member.uuid.toString())
                 }
 
-                ProtectedCuboidRegion(owner.guild?.id.toString(), min, max) // Initiate the region
+                ProtectedCuboidRegion(owner.guild.id.toString(), min, max) // Initiate the region
             }
+
             is PlotOwner.PlayerOwner -> {
 
                 domain.addPlayer(owner.player.uniqueId.toString()) // Add player to domain of region
@@ -97,7 +98,7 @@ class WorldGuard(override val plugin: Plop): Addon, State {
         protectedRegion.owners = domain // Update owners of region
 
         worldGuardPlatform.regionContainer.get(plotWorld.localWorld())?.addRegion(protectedRegion) // Add region to the world
-    }
+    } }
 }
 
 object Locals {

@@ -4,14 +4,14 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.base.PlotOwner
 import com.brinkmc.plop.plot.plot.base.PlotType
+import com.brinkmc.plop.plot.storage.PlotCache
+import com.brinkmc.plop.plot.storage.PlotKey
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hooks.Locals.world
-import com.brinkmc.plop.shared.storage.PlotKey
-import com.brinkmc.plop.shared.util.async
-import com.brinkmc.plop.shared.util.sync
 import com.github.yannicklamprecht.worldborder.api.WorldBorderApi
 import kotlinx.coroutines.delay
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.plugin.RegisteredServiceProvider
@@ -22,69 +22,54 @@ import kotlin.collections.HashMap
 
 class PlotHandler(override val plugin: Plop): Addon, State  {
 
-    private val plotMap: ConcurrentHashMap<PlotKey, Plot> = ConcurrentHashMap() // Ensure it is thread safe when accessed
-    private val borderAPI: WorldBorderApi? = server.servicesManager.getRegistration<WorldBorderApi?>(WorldBorderApi::class.java)?.provider
+    private lateinit var plotCache: PlotCache
 
-    val toSave = HashMap<UUID, Plot>()
+    lateinit var borderAPI: WorldBorderApi // Late init as it is not available on startup
 
-    override suspend fun load() = sync {
-        repeatingSaveCache()
-    }
+    override suspend fun load() { plugin.sync {
+        plotCache = PlotCache(plugin) // Load the cache + database
 
-    private suspend fun repeatingSaveCache() = async {
-        // This background task is a repeatable task which in this case is an endless loop.
-        while (true) {
-            // Save all cached player data every 10 minutes.
-            for (plot in toSave.values) {
-                plots.databaseHandler.save(plot)
-            }
-            // Runs it only every 10 minutes on the IO thread
-            toSave.clear()
-            delay(10 * 60 * 1000) // 10 minutes
+        borderAPI = server.servicesManager.getRegistration<WorldBorderApi?>(WorldBorderApi::class.java)?.provider ?: run {
+            logger.error("Failed to get WorldBorderAPI")
+            return@sync
         }
-    }
+    }}
 
-    override suspend fun kill() = sync {
-        for (plot in plotMap.toMap()) {
-            plots.databaseHandler.save(plot.value) // Save before refresh
-        }
-    }
 
-    fun getPlotMap(): Map<PlotKey, Plot> {
-        return Collections.unmodifiableMap(plotMap) // Return copy of map, prevent concurrency problems
+    override suspend fun kill() {
+        plotCache.kill()
     }
 
     // Search functions
-    fun getPlotById(plotId: UUID): Plot? {
-        return plotMap[PlotKey(plotId = plotId)]
+    suspend fun getPlotById(plotId: UUID): Plot? {
+        return plotCache.getPlotById(plotId)
     }
 
     // Get plot by owner (for PersonalPlot)
-    fun getPlotByOwner(ownerId: UUID?): Plot? {
-        return plotMap[PlotKey(ownerId = ownerId)]
+    suspend fun getPlotByOwner(ownerId: UUID?): Plot? {
+        return plotCache.getPlotByOwner(ownerId)
     }
 
-    fun getPlotsByMembership(playerId: UUID): List<Plot> { // Not efficient DO NOT UISE
-        return plotMap.filter {
-            it.value.plotId == playerId || ((it.value.owner) as PlotOwner.GuildOwner).members.contains(playerId)
-        }.values.toList()
+    suspend fun getPlotsByMembership(playerId: UUID): List<Plot> { // Gets all plots someone is in
+        return listOfNotNull(
+            getPlotByOwner(playerId),
+            getPlotByOwner(playerId.guild()?.id)
+        )
     }
 
-    fun hasGuildPlot(player: UUID): Boolean {
-        return getPlotByOwner(plugin.hooks.guilds.guildAPI.getGuild(player)?.id) == null
+    suspend fun hasGuildPlot(player: UUID): Boolean {
+        return getPlotByOwner(player.guild()?.id) == null
     }
 
-    fun hasPersonalPlot(player: UUID): Boolean {
+    suspend fun hasPersonalPlot(player: UUID): Boolean {
         return getPlotByOwner(player) == null
     }
 
-    suspend fun addPlot(plot: Plot) = sync {
-        val plotKey = PlotKey(plotId = plot.plotId, ownerId = plot.ownerId)
-        plotMap.putIfAbsent(plotKey, plot)  // Update cache synchronously
-        plots.databaseHandler.create(plot) // Run database update on IO
+    suspend fun addPlot(plot: Plot) {
+        plotCache.addPlot(plot)
     }
 
-    fun getPlotFromLocation(location: Location): Plot? {
+    suspend fun getPlotFromLocation(location: Location): Plot? {
         val worldGuardRegions = plugin.hooks.worldGuard.getRegions(location) // WorldGuard is async so it is fine to access async
         if (worldGuardRegions?.size != 1) return null // Must only be one region player is standing in if it is a plot world
         return getPlotById(UUID.fromString(worldGuardRegions.first()?.id))
@@ -92,28 +77,28 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
     
     fun getPlotWorlds(): List<World> {
         return listOfNotNull(
-            plotConfig.getPlotWorld(PlotType.PERSONAL).world(),
-            plotConfig.getPlotWorld(PlotType.GUILD).world()
+            plotConfig.getPlotWorld(PlotType.PERSONAL)?.world(),
+            plotConfig.getPlotWorld(PlotType.GUILD)?.world()
         )
     }
 
-    suspend fun updateBorder(player: UUID) = async {
-        val bukkitPlayer = plugin.server.getPlayer(player) ?: run {
-            logger.error("Failed to send fake border to player $player")
-            return@async
-        }
-
-        if (getPlotWorlds().contains(bukkitPlayer.world)) { // Run logic for getting plot they are in
-            val plot = getPlotFromLocation(bukkitPlayer.location)
-
-            if (plot == null) { // Make sure plot isn't null
-                logger.error("Unable to get the plot for player $player when updating border")
-                return@async
+    suspend fun updateBorder(player: UUID) { plugin.sync {
+            val bukkitPlayer = plugin.server.getPlayer(player) ?: run {
+                logger.error("Failed to send fake border to player $player")
+                return@sync
             }
 
-            borderAPI?.setBorder(bukkitPlayer, plot.size.current.toDouble(), plot.claim.centre) // Send the player the border
-        } else {
-            borderAPI?.resetWorldBorderToGlobal(bukkitPlayer);
-        }
-    }
+            if (getPlotWorlds().contains(bukkitPlayer.world)) { // Run logic for getting plot they are in
+                val plot = getPlotFromLocation(bukkitPlayer.location)
+
+                if (plot == null) { // Make sure plot isn't null
+                    logger.error("Unable to get the plot for player $player when updating border")
+                    return@sync
+                }
+
+                borderAPI.setBorder(bukkitPlayer, plot.size.current.toDouble(), plot.claim.centre) // Send the player the border
+            } else {
+                borderAPI.resetWorldBorderToGlobal(bukkitPlayer);
+            }
+    } }
 }

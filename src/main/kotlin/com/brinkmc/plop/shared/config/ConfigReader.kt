@@ -3,165 +3,208 @@ package com.brinkmc.plop.shared.config
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.util.async
+import com.brinkmc.plop.shared.config.configs.MainConfig
+import com.brinkmc.plop.shared.config.configs.PlotConfig
+import com.brinkmc.plop.shared.config.configs.SQLConfig
+import com.brinkmc.plop.shared.config.configs.ShopConfig
+import com.brinkmc.plop.shared.config.configs.TotemConfig
+import com.brinkmc.plop.shared.config.serialisers.Level
+import com.brinkmc.plop.shared.config.serialisers.LevelSerialiser
 import org.spongepowered.configurate.ConfigurateException
-import org.spongepowered.configurate.ConfigurationNode
-import org.spongepowered.configurate.loader.ConfigurationLoader
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader
+import org.spongepowered.configurate.hocon.HoconConfigurationLoader
+import org.spongepowered.configurate.kotlin.extensions.get
+import org.spongepowered.configurate.kotlin.extensions.set
+import org.spongepowered.configurate.kotlin.objectMapperFactory
 
 class ConfigReader(override val plugin: Plop): Addon, State {
 
-    private lateinit var mainConfigLoader: YamlConfigurationLoader
-    private lateinit var databaseConfigLoader: YamlConfigurationLoader
-    private lateinit var plotConfigLoader: YamlConfigurationLoader
-    private lateinit var shopConfigLoader: YamlConfigurationLoader
-    private lateinit var totemConfigLoader: YamlConfigurationLoader
+    private lateinit var mainConfigLoader: HoconConfigurationLoader
+    private lateinit var databaseConfigLoader: HoconConfigurationLoader
+    private lateinit var plotConfigLoader: HoconConfigurationLoader
+    private lateinit var shopConfigLoader: HoconConfigurationLoader
+    private lateinit var totemConfigLoader: HoconConfigurationLoader
 
-    override suspend fun load() = async {
-        readMainConfig()
+    override lateinit var mainConfig: MainConfig
+    override lateinit var sqlConfig: SQLConfig
+    override lateinit var plotConfig: PlotConfig
+    override lateinit var shopConfig: ShopConfig
+    override lateinit var totemConfig: TotemConfig
+
+    override suspend fun load() {
         readDatabaseConfig()
+        readMainConfig()
         readPlotConfig()
         readShopConfig()
         readTotemConfig()
-        return@async // Load all config files
-    }
-
-    override suspend fun kill() {
         saveMainConfig()
         saveDatabaseConfig()
         savePlotConfig()
         saveShopConfig()
         saveTotemConfig()
-        return
     }
 
+    override suspend fun kill() { syncScope {
+        saveMainConfig()
+        saveDatabaseConfig()
+        savePlotConfig()
+        saveShopConfig()
+        saveTotemConfig() 
+    } }
     // MAIN CONFIG
-    private suspend fun readMainConfig() = async {
-        logger.error("Load main config")
-        val configFile = plugin.getFile("config.yml")
+    private fun readMainConfig() {
+        logger.info("Load main config") // Load main config file
+        val configFile = plugin.getFile("config.conf")
 
         configFile?.createNewFile()
 
-        // Load Configurate library's yaml reader
-        mainConfigLoader = YamlConfigurationLoader.builder().file(configFile).build()
+        mainConfigLoader = HoconConfigurationLoader.builder()
+            .file(configFile)
+            .defaultOptions { options ->
+                options.serializers { builder ->
+                    builder.registerAnnotatedObjects(objectMapperFactory())
+                }
+            }
+            .build()
+        mainConfig = mainConfigLoader.load().get(MainConfig::class) ?: run {
+            logger.error("Failed to load main config")
+            return
+        }
     }
 
-    private suspend fun saveMainConfig() = async { // Save the config file
-        val root = getMainConfig()
-        mainConfigLoader.save(root)
-    }
-
-    suspend fun getMainConfig(): ConfigurationNode? = async {
-        return@async try {
-            mainConfigLoader.load() // Allows for direct reading of node values
+    private fun saveMainConfig() { // Save the config file
+        try {
+            val root = mainConfigLoader.load()
+            root.set(MainConfig::class, mainConfig)
+            mainConfigLoader.save(root)
         } catch (e: ConfigurateException) {
             logger.error(e.message)
-            plugin.kill()
-            null // Returns null if failed
         }
     }
 
     // DATABASE CONFIG
-    private suspend fun readDatabaseConfig() = async {
-        val databaseConfigFile = plugin.getFile("database.yml")
+    private fun readDatabaseConfig() {
+        logger.info("Load database config") // Load database config file
+        val configFile = plugin.getFile("sql.conf")
 
-        databaseConfigFile?.createNewFile()
+        configFile?.createNewFile()
 
-        // Load Configurate library's yaml reader
-        databaseConfigLoader = YamlConfigurationLoader.builder().file(databaseConfigFile).build()
+        databaseConfigLoader = HoconConfigurationLoader.builder()
+            .file(configFile)
+            .defaultOptions { options ->
+                options.serializers { builder ->
+                    builder.registerAnnotatedObjects(objectMapperFactory())
+                }
+            }
+            .build()
+
+        sqlConfig = databaseConfigLoader.load().get(SQLConfig::class) ?: run {
+            logger.error("Failed to load database config")
+            sqlConfig = SQLConfig("", "", "", "")
+            return
+        }
     }
 
-    private suspend fun saveDatabaseConfig() = async { // Save the config file
-        val root = getDatabaseConfig()
-        databaseConfigLoader.save(root)
-    }
-
-    suspend fun getDatabaseConfig(): ConfigurationNode? = async {
-        return@async try {
+    private fun saveDatabaseConfig() { // Save the config file
+        try {
             val root = databaseConfigLoader.load()
-            root // Returns sql data if valid
-
+            root.set(SQLConfig::class, sqlConfig)
+            databaseConfigLoader.save(root)
         } catch (e: ConfigurateException) {
             logger.error(e.message)
-            plugin.kill()
-            null // Returns null if failed
         }
     }
 
     // PLOT CONFIG
-    private suspend fun readPlotConfig() = async {
-        val plotConfigFile = plugin.getFile("plot.yml")
+    private fun readPlotConfig() {
+        logger.info("Load plot config") // Load plot config file
+        val configFile = plugin.getFile("plot.conf")
 
-        plotConfigFile?.createNewFile()
-        // Load Configurate library's yaml reader
-        plotConfigLoader = YamlConfigurationLoader.builder().file(plotConfigFile).build()
+        configFile?.createNewFile()
+
+        plotConfigLoader = HoconConfigurationLoader.builder()
+            .file(configFile)
+            .defaultOptions { options ->
+                options.serializers { builder ->
+                    builder.registerAnnotatedObjects(objectMapperFactory())
+                    builder.register(Level::class.java, LevelSerialiser())
+                }
+            }
+            .build()
+        plotConfig = plotConfigLoader.load().get(PlotConfig::class) ?: run {
+            logger.error("Failed to load plot config")
+            return
+        }
     }
 
-    private suspend fun savePlotConfig() = async { // Save the config file
-        val root = getPlotConfig()
-        plotConfigLoader.save(root)
-    }
-
-    suspend fun getPlotConfig(): ConfigurationNode? = async {
-        return@async try {
+    private fun savePlotConfig() { // Save the config file
+        try {
             val root = plotConfigLoader.load()
-            root // Returns sql data if valid
-
+            root.set(PlotConfig::class, plotConfig)
+            plotConfigLoader.save(root)
         } catch (e: ConfigurateException) {
             logger.error(e.message)
-            plugin.kill()
-            null // Returns null if failed
         }
     }
 
     // SHOP CONFIG
-    private suspend fun readShopConfig() = async {
-        val shopConfigFile = plugin.getFile("shop.yml")
+    private fun readShopConfig() {
+        logger.info("Load shop config") // Load shop config file
+        val configFile = plugin.getFile("shop.conf")
 
-        shopConfigFile?.createNewFile()
-        // Load Configurate library's yaml reader
-        shopConfigLoader = YamlConfigurationLoader.builder().file(shopConfigFile).build()
-    }
+        configFile?.createNewFile()
 
-    private suspend fun saveShopConfig() = async { // Save the config file
-        val root = getShopConfig()
-        shopConfigLoader.save(root)
-    }
-
-    suspend fun getShopConfig(): ConfigurationNode? = async {
-        return@async try {
-            val root = shopConfigLoader.load()
-            root // Returns sql data if valid
-
-        } catch (e: ConfigurateException) {
-            logger.error(e.message)
-            plugin.kill()
-            null // Returns null if failed
+        shopConfigLoader = HoconConfigurationLoader.builder()
+            .file(configFile)
+            .defaultOptions { options ->
+                options.serializers { builder ->
+                    builder.registerAnnotatedObjects(objectMapperFactory())
+                }
+            }
+            .build()
+        shopConfig = shopConfigLoader.load().get(ShopConfig::class) ?: run {
+            logger.error("Failed to load shop config")
+            return
         }
     }
 
-    private suspend fun readTotemConfig() = async {
-        val totemConfigFile = plugin.getFile("totems.yml")
-
-        totemConfigFile?.createNewFile()
-        // Load Configurate library's yaml reader
-        totemConfigLoader = YamlConfigurationLoader.builder().file(totemConfigFile).build()
-    }
-
-    private suspend fun saveTotemConfig() = async { // Save the config file
-        val root = getTotemConfig()
-        totemConfigLoader.save(root)
-    }
-
-    suspend fun getTotemConfig(): ConfigurationNode? = async {
-        return@async try {
-            val root = totemConfigLoader.load()
-            root // Returns sql data if valid
-
+    private fun saveShopConfig() { // Save the config file
+        try {
+            val root = shopConfigLoader.load()
+            root.set(ShopConfig::class, shopConfig)
+            shopConfigLoader.save(root)
         } catch (e: ConfigurateException) {
             logger.error(e.message)
-            plugin.kill()
-            null // Returns null if failed
+        }
+    }
+
+    // TOTEM CONFIG
+    private fun readTotemConfig() {
+        logger.info("Load totem config") // Load totem config file
+        val configFile = plugin.getFile("totem.conf")
+
+        configFile?.createNewFile()
+
+        totemConfigLoader = HoconConfigurationLoader.builder()
+            .file(configFile)
+            .defaultOptions { options ->
+                options.serializers { builder ->
+                    builder.registerAnnotatedObjects(objectMapperFactory())
+                }
+            }
+            .build()
+        totemConfig = totemConfigLoader.load().get(TotemConfig::class) ?: run {
+            logger.error("Failed to load totem config")
+            return
+        }
+    }
+
+    private fun saveTotemConfig() { // Save the config file
+        try {
+            val root = totemConfigLoader.load()
+            root.set(TotemConfig::class, totemConfig)
+            totemConfigLoader.save(root)
+        } catch (e: ConfigurateException) {
+            logger.error(e.message)
         }
     }
 }

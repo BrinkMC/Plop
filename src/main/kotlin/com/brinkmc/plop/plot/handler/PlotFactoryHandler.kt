@@ -6,18 +6,19 @@ import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.config.configs.PlotConfig
+import com.brinkmc.plop.shared.config.serialisers.Level
 import org.bukkit.configuration.file.YamlConfiguration
 import org.spongepowered.configurate.ConfigurateException
 import java.io.File
 
 class PlotFactoryHandler(override val plugin: Plop): Addon, State {
 
-    private val guildLevels = mutableListOf<Int>()
-    private val personalLevels = mutableListOf<Int>()
+    private val guildLevels = mutableListOf<Level>()
+    private val personalLevels = mutableListOf<Level>()
 
     override suspend fun load() {
-        guildLevels.addAll(plotConfig.getFactoryLevels(PlotType.GUILD)) // Add all guild plot size levels
-        personalLevels.addAll(plotConfig.getFactoryLevels(PlotType.PERSONAL))
+        plotConfig.getFactoryLevels(PlotType.GUILD)?.let { guildLevels.addAll(it) } // Add all guild plot size levels
+        plotConfig.getFactoryLevels(PlotType.PERSONAL)?.let { personalLevels.addAll(it) }
     }
 
     override suspend fun kill() {
@@ -27,15 +28,15 @@ class PlotFactoryHandler(override val plugin: Plop): Addon, State {
 
     fun getCurrentFactoryLimit(plotType: PlotType, level: Int): Int { // Get current limit based on level
         return when (plotType) {
-            PlotType.GUILD -> guildLevels[level]
-            PlotType.PERSONAL -> personalLevels[level]
+            PlotType.GUILD -> guildLevels[level].value ?: -1
+            PlotType.PERSONAL -> personalLevels[level].value ?: -1
         }
     }
 
     fun getMaximumFactoryLimit(plotType: PlotType): Int {
         return when (plotType) {
-            PlotType.GUILD -> plotConfig.getFactoryLevels(PlotType.GUILD).last() // Last gets largest item
-            PlotType.PERSONAL -> plotConfig.getFactoryLevels(PlotType.PERSONAL).last()
+            PlotType.GUILD -> plotConfig.getFactoryLevels(PlotType.GUILD)?.last()?.value ?: -1 // Last gets largest item
+            PlotType.PERSONAL -> plotConfig.getFactoryLevels(PlotType.PERSONAL)?.last()?.value ?: -1
         }
     }
 

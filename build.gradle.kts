@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.exclude
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 //import xyz.jpenilla.runpaper.task.RunServer
@@ -34,6 +35,7 @@ dependencies {
     compileOnly("me.glaremasters", "guilds", "3.5.7.0")
     compileOnly("io.lumine", "Mythic-Dist", "5.7.2")
     compileOnly(fileTree("libs/") { include("*.jar") })
+    compileOnly("com.github.yannicklamprecht:worldborderapi:1.201.0:dev") // Weird import
 
 
     compileOnly("com.sk89q.worldguard", "worldguard-core", "7.0.11")
@@ -61,14 +63,12 @@ dependencies {
     implementation("com.noxcrew.interfaces", "interfaces", "1.2.0")
 
     implementation(platform("org.spongepowered:configurate-bom:4.1.2"))
-    implementation("org.spongepowered", "configurate-yaml")
+    implementation("org.spongepowered", "configurate-hocon")
     implementation("org.spongepowered", "configurate-extra-kotlin")
 
     implementation("com.zaxxer", "HikariCP", "6.2.1")
     implementation("org.bstats", "bstats-bukkit", "3.0.2")
     implementation("io.papermc", "paperlib", "1.0.8")
-
-    compileOnly("com.github.yannicklamprecht:worldborderapi:1.201.0:dev") // Weird import
 }
 
 version = (version as String)//.decorateVersion()
@@ -119,8 +119,6 @@ tasks {
             "org.spongepowered.configurate",
             "com.github.benmanes",
             "org.bstats",
-            "kotlin",
-            "kotlinx",
             "net.fabricmc.mappingio"
         ).forEach { pkg ->
             relocate(pkg, "$prefix.$pkg")

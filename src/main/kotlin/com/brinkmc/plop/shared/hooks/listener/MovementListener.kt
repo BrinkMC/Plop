@@ -3,7 +3,7 @@ package com.brinkmc.plop.shared.hooks.listener
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.util.sync
+
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerInteractEvent
@@ -15,11 +15,11 @@ class MovementListener(override val plugin: Plop): Addon, State, Listener {
     override suspend fun kill() {}
 
     @EventHandler
-    suspend fun onPlayerTeleport(playerTeleportEvent: PlayerTeleportEvent) = sync {
+    suspend fun onPlayerTeleport(playerTeleportEvent: PlayerTeleportEvent) {
 
         val worlds = plots.handler.getPlotWorlds()
 
-        if (!worlds.contains(playerTeleportEvent.to.world) && !worlds.contains(playerTeleportEvent.from.world)) return@sync // Not applicable
+        if (!worlds.contains(playerTeleportEvent.to.world) && !worlds.contains(playerTeleportEvent.from.world)) return // Not applicable
 
         plots.handler.updateBorder(playerTeleportEvent.player.uniqueId)
 

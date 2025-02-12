@@ -3,7 +3,6 @@ package com.brinkmc.plop.shared.command.plot.preview
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.util.async
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.CommandDescription
@@ -18,7 +17,7 @@ internal class CommandPlotPreview(override val plugin: Plop) : Addon {
     suspend fun plotPreview(
         sender: Player,
         @Nullable type: String = "personal"
-    ) = async {
+    ) {
         val plotType = PlotType.valueOf(type.lowercase().replaceFirstChar { it -> it.uppercase()})
 
         plots.previewHandler.startPreview(sender.uniqueId, plotType) // Initiate preview

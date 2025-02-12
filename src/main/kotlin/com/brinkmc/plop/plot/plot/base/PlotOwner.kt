@@ -1,5 +1,6 @@
 package com.brinkmc.plop.plot.plot.base
 
+import com.brinkmc.plop.shared.hooks.Economy
 import me.glaremasters.guilds.guild.Guild
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
@@ -7,9 +8,9 @@ import org.bukkit.entity.Player
 import java.util.UUID
 
 sealed class PlotOwner {
-    data class GuildOwner(val guild: Guild?): PlotOwner() {
+    data class GuildOwner(val guild: Guild): PlotOwner() {
 
-        val members: MutableList<UUID> = guild?.members?.map { it.uuid }?.toMutableList() ?: mutableListOf()
+        val members: MutableList<UUID> = guild.members.map { it.uuid }.toMutableList()
 
         fun addMember(newMember: UUID) {
             members.add(newMember)
@@ -21,5 +22,66 @@ sealed class PlotOwner {
     }
 
 
-    data class PlayerOwner(val player: OfflinePlayer): PlotOwner() {}
+    data class PlayerOwner(val player: OfflinePlayer): PlotOwner() {
+        fun onlinePlayer(): Player? {
+            return Bukkit.getPlayer(player.uniqueId)
+        }
+    }
+
+    fun getLeader(): OfflinePlayer {
+        return when (this) {
+            is GuildOwner -> {
+                Bukkit.getOfflinePlayer(guild.guildMaster.uuid)
+            }
+            is PlayerOwner -> {
+                Bukkit.getOfflinePlayer(player.uniqueId)
+            }
+        }
+    }
+
+    fun getBalance(economy: Economy): Double {
+        return when (this) {
+            is GuildOwner -> {
+                guild.balance
+            }
+            is PlayerOwner -> {
+                economy.getBalance(player)
+            }
+        }
+    }
+
+    fun hasBalance(economy: Economy, amount: Double): Boolean {
+        return when (this) {
+            is GuildOwner -> {
+                guild.balance >= amount
+            }
+            is PlayerOwner -> {
+                economy.hasBalance(player, amount)
+            }
+        }
+    }
+
+    fun withdrawBalance(economy: Economy, amount: Double): Boolean {
+        return when (this) {
+            is GuildOwner -> {
+                guild.balance -= amount
+                true
+            }
+            is PlayerOwner -> {
+                economy.withdraw(player, amount)
+            }
+        }
+    }
+
+    fun depositBalance(economy: Economy, amount: Double): Boolean {
+        return when (this) {
+            is GuildOwner -> {
+                guild.balance += amount
+                true
+            }
+            is PlayerOwner -> {
+                economy.deposit(player, amount)
+            }
+        }
+    }
 }

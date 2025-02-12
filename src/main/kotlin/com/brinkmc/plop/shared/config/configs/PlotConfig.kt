@@ -4,75 +4,126 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.config.BaseConfig
+import com.brinkmc.plop.shared.config.configs.plot.GuildConfig
+import com.brinkmc.plop.shared.config.configs.plot.NexusConfig
+import com.brinkmc.plop.shared.config.configs.plot.PersonalConfig
+import com.brinkmc.plop.shared.config.serialisers.Level
 import kotlinx.coroutines.sync.withLock
 import org.spongepowered.configurate.ConfigurationNode
+import org.spongepowered.configurate.objectmapping.ConfigSerializable
+import org.spongepowered.configurate.objectmapping.meta.Setting
 
-class PlotConfig(
-    override val plugin: Plop // Must be able to access the plugin
-): BaseConfig(plugin) {
+@ConfigSerializable
+data class PlotConfig(
 
-    override suspend fun loadConfig(): ConfigurationNode? {
-        return configManager.getPlotConfig()
-    } // Plot config file
+    @Setting("Guild")
+    val guildConfig: GuildConfig,
 
-    // Get values for the guild plot configuration
-    // guildPlotSizeMax turns into guild.plot-size.max in config
-    private var guildPlotMaxSize: Int by delegate("guild", "plot", "max-size")
-    private var guildPlotWorld: String by delegate("guild", "plot", "world")
-    private var guildPlotWorldGenerator: String by delegate("guild", "plot", "generator")
+    @Setting("Personal")
+    val personalConfig: PersonalConfig,
 
-    // Plot upgrades
-    private var guildFactoryLevels: List<Int> by delegate("guild", "factory", "levels")
-    private var guildPlotSizeLevels: List<Int> by delegate("guild","size", "levels")
-    private var guildShopLevels: List<Int> by delegate("guild", "shop", "levels")
-    private var guildTotemLimit: List<Int> by delegate("guild", "totem", "levels")
-    private var guildVisitorLimit: List<Int> by delegate("guild", "visitor", "limit")
-
-    // Get values for the personal plot configuration
-    private var personalPlotMaxSize: Int by delegate("personal", "plot", "max-size")
-    private var personalPlotWorld: String by delegate("personal", "plot", "world")
-    private var personalPlotWorldGenerator: String by delegate("personal", "plot", "generator")
-
-    // Plot upgrades
-    private var personalFactoryLevels: List<Int> by delegate("personal", "factory", "levels")
-    private var personalPlotSizeLevels: List<Int> by delegate("personal","size", "levels")
-    private var personalShopLevels: List<Int> by delegate("personal", "shop", "levels")
-    private var personalTotemLimit: List<Int> by delegate("personal", "totem", "levels")
-    private var personalVisitorLimit: List<Int> by delegate("personal", "visitor", "limit")
-
-    fun getPlotMaxSize(plotType: PlotType): Int {
-        return if (plotType == PlotType.GUILD) guildPlotMaxSize else personalPlotMaxSize
+    @Setting("Nexus")
+    val nexusConfig: NexusConfig
+) {
+    fun getPlotMaxSize(plotType: PlotType): Int? {
+        return if (plotType == PlotType.GUILD) guildConfig.guildPlotMaxSize else personalConfig.personalPlotMaxSize
     }
 
-    fun getPlotWorld(plotType: PlotType): String {
-        return if (plotType == PlotType.GUILD) guildPlotWorld else personalPlotWorld
+    fun getPlotWorld(plotType: PlotType): String? {
+        return if (plotType == PlotType.GUILD) guildConfig.guildPlotWorld else personalConfig.personalPlotWorld
     }
 
-    fun getPlotWorldGenerator(plotType: PlotType): String {
-        return if (plotType == PlotType.GUILD) guildPlotWorldGenerator else personalPlotWorldGenerator
+    fun getPlotWorldGenerator(plotType: PlotType): String? {
+        return if (plotType == PlotType.GUILD) guildConfig.guildPlotWorldGenerator else personalConfig.personalPlotWorldGenerator
     }
 
-    fun getFactoryLevels(plotType: PlotType): List<Int> {
-        return if (plotType == PlotType.GUILD) guildFactoryLevels else personalFactoryLevels
+    fun getFactoryLevels(plotType: PlotType): List<Level>? {
+        return if (plotType == PlotType.GUILD) guildConfig.guildFactoryLevels else personalConfig.personalFactoryLevels
     }
 
-    fun getPlotSizeLevels(plotType: PlotType): List<Int> {
-        return if (plotType == PlotType.GUILD) guildPlotSizeLevels else personalPlotSizeLevels
+    fun getPlotSizeLevels(plotType: PlotType): List<Level>? {
+        return if (plotType == PlotType.GUILD) guildConfig.guildPlotSizeLevels else personalConfig.personalPlotSizeLevels
     }
 
-    fun getShopLevels(plotType: PlotType): List<Int> {
-        return if (plotType == PlotType.GUILD) guildShopLevels else personalShopLevels
+    fun getShopLevels(plotType: PlotType): List<Level>? {
+        return if (plotType == PlotType.GUILD) guildConfig.guildShopLevels else personalConfig.personalShopLevels
     }
 
-    fun getTotemLimit(plotType: PlotType): List<Int> {
-        return if (plotType == PlotType.GUILD) guildTotemLimit else personalTotemLimit
+    fun getTotemLimit(plotType: PlotType): List<Level>? {
+        return if (plotType == PlotType.GUILD) guildConfig.guildTotemLimit else personalConfig.personalTotemLimit
     }
 
-    fun getVisitorLimit(plotType: PlotType): List<Int> {
-        return if (plotType == PlotType.GUILD) guildVisitorLimit else personalVisitorLimit
+    fun getVisitorLimit(plotType: PlotType): List<Level>? {
+        return if (plotType == PlotType.GUILD) guildConfig.guildVisitorLimit else personalConfig.personalVisitorLimit
     }
-
-    var nexusBaseId: String by delegate("nexus", "id")
-    var totemBasePrefix: String by delegate("totem", "prefix")
 }
+
+//    // Get values for the guild plot configuration
+//    // guildPlotSizeMax turns into guild.plot-size.max in config
+//    private var guildPlotMaxSize: Int by delegate("guild", "plot", "max-size", defaultValue = 384)
+//    private var guildPlotWorld: String by delegate("guild", "plot", "world", defaultValue = "plot_guild")
+//    private var guildPlotWorldGenerator: String by delegate("guild", "plot", "generator", defaultValue = "Overworld")
+//
+//    // Plot upgrades
+//    private var guildFactoryLevels: List<Pair<Int, Int>> by delegate("guild", "factory", "levels", defaultValue = listOf(
+//        Pair(4, 300),
+//        Pair(5, 500),
+//        Pair(6, 1000)
+//    ))
+//    private var guildPlotSizeLevels: List<Pair<Int, Int>> by delegate("guild","size", "levels", defaultValue = listOf(
+//        Pair(128, 1500),
+//        Pair(192, 2000),
+//        Pair(256, 5000),
+//        Pair(320, 7000),
+//        Pair(384, 10000)
+//    ))
+//    private var guildShopLevels: List<Pair<Int, Int>> by delegate("guild", "shop", "levels", defaultValue = listOf(
+//        Pair(4, 500),
+//        Pair(6, 1000),
+//        Pair(8, 1500)
+//    ))
+//    private var guildTotemLimit: List<Pair<Int, Int>> by delegate("guild", "totem", "levels", defaultValue = listOf(
+//        Pair(1, 200),
+//        Pair(2, 400),
+//        Pair(3, 600)
+//    ))
+//    private var guildVisitorLimit: List<Pair<Int, Int>> by delegate("guild", "visitor", "limit", defaultValue = listOf(
+//        Pair(10, 300),
+//        Pair(15, 500),
+//        Pair(20, 700)
+//    ))
+//
+//    // Get values for the personal plot configuration
+//    private var personalPlotMaxSize: Int by delegate("personal", "plot", "max-size", defaultValue = 192)
+//    private var personalPlotWorld: String by delegate("personal", "plot", "world", defaultValue = "plot_personal")
+//    private var personalPlotWorldGenerator: String by delegate("personal", "plot", "generator", defaultValue = "Overworld")
+//
+//    // Plot upgrades
+//    private var personalFactoryLevels: List<Pair<Int, Int>> by delegate("personal", "factory", "levels", defaultValue = listOf(
+//        Pair(2, 100),
+//        Pair(3, 300),
+//        Pair(4, 500)
+//    ))
+//    private var personalPlotSizeLevels: List<Pair<Int, Int>> by delegate("personal","size", "levels", defaultValue = listOf(
+//        Pair(64, 500),
+//        Pair(96, 1000),
+//        Pair(128, 2000),
+//        Pair(160, 3000),
+//        Pair(192, 5000)
+//    ))
+//    private var personalShopLevels: List<Pair<Int, Int>> by delegate("personal", "shop", "levels", defaultValue = listOf(
+//        Pair(2, 500),
+//        Pair(4, 1000),
+//        Pair(6, 1500)
+//    ))
+//    private var personalTotemLimit: List<Pair<Int, Int>> by delegate("personal", "totem", "levels", defaultValue = listOf(
+//        Pair(1, 100),
+//        Pair(2, 200),
+//        Pair(3, 300)
+//    ))
+//    private var personalVisitorLimit: List<Pair<Int, Int>> by delegate("personal", "visitor", "limit", defaultValue = listOf(
+//        Pair(5, 200),
+//        Pair(10, 400),
+//        Pair(15, 600)
+//    ))
+

@@ -6,7 +6,7 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.util.GuiUtils.description
 import com.brinkmc.plop.shared.util.GuiUtils.name
 import com.brinkmc.plop.shared.util.RegistrableInterface
-import com.brinkmc.plop.shared.util.asyncScope
+import com.github.shynixn.mccoroutine.bukkit.launch
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.Interface
@@ -50,27 +50,27 @@ class HotbarPreview(override val plugin: Plop): Addon, RegistrableInterface {
 
             type = plots.previewHandler.getPreview(view.player.uniqueId)!!.type
 
-            pane.hotbar[0] = StaticElement(drawable(BACK_BUTTON)) { (player) -> asyncScope.launch {
+            pane.hotbar[0] = StaticElement(drawable(BACK_BUTTON)) { (player) -> plugin.async {
                 plots.previewHandler.nextPlot(player.uniqueId)
             }}
 
             when (type) { // Determine the toggle button orientation
                 PlotType.PERSONAL -> {
-                    pane.hotbar[3] = StaticElement(drawable(TOGGLE_BUTTON_PERSONAL)) { (player) -> asyncScope.launch {
+                    pane.hotbar[3] = StaticElement(drawable(TOGGLE_BUTTON_PERSONAL)) { (player) -> plugin.async {
                         plots.previewHandler.switchPreview(player.uniqueId) // Update preview
                     }
                 }}
                 PlotType.GUILD -> {
-                    pane.hotbar[3] = StaticElement(drawable(TOGGLE_BUTTON_GUILD)) { (player) -> asyncScope.launch {
+                    pane.hotbar[3] = StaticElement(drawable(TOGGLE_BUTTON_GUILD)) { (player) -> plugin.async {
                         plots.previewHandler.switchPreview(player.uniqueId) // Update preview
                     }
                 }}
             }
 
-            pane.hotbar[5] = StaticElement(drawable(CONFIRM_BUTTON)){ (player) -> asyncScope.launch {
+            pane.hotbar[5] = StaticElement(drawable(CONFIRM_BUTTON)){ (player) -> plugin.async {
                 plots.claimHandler.initiateClaim(player.uniqueId, type)
             }}
-            pane.hotbar[8] = StaticElement(drawable(FORWARD_BUTTON)) { (player) -> asyncScope.launch {
+            pane.hotbar[8] = StaticElement(drawable(FORWARD_BUTTON)) { (player) -> plugin.async {
                 plots.previewHandler.nextPlot(player.uniqueId)
             }}
         }

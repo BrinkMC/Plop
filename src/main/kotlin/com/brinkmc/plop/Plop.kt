@@ -13,7 +13,6 @@ import com.brinkmc.plop.shared.command.plot.visit.CommandPlotVisit
 import com.brinkmc.plop.shared.command.processors.GeneralSuggestionProcessor
 import com.brinkmc.plop.shared.command.shop.CommandShopList
 import com.brinkmc.plop.shared.command.shop.CommandTrade
-import com.brinkmc.plop.shared.config.BaseConfig
 import com.brinkmc.plop.shared.config.ConfigReader
 import com.brinkmc.plop.shared.config.configs.MainConfig
 import com.brinkmc.plop.shared.config.configs.PlotConfig
@@ -21,6 +20,7 @@ import com.brinkmc.plop.shared.config.configs.SQLConfig
 import com.brinkmc.plop.shared.config.configs.ShopConfig
 import com.brinkmc.plop.shared.config.configs.TotemConfig
 import com.brinkmc.plop.shared.gui.preview.HotbarPreview
+import com.brinkmc.plop.shared.hooks.Economy
 import com.brinkmc.plop.shared.hooks.Guilds
 import com.brinkmc.plop.shared.hooks.MythicMobs
 import com.brinkmc.plop.shared.hooks.ProtocolLib
@@ -32,13 +32,15 @@ import com.brinkmc.plop.shared.hooks.listener.PlayerInteract
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.MessageService
 import com.brinkmc.plop.shared.util.PlopMessageSource
-import com.brinkmc.plop.shared.util.sync
 import com.brinkmc.plop.shop.Shops
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
+import com.github.shynixn.mccoroutine.bukkit.launch
+import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.github.shynixn.mccoroutine.bukkit.registerSuspendingEvents
 import com.google.gson.Gson
 import com.noxcrew.interfaces.InterfacesListeners
 import com.noxcrew.interfaces.view.InterfaceView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.sync.Mutex
 import org.bukkit.Bukkit
@@ -71,8 +73,6 @@ class Plop : State, SuspendingJavaPlugin() {
     // Hooks
     lateinit var hooks: Hooks
 
-    // Configs
-    lateinit var configs: Configs
 
     private lateinit var generalListener: GeneralListener
     private lateinit var mythicListener: MythicListener
@@ -96,17 +96,20 @@ class Plop : State, SuspendingJavaPlugin() {
     /*
     Putting everything inside a load function results in easy reload of the entire plugin if necessary based off of the state system
      */
-    override suspend fun load() = sync {
+    override suspend fun load() {
+        val configFolder = plugin.dataFolder
+        if (!configFolder.exists()) {
+            configFolder.mkdirs() // Create the plugins/Plop folder if it doesn't exist
+        } // I can't believe I have to do this
 
         // Load configs initially to get all necessary data
         plugin.slF4JLogger.info("Initiating config manager")
         configManager = ConfigReader(plugin)
         configManager.load()
         plugin.slF4JLogger.info("Finished loading config manager")
-        plugin.slF4JLogger.info("Initiating individual configs")
-        configs = Configs(plugin)
-        configs.load()
-        plugin.slF4JLogger.info("Finished loading individual configs")
+
+        DB = HikariManager(plugin)
+        DB.load()
 
         // Load the two parts of the plugin
         plugin.slF4JLogger.info("Initiating plots")
@@ -115,8 +118,6 @@ class Plop : State, SuspendingJavaPlugin() {
         plugin.slF4JLogger.info("Initiating shops")
         shops = Shops(plugin)
         shops.load()
-
-
 
         // Get instance of hooks
         plugin.slF4JLogger.info("Hooking into other plugins")
@@ -194,7 +195,7 @@ class Plop : State, SuspendingJavaPlugin() {
     }
 
     fun getFile(fileName: String): File? {
-        return plugin.dataFolder.listFiles()?.find { it.name == fileName }
+        return File(plugin.dataFolder, fileName)
     }
 
     fun getMessageService(): MessageService {
@@ -215,39 +216,31 @@ class Plop : State, SuspendingJavaPlugin() {
 
 
     // Enable hooks
-    class Hooks(val plugin: Plop) {
+    class Hooks(val plugin: Plop): State {
         val guilds = Guilds(plugin)
         val protocolLib = ProtocolLib(plugin)
         val mythicMobs = MythicMobs(plugin)
         val worldGuard = WorldGuard(plugin)
-    }
+        val economy = Economy(plugin)
 
-    class Configs(val plugin: Plop): State {
-
-        val mainConfig = MainConfig(plugin)
-        val plotConfig = PlotConfig(plugin)
-        val shopConfig = ShopConfig(plugin)
-        val SQLConfig = SQLConfig(plugin)
-        val totemConfig = TotemConfig(plugin)
-
-        override suspend fun load() { // Load all configs safely
-            listOf<BaseConfig>(
-                mainConfig,
-                plotConfig,
-                shopConfig,
-                SQLConfig,
-                totemConfig
-            ).forEach { config -> config.load() }
+        override suspend fun load() {
+            listOf(
+                guilds,
+                protocolLib,
+                mythicMobs,
+                worldGuard,
+                economy
+            ).forEach { hook -> hook.load() }
         }
 
-        override suspend fun kill() { // Kill all configs safely
-            listOf<BaseConfig>(
-                mainConfig,
-                plotConfig,
-                shopConfig,
-                SQLConfig,
-                totemConfig
-            ).forEach { config -> config.kill() }
+        override suspend fun kill() {
+            listOf(
+                guilds,
+                protocolLib,
+                mythicMobs,
+                worldGuard,
+                economy
+            ).forEach { hook -> hook.kill() }
         }
     }
 

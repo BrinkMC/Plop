@@ -7,13 +7,13 @@ import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
 import org.spongepowered.configurate.ConfigurateException
 import org.spongepowered.configurate.ConfigurationNode
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader
+import org.spongepowered.configurate.hocon.HoconConfigurationLoader
 
 class PlopMessageSource(override val plugin: Plop): State, Addon {
 
     private val hashOfStrings: HashMap<String, String> = hashMapOf()
 
-    private lateinit var loader: YamlConfigurationLoader
+    private lateinit var loader: HoconConfigurationLoader
 
     override suspend fun load() {
         readLocale()
@@ -25,7 +25,7 @@ class PlopMessageSource(override val plugin: Plop): State, Addon {
     }
 
     private suspend fun readLocale() {
-        val localesFile = plugin.getFile("locales.yml")
+        val localesFile = plugin.getFile("locales.conf")
 
         // Ensure the plugin stalls if no locale is found
         if (localesFile == null) {
@@ -35,7 +35,7 @@ class PlopMessageSource(override val plugin: Plop): State, Addon {
         }
 
         // Load Configurate library's yaml reader
-        loader = YamlConfigurationLoader.builder().file(localesFile).build()
+        loader = HoconConfigurationLoader.builder().file(localesFile).build()
 
         // Try load the configuration, exception will kill plugin
         val root = try {

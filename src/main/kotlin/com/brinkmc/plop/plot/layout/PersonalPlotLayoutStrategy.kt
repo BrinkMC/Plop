@@ -15,10 +15,19 @@ import org.bukkit.WorldCreator
 
 class PersonalPlotLayoutStrategy(override val plugin: Plop): BaseLayoutStrategy(plugin) {
 
-    override val maxPlotLength: Double = plotConfig.getPlotMaxSize(PlotType.PERSONAL).toDouble()
+    override val maxPlotLength: Double = plotConfig.getPlotMaxSize(PlotType.PERSONAL)?.toDouble() ?: run {
+        logger.error("Failed to get max plot length for personal plots")
+        0.0
+    }
     override val maxPreviewLimit: Int
         get() = (plugin.plots.handler.getPlotMap().size * 3) + 100
-    override val worldName: String = plotConfig.getPlotWorld(PlotType.PERSONAL)
-    override val worldGen: String = plotConfig.getPlotWorldGenerator(PlotType.PERSONAL)
+    override val worldName: String = plotConfig.getPlotWorld(PlotType.PERSONAL) ?: run {
+        logger.error("Failed to get world name for personal plots")
+        ""
+    }
+    override val worldGen: String = plotConfig.getPlotWorldGenerator(PlotType.PERSONAL) ?: run {
+        logger.error("Failed to get world generator for personal plots")
+        ""
+    }
 
 }

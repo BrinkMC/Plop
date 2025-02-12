@@ -9,7 +9,7 @@ import me.glaremasters.guilds.api.GuildsAPI
 
 class MythicMobs(override val plugin: Plop): Addon, State {
 
-    lateinit var mythicAPI:  MythicBukkit
+    private lateinit var mythicAPI:  MythicBukkit
 
     override suspend fun load() {
         mythicAPI = MythicBukkit.inst()

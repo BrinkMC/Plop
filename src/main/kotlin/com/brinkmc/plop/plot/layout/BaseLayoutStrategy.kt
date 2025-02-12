@@ -41,7 +41,6 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
     }
 
     override suspend fun kill() {
-        plotConfig.kill()
         openPlots.clear()
     }
 

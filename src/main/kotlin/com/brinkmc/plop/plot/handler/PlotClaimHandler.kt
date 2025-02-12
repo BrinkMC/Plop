@@ -12,7 +12,6 @@ import com.brinkmc.plop.plot.plot.modifier.PlotVisit
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.LocationUtils.getSafeDestination
-import com.brinkmc.plop.shared.util.async
 import java.sql.Timestamp
 import java.util.UUID
 
@@ -25,8 +24,8 @@ class PlotClaimHandler(override val plugin: Plop): Addon, State {
         TODO("Not yet implemented")
     }
 
-    suspend fun initiateClaim(player: UUID, plotType: PlotType) = async {
-        val previewInstance = plots.previewHandler.getPreview(player) ?: return@async
+    suspend fun initiateClaim(player: UUID, plotType: PlotType) {
+        val previewInstance = plots.previewHandler.getPreview(player) ?: return
 
         val plotClaim = PlotClaim(
             previewInstance.viewPlot.value.world,

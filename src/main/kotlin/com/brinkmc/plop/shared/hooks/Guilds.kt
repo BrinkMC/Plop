@@ -7,10 +7,13 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import me.glaremasters.guilds.Guilds
 import me.glaremasters.guilds.api.GuildsAPI
+import me.glaremasters.guilds.guild.Guild
+import org.bukkit.Bukkit
+import java.util.UUID
 
 class Guilds(override val plugin: Plop): Addon, State {
 
-    lateinit var guildAPI: GuildsAPI // Guild API
+    private lateinit var guildAPI: GuildsAPI // Guild API
 
     override suspend fun load() {
         guildAPI = Guilds.getApi()
@@ -18,5 +21,13 @@ class Guilds(override val plugin: Plop): Addon, State {
 
     override suspend fun kill() {
         TODO("Not yet implemented")
+    }
+
+    fun getGuild(uuid: UUID): Guild? {
+        return guildAPI.getGuild(Bukkit.getOfflinePlayer(uuid))
+    }
+
+    fun getGuildFromPlayer(uuid: UUID): Guild? {
+        return guildAPI.getGuildByPlayerId(uuid)
     }
 }

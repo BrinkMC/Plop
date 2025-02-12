@@ -12,16 +12,6 @@ class PlotShopHandler(override val plugin: Plop): Addon, State {
     val levels = mutableListOf<Int>()
 
     override suspend fun load() {
-        try {
-            val conf = YamlConfiguration.loadConfiguration(File(plugin.dataFolder, "plot/upgrades.yml")) // Get relevant config
-            val shopSection = conf.getConfigurationSection("shop.limit") ?: return // Check filled in
-
-            for (key in shopSection.getKeys(false)) {
-                levels.add(shopSection.getInt("$key.limit")) // Add a level per child node
-            }
-        } catch (e: ConfigurateException) {
-            logger.error("Failed to configurate shop limits :(") // Didn't work did it
-        }
     }
 
     override suspend fun kill() {

@@ -1,6 +1,7 @@
 package com.brinkmc.plop.shared.util
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.plot.base.PlotOwner
 import com.brinkmc.plop.shared.base.Addon
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -23,9 +24,9 @@ class MessageService(override val plugin: Plop): Addon {
 
     fun get(string: String, player: Player? = null): Component {
         return if (player == null) {
-            miniMessage.deserialize(plopMessageSource.findMessage(string) ?: "<red>No message set!")
+            miniMessage.deserialize(plopMessageSource.findMessage(string) ?: "<red>No message set for $string!")
         } else {
-            miniMessage.deserialize(plopMessageSource.findMessage(string) ?: "<red>No message set!", profileTags.name(player))
+            miniMessage.deserialize(plopMessageSource.findMessage(string) ?: "<red>No message set for $string", profileTags.name(player))
         }
     }
 
@@ -49,22 +50,14 @@ class ProfileTags(override val plugin: Plop) : Addon {
 
         return TagResolver.resolver(
             name(player),
-            personalPlotResolver(player),
-            guildPlotResolver(player)
+//            personalPlotResolver(player),
+//            guildPlotResolver(player)
         )
 
     }
 
     fun name(player: Player): TagResolver {
         return Placeholder.component("name", player.displayName())
-    }
-
-    fun personalPlotResolver(player: Player): TagResolver {
-        return Placeholder.component("guildPlot", Component.text(plugin.hooks.guilds.guildAPI.getGuildByPlayerId(player.uniqueId)?.name ?: ""))
-    }
-
-    fun guildPlotResolver(player: Player): TagResolver {
-        return Placeholder.component("guildPlot", Component.text(plugin.hooks.guilds.guildAPI.getGuildByPlayerId(player.uniqueId)?.name ?: ""))
     }
 }
 

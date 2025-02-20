@@ -51,6 +51,44 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
             (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendFormattedMessage(lang.get("not-enough-money"))
             return
         }
+
+        plots.visitorHandler.upgradePlot(plot) // Update the plot in the database
+    }
+
+    fun upgradeShopLevel(plot: Plot) {
+        logger.info("Upgrading shop limit level")
+
+        if (plot.shop.level == plots.shopHandler.getHighestLevel(plot.type)) return // Already at max level
+
+        // Calculate if they can afford it
+        val potentialLevel = plots.shopHandler.getLevel(plot.type, plot.shop.level + 1)
+
+        // Using the economy API, check if they can afford it
+
+        if (plot.owner.hasBalance(economy, potentialLevel?.price?.toDouble() ?: 0.0)) {
+            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendFormattedMessage(lang.get("not-enough-money"))
+            return
+        }
+
+        plots.shopHandler.upgradePlot(plot) // Update the plot in the database
+    }
+
+    fun upgradeFactoryLevel(plot: Plot) {
+        logger.info("Upgrading factory limit level")
+
+        if (plot.factory.level == plots.factoryHandler.getHighestLevel(plot.type)) return // Already at max level
+
+        // Calculate if they can afford it
+        val potentialLevel = plots.factoryHandler.getLevel(plot.type, plot.factory.level + 1)
+
+        // Using the economy API, check if they can afford it
+
+        if (plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
+            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendFormattedMessage(lang.get("not-enough-money"))
+            return
+        }
+
+        plots.factoryHandler.upgradePlot(plot) // Update the plot in the database
     }
 
 }

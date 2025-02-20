@@ -3,27 +3,16 @@ package com.brinkmc.plop
 import com.brinkmc.plop.plot.Plots
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.command.admin.*
-import com.brinkmc.plop.shared.command.plot.CommandPlotTp
-import com.brinkmc.plop.shared.command.plot.nexus.CommandPlotSetHome
-import com.brinkmc.plop.shared.command.plot.nexus.CommandPlotSetPoint
-import com.brinkmc.plop.shared.command.plot.nexus.CommandPlotVisitClose
-import com.brinkmc.plop.shared.command.plot.nexus.CommandPlotVisitOpen
+import com.brinkmc.plop.shared.command.plot.claim.CommandPlotClaim
 import com.brinkmc.plop.shared.command.plot.preview.CommandPlotPreview
-import com.brinkmc.plop.shared.command.plot.visit.CommandPlotVisit
 import com.brinkmc.plop.shared.command.processors.GeneralSuggestionProcessor
-import com.brinkmc.plop.shared.command.shop.CommandShopList
-import com.brinkmc.plop.shared.command.shop.CommandTrade
+import com.brinkmc.plop.shared.command.utils.PlotTypeParser
 import com.brinkmc.plop.shared.config.ConfigReader
-import com.brinkmc.plop.shared.config.configs.MainConfig
-import com.brinkmc.plop.shared.config.configs.PlotConfig
-import com.brinkmc.plop.shared.config.configs.SQLConfig
-import com.brinkmc.plop.shared.config.configs.ShopConfig
-import com.brinkmc.plop.shared.config.configs.TotemConfig
 import com.brinkmc.plop.shared.gui.preview.HotbarPreview
 import com.brinkmc.plop.shared.hooks.Economy
 import com.brinkmc.plop.shared.hooks.Guilds
 import com.brinkmc.plop.shared.hooks.MythicMobs
-import com.brinkmc.plop.shared.hooks.ProtocolLib
+import com.brinkmc.plop.shared.hooks.PacketEvents
 import com.brinkmc.plop.shared.hooks.WorldGuard
 import com.brinkmc.plop.shared.hooks.listener.GeneralListener
 import com.brinkmc.plop.shared.hooks.listener.MovementListener
@@ -33,20 +22,22 @@ import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.MessageService
 import com.brinkmc.plop.shared.util.PlopMessageSource
 import com.brinkmc.plop.shop.Shops
+import com.github.retrooper.packetevents.event.PacketListenerPriority
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
-import com.github.shynixn.mccoroutine.bukkit.launch
-import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.github.shynixn.mccoroutine.bukkit.registerSuspendingEvents
 import com.google.gson.Gson
 import com.noxcrew.interfaces.InterfacesListeners
 import com.noxcrew.interfaces.view.InterfaceView
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.sync.Mutex
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
+import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.annotations.AnnotationParser
+import org.incendo.cloud.bukkit.CloudBukkitCapabilities
+import org.incendo.cloud.bukkit.parser.PlayerParser
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 import org.incendo.cloud.paper.PaperCommandManager
@@ -64,8 +55,8 @@ class Plop : State, SuspendingJavaPlugin() {
     lateinit var menus: Menus
     lateinit var DB: HikariManager
 
-    private lateinit var commandManager: PaperCommandManager<Source>
-    private lateinit var annotationParser: AnnotationParser<Source>
+    private lateinit var commandManager: PaperCommandManager<CommandSourceStack>
+    private lateinit var annotationParser: AnnotationParser<CommandSourceStack>
     private lateinit var messageSource: PlopMessageSource
     private lateinit var messageService: MessageService
     private lateinit var configManager: ConfigReader
@@ -80,6 +71,12 @@ class Plop : State, SuspendingJavaPlugin() {
     private lateinit var playerInteractListener: PlayerInteract
 
     lateinit var gson: Gson
+
+
+    override suspend fun onLoadAsync() {
+        com.github.retrooper.packetevents.PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
+        com.github.retrooper.packetevents.PacketEvents.getAPI().load();
+    }
 
     override suspend fun onEnableAsync() {
         load()
@@ -102,6 +99,11 @@ class Plop : State, SuspendingJavaPlugin() {
             configFolder.mkdirs() // Create the plugins/Plop folder if it doesn't exist
         } // I can't believe I have to do this
 
+        // Load messages
+        messageSource = PlopMessageSource(plugin)
+        messageSource.load()
+        messageService = MessageService(plugin)
+
         // Load configs initially to get all necessary data
         plugin.slF4JLogger.info("Initiating config manager")
         configManager = ConfigReader(plugin)
@@ -111,6 +113,11 @@ class Plop : State, SuspendingJavaPlugin() {
         DB = HikariManager(plugin)
         DB.load()
 
+        // Get instance of hooks
+        plugin.slF4JLogger.info("Hooking into other plugins")
+        hooks = Hooks(plugin)
+        hooks.load()
+
         // Load the two parts of the plugin
         plugin.slF4JLogger.info("Initiating plots")
         plots = Plots(plugin)
@@ -119,9 +126,7 @@ class Plop : State, SuspendingJavaPlugin() {
         shops = Shops(plugin)
         shops.load()
 
-        // Get instance of hooks
-        plugin.slF4JLogger.info("Hooking into other plugins")
-        hooks = Hooks(plugin)
+
 
         // Enable all menus
         plugin.slF4JLogger.info("Creating menus and hotbars")
@@ -162,34 +167,25 @@ class Plop : State, SuspendingJavaPlugin() {
     }
 
     private fun loadCmds() {
-        commandManager = PaperCommandManager
-            .builder(PaperSimpleSenderMapper.simpleSenderMapper())
-            .executionCoordinator(ExecutionCoordinator.simpleCoordinator())
+        commandManager = PaperCommandManager.builder()
+            .executionCoordinator(ExecutionCoordinator.asyncCoordinator())
             .buildOnEnable(plugin)
 
-        annotationParser = AnnotationParser(commandManager, Source::class.java)
+        annotationParser = AnnotationParser(commandManager, CommandSourceStack::class.java)
         // The plugin will be using coroutines extensively for scheduling
         annotationParser.installCoroutineSupport()
 
         annotationParser.parse(GeneralSuggestionProcessor(plugin))
 
+        commandManager.parserRegistry().registerParser(PlotTypeParser.plotTypeParser())
+        commandManager.parserRegistry().registerParser(PlayerParser.playerParser())
+
         listOf(
-            CommandClaimPlot(plugin),
-            CommandCreateShop(plugin),
-            CommandDeleteShop(plugin),
-            CommandTransferPlot(plugin),
-            CommandUnclaimPlot(plugin),
-            CommandClaimPlot(plugin),
-            CommandPlotSetHome(plugin),
-            CommandPlotSetPoint(plugin),
-            CommandPlotVisitClose(plugin),
-            CommandPlotVisitOpen(plugin),
-            CommandPlotPreview(plugin),
-            CommandPlotVisit(plugin),
-            CommandPlotTp(plugin),
-            CommandShopList(plugin),
-            CommandTrade(plugin)
+            CommandAdminClaimPlot(plugin),
+            CommandPlotClaim(plugin),
+            CommandPlotPreview(plugin)
         ).forEach { command ->
+            logger.info("Registering command: ${command.javaClass.simpleName}")
             annotationParser.parse(command)
         }
     }
@@ -213,12 +209,10 @@ class Plop : State, SuspendingJavaPlugin() {
     val namespacedKey: NamespacedKey
         get() = NamespacedKey(plugin, "plop")
 
-
-
     // Enable hooks
     class Hooks(val plugin: Plop): State {
         val guilds = Guilds(plugin)
-        val protocolLib = ProtocolLib(plugin)
+        val packetEvents = PacketEvents(plugin)
         val mythicMobs = MythicMobs(plugin)
         val worldGuard = WorldGuard(plugin)
         val economy = Economy(plugin)
@@ -226,17 +220,17 @@ class Plop : State, SuspendingJavaPlugin() {
         override suspend fun load() {
             listOf(
                 guilds,
-                protocolLib,
                 mythicMobs,
                 worldGuard,
                 economy
             ).forEach { hook -> hook.load() }
+            com.github.retrooper.packetevents.PacketEvents.getAPI().init()
+            com.github.retrooper.packetevents.PacketEvents.getAPI().eventManager.registerListener(packetEvents, PacketListenerPriority.NORMAL)
         }
 
         override suspend fun kill() {
             listOf(
                 guilds,
-                protocolLib,
                 mythicMobs,
                 worldGuard,
                 economy

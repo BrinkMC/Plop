@@ -8,5 +8,5 @@ import org.spongepowered.configurate.objectmapping.meta.Setting
 @ConfigSerializable
 data class ShopConfig(
     @Setting("Range")
-    val viewRange: Int?
+    val viewRange: Int = 10
 )

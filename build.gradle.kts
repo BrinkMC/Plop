@@ -19,6 +19,8 @@ repositories {
     maven("https://eldonexus.de/repository/maven-releases/")
     maven("https://repo.glaremasters.me/repository/public/")
     maven("https://mvn.lumine.io/repository/maven-public/")
+    maven("https://repo.codemc.io/repository/maven-snapshots/")
+    maven("https://repo.codemc.io/repository/maven-releases/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") {
         content { includeGroup("me.clip") }
     }
@@ -36,6 +38,7 @@ dependencies {
     compileOnly("io.lumine", "Mythic-Dist", "5.7.2")
     compileOnly(fileTree("libs/") { include("*.jar") })
     compileOnly("com.github.yannicklamprecht:worldborderapi:1.201.0:dev") // Weird import
+    compileOnly("com.github.retrooper", "packetevents-spigot", "2.7.0")
 
 
     compileOnly("com.sk89q.worldguard", "worldguard-core", "7.0.11")
@@ -44,9 +47,9 @@ dependencies {
     compileOnly("com.sk89q.worldedit", "worldedit-core", "7.3.9")
 
     // Kyori
-    implementation(platform("net.kyori:adventure-bom:4.17.0"))
-    implementation("net.kyori", "adventure-extra-kotlin")
-    implementation("net.kyori", "adventure-serializer-configurate4")
+    compileOnly(platform("net.kyori:adventure-bom:4.17.0"))
+    compileOnly("net.kyori", "adventure-extra-kotlin")
+    compileOnly("net.kyori", "adventure-serializer-configurate4")
 
     implementation(platform("org.incendo:cloud-bom:2.0.0"))
     implementation("org.incendo","cloud-annotations")
@@ -110,7 +113,6 @@ tasks {
             "com.typesafe.config",
             "io.leangen.geantyref",
             "io.papermc.lib",
-            "net.kyori",
             "com.brinkmc.pluginbase",
             "org.incendo",
             "com.noxcrew",

@@ -19,7 +19,7 @@ class PlotCache(override val plugin: Plop): Addon, State {
 
     private val databaseHandler = DatabasePlot(plugin)
 
-    private val plotMap = ConcurrentHashMap<PlotKey, Deferred<Plot>>()
+    private val plotMap = ConcurrentHashMap<PlotKey, Deferred<Plot?>>()
 
     override suspend fun load() {
         cacheSave() // Get the task going
@@ -28,7 +28,10 @@ class PlotCache(override val plugin: Plop): Addon, State {
     suspend fun cacheSave() {
         while (true) {
             plotMap.forEach { (_, deferred) ->
-                databaseHandler.save(deferred.await())
+                val awaited = deferred.await()
+                if (awaited != null) {
+                    databaseHandler.save(awaited)
+                }
             }
             delay(600_000) // 10 minutes
         }
@@ -78,7 +81,10 @@ class PlotCache(override val plugin: Plop): Addon, State {
 
     override suspend fun kill() {
         plotMap.forEach { (_, deferred) ->
-            databaseHandler.save(deferred.await())
+            val awaited = deferred.await()
+            if (awaited != null) {
+                databaseHandler.save(awaited)
+            }
         }
     }
 

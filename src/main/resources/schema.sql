@@ -19,10 +19,11 @@ create table if not exists `plots_claims`
 
 create table if not exists `plots_totems`
 (
-    totem_location text        not null,
+    totem_id int auto_increment not null,
+    totem_location text      not null,
     totem_type     text        not null,
     plot_id        varchar(36) not null,
-    primary key (totem_location),
+    primary key (totem_id),
     foreign key (plot_id) references plots_plots(plot_id)
 );
 
@@ -44,9 +45,10 @@ create table if not exists `plots_factory_limits`
 
 create table if not exists `plots_factory_locations`
 (
+    factory_id int auto_increment not null,
     factory_location text not null,
     plot_id varchar(36) not null,
-    primary key (factory_location),
+    primary key (factory_id),
     foreign key (plot_id) references plots_plots(plot_id)
 );
 

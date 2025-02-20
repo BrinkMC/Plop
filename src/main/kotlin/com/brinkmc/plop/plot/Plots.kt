@@ -10,12 +10,11 @@ import com.brinkmc.plop.plot.handler.PlotSizeHandler
 import com.brinkmc.plop.plot.handler.PlotUpgradeHandler
 import com.brinkmc.plop.plot.handler.PlotVisitHandler
 import com.brinkmc.plop.plot.plot.base.PlotType
-import com.brinkmc.plop.plot.storage.PlotCache
-import com.brinkmc.plop.plot.storage.database.DatabasePlot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import org.bukkit.World
 import org.bukkit.WorldCreator
+import org.bukkit.generator.ChunkGenerator
 
 class Plots(override val plugin: Plop): Addon, State {
 
@@ -30,24 +29,29 @@ class Plots(override val plugin: Plop): Addon, State {
     lateinit var sizeHandler: PlotSizeHandler
 
     override suspend fun load() {
-
+        logger.info("Loading Plots...")
         // Create worlds on main thread
         plugin.sync {
-            if (server.getWorld("plot_personal") == null) {
-                server.createWorld(
-                    WorldCreator("plot_personal")
-                        .environment(World.Environment.NORMAL)
-                        .generator(plotConfig.getPlotWorldGenerator(PlotType.PERSONAL))
-                )
-            }
 
-            if (server.getWorld("plot_guild") == null) {
-                server.createWorld(
-                    WorldCreator("plot_guild")
-                        .environment(World.Environment.CUSTOM)
-                        .generator(plotConfig.getPlotWorldGenerator(PlotType.GUILD))
-                )
-            }
+            val personalWorldName = plotConfig.getPlotWorld(PlotType.PERSONAL)
+            val guildWorldName = plotConfig.getPlotWorld(PlotType.GUILD)
+
+            val personalWorldGen = plotConfig.getPlotWorldGenerator(PlotType.PERSONAL)
+            val guildWorldGen = plotConfig.getPlotWorldGenerator(PlotType.GUILD)
+
+            server.createWorld(
+                WorldCreator(personalWorldName)
+                    .environment(World.Environment.NORMAL)
+                    .generator(personalWorldGen)
+            )
+
+            server.createWorld(
+                WorldCreator(guildWorldName)
+                    .environment(World.Environment.NORMAL)
+                    .generator(guildWorldGen)
+            )
+
+            // Register / load worlds on server
         }
 
         handler = PlotHandler(plugin)

@@ -6,13 +6,14 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import me.glaremasters.guilds.guild.Guild
 import org.bukkit.entity.Player
+import kotlin.math.log
 
 class Shops(override val plugin: Plop): Addon,State {
 
     val shopList: MutableList<Shop> = mutableListOf()
 
     override suspend fun load() {
-        TODO("Not yet implemented")
+        logger.info("Loading shops...")
     }
 
     override suspend fun kill() {

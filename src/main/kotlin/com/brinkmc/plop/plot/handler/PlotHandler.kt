@@ -58,11 +58,11 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
     }
 
     suspend fun hasGuildPlot(player: UUID): Boolean {
-        return getPlotByOwner(player.guild()?.id) == null
+        return getPlotByOwner(player.guild()?.id) != null
     }
 
     suspend fun hasPersonalPlot(player: UUID): Boolean {
-        return getPlotByOwner(player) == null
+        return getPlotByOwner(player) != null
     }
 
     suspend fun addPlot(plot: Plot) {
@@ -77,8 +77,8 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
     
     fun getPlotWorlds(): List<World> {
         return listOfNotNull(
-            plotConfig.getPlotWorld(PlotType.PERSONAL)?.world(),
-            plotConfig.getPlotWorld(PlotType.GUILD)?.world()
+            plotConfig.getPlotWorld(PlotType.PERSONAL).world(),
+            plotConfig.getPlotWorld(PlotType.GUILD).world()
         )
     }
 

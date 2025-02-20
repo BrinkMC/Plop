@@ -17,8 +17,8 @@ class PlotFactoryHandler(override val plugin: Plop): Addon, State {
     private val personalLevels = mutableListOf<Level>()
 
     override suspend fun load() {
-        plotConfig.getFactoryLevels(PlotType.GUILD)?.let { guildLevels.addAll(it) } // Add all guild plot size levels
-        plotConfig.getFactoryLevels(PlotType.PERSONAL)?.let { personalLevels.addAll(it) }
+        plotConfig.getFactoryLevels(PlotType.GUILD).let { guildLevels.addAll(it) } // Add all guild plot size levels
+        plotConfig.getFactoryLevels(PlotType.PERSONAL).let { personalLevels.addAll(it) }
     }
 
     override suspend fun kill() {
@@ -26,7 +26,23 @@ class PlotFactoryHandler(override val plugin: Plop): Addon, State {
         personalLevels.clear()
     }
 
-    fun getCurrentFactoryLimit(plotType: PlotType, level: Int): Int { // Get current limit based on level
+    // Getters
+
+    fun getHighestLevel(plotType: PlotType): Int {
+        return when (plotType) {
+            PlotType.GUILD -> plotConfig.getFactoryLevels(PlotType.GUILD).last().value ?: -1 // Last gets largest item
+            PlotType.PERSONAL -> plotConfig.getFactoryLevels(PlotType.PERSONAL).last().value ?: -1
+        }
+    }
+
+    fun getLevel(plotType: PlotType, level: Int): Level { // Get current limit based on level
+        return when (plotType) {
+            PlotType.GUILD -> guildLevels[level]
+            PlotType.PERSONAL -> personalLevels[level]
+        }
+    }
+
+    fun getCurrentFactoryLimit(plotType: PlotType, level: Int): Int {
         return when (plotType) {
             PlotType.GUILD -> guildLevels[level].value ?: -1
             PlotType.PERSONAL -> personalLevels[level].value ?: -1
@@ -35,10 +51,14 @@ class PlotFactoryHandler(override val plugin: Plop): Addon, State {
 
     fun getMaximumFactoryLimit(plotType: PlotType): Int {
         return when (plotType) {
-            PlotType.GUILD -> plotConfig.getFactoryLevels(PlotType.GUILD)?.last()?.value ?: -1 // Last gets largest item
-            PlotType.PERSONAL -> plotConfig.getFactoryLevels(PlotType.PERSONAL)?.last()?.value ?: -1
+            PlotType.GUILD -> guildLevels.last().value ?: -1
+            PlotType.PERSONAL -> personalLevels.last().value ?: -1
         }
     }
 
+    // Setters
 
+    fun upgradePlot(plot: Plot) {
+        plot.factory.level += 1
+    }
 }

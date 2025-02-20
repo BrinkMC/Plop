@@ -6,6 +6,8 @@ import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.config.serialisers.Level
+import org.bukkit.Bukkit
+import kotlin.collections.subtract
 
 class PlotSizeHandler(override val plugin: Plop): Addon, State {
 
@@ -47,14 +49,18 @@ class PlotSizeHandler(override val plugin: Plop): Addon, State {
 
     fun getMaximumPlotSize(plotType: PlotType): Int {
         return when (plotType) {
-            PlotType.GUILD -> plotConfig.getPlotSizeLevels(PlotType.GUILD)?.last()?.value ?: -1 // Last gets largest item
-            PlotType.PERSONAL -> plotConfig.getPlotSizeLevels(PlotType.PERSONAL)?.last()?.value ?: -1
+            PlotType.GUILD -> guildLevels.last().value ?: -1 // Last gets largest item
+            PlotType.PERSONAL -> personalLevels.last().value ?: -1
         }
     }
 
     // Setters
 
-    fun upgradePlot(plot: Plot) {
+    suspend fun upgradePlot(plot: Plot) {
         plot.size.level += 1
+
+        plots.server.onlinePlayers.forEach {
+            it.updateBorder()
+        }
     }
 }

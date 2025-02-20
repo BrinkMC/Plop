@@ -2,11 +2,14 @@ package com.brinkmc.plop.shared.hooks
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotOwner
+import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hooks.Locals.localLocation
 import com.brinkmc.plop.shared.hooks.Locals.localWorld
+import com.brinkmc.plop.shared.hooks.Locals.world
 import com.sk89q.worldedit.bukkit.BukkitAdapter
+import com.sk89q.worldedit.bukkit.BukkitWorld
 import com.sk89q.worldedit.math.BlockVector3
 import com.sk89q.worldguard.LocalPlayer
 import com.sk89q.worldguard.WorldGuard
@@ -30,6 +33,12 @@ class WorldGuard(override val plugin: Plop): Addon, State {
         get() = worldGuardAPI.platform
     private val worldGuardRegionContainer: RegionContainer
         get() = worldGuardPlatform.regionContainer
+
+    private val personalPlotWorld: com.sk89q.worldedit.world.World?
+        get() = Bukkit.getWorld(plotConfig.getPlotWorld(PlotType.PERSONAL)!!)?.localWorld()
+
+    private val guildPlotWorld: com.sk89q.worldedit.world.World?
+        get() = Bukkit.getWorld(plotConfig.getPlotWorld(PlotType.GUILD)!!)?.localWorld()
 
     override suspend fun load() {
         worldGuardAPI = WorldGuard.getInstance()
@@ -58,6 +67,21 @@ class WorldGuard(override val plugin: Plop): Addon, State {
         return worldGuardRegionContainer.createQuery().getApplicableRegions(player.location.localLocation()).regions
     }
 
+    fun getPlotRegions(plotType: PlotType): Map<String, ProtectedRegion> {
+        return when (plotType) {
+            PlotType.PERSONAL -> getPersonalPlotRegions()
+            PlotType.GUILD -> getGuildPlotRegions()
+        }
+    }
+
+    private fun getPersonalPlotRegions(): Map<String, ProtectedRegion> {
+        return worldGuardRegionContainer.get(personalPlotWorld)?.regions ?: mapOf()
+    }
+
+    private fun getGuildPlotRegions(): Map<String, ProtectedRegion> {
+        return worldGuardRegionContainer.get(guildPlotWorld)?.regions ?: mapOf()
+    }
+
     // Create a region to claim around the new plot, the plot has uuid as its name
     suspend fun createRegion(uuid: UUID) { plugin.sync {
         val plot = plots.handler.getPlotById(uuid) ?: run {
@@ -65,7 +89,7 @@ class WorldGuard(override val plugin: Plop): Addon, State {
             return@sync
         }
 
-        val plotWorld = Bukkit.getWorld(plot.claim.world) ?: run {
+        val plotWorld = plotConfig.getPlotWorld(plot.type)?.world() ?: run {
             logger.error("No such world exists")
             return@sync
         }

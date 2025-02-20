@@ -25,8 +25,10 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
     private val previews = mutableMapOf<UUID, PreviewInstance>()
 
     override suspend fun load() {
-        guildPlotLayoutStrategy = GuildPlotLayoutStrategy(plugin)
-        personalPreviewHandler = PersonalPlotLayoutStrategy(plugin)
+        guildPlotLayoutStrategy = GuildPlotLayoutStrategy(plugin, PlotType.GUILD)
+        guildPlotLayoutStrategy.load()
+        personalPreviewHandler = PersonalPlotLayoutStrategy(plugin, PlotType.PERSONAL)
+        personalPreviewHandler.load()
     }
 
     override suspend fun kill() {

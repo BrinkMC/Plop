@@ -125,7 +125,7 @@ internal interface Addon {
     }
 
     suspend fun Player.guildPlot(): Plot? {
-        return plots.handler.getPlotByOwner(this.uniqueId.guild()?.id)
+        return plots.handler.getPlotByOwner(this.guild()?.id)
     }
 
     // Get guild from player
@@ -141,9 +141,17 @@ internal interface Addon {
         return plugin.hooks.guilds.getGuildFromPlayer(this)
     }
 
+    // Update border
+
+    suspend fun Player.updateBorder() {
+        plots.handler.updateBorder(uniqueId)
+    }
+
     // Location check for player
 
-    fun Player.inPlot(): Boolean {
+    suspend fun Player.inPlot(): Boolean {
         return (plots.handler.getPlotFromLocation(location)?.plotId == player?.uniqueId) || (plots.handler.getPlotFromLocation(location)?.plotId == player?.guild()?.id)
     }
+
+
 }

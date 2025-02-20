@@ -13,8 +13,8 @@ class PlotVisitHandler(override val plugin: Plop): Addon, State {
     private val personalLevels = mutableListOf<Level>()
 
     override suspend fun load() {
-        plotConfig.getVisitorLimit(PlotType.GUILD)?.let { guildLevels.addAll(it) } // Add all guild plot size levels
-        plotConfig.getVisitorLimit(PlotType.PERSONAL)?.let { personalLevels.addAll(it) }
+        plotConfig.getVisitorLimit(PlotType.GUILD).let { guildLevels.addAll(it) } // Add all guild plot size levels
+        plotConfig.getVisitorLimit(PlotType.PERSONAL).let { personalLevels.addAll(it) }
     }
 
     override suspend fun kill() {

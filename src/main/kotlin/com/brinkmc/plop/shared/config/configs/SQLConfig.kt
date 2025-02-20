@@ -11,11 +11,11 @@ import kotlin.reflect.KProperty
 @ConfigSerializable
 data class SQLConfig(
     @Setting("User")
-    val user: String?,
+    val user: String = "",
     @Setting("Password")
-    val password: String?,
+    val password: String = "",
     @Setting("Database")
-    val database: String?,
+    val database: String = "",
     @Setting("Host")
-    val host: String?
+    val host: String = ""
 )

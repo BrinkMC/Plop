@@ -25,35 +25,35 @@ data class PlotConfig(
     @Setting("Nexus")
     val nexusConfig: NexusConfig
 ) {
-    fun getPlotMaxSize(plotType: PlotType): Int? {
+    fun getPlotMaxSize(plotType: PlotType): Int {
         return if (plotType == PlotType.GUILD) guildConfig.guildPlotMaxSize else personalConfig.personalPlotMaxSize
     }
 
-    fun getPlotWorld(plotType: PlotType): String? {
+    fun getPlotWorld(plotType: PlotType): String {
         return if (plotType == PlotType.GUILD) guildConfig.guildPlotWorld else personalConfig.personalPlotWorld
     }
 
-    fun getPlotWorldGenerator(plotType: PlotType): String? {
+    fun getPlotWorldGenerator(plotType: PlotType): String {
         return if (plotType == PlotType.GUILD) guildConfig.guildPlotWorldGenerator else personalConfig.personalPlotWorldGenerator
     }
 
-    fun getFactoryLevels(plotType: PlotType): List<Level>? {
+    fun getFactoryLevels(plotType: PlotType): List<Level> {
         return if (plotType == PlotType.GUILD) guildConfig.guildFactoryLevels else personalConfig.personalFactoryLevels
     }
 
-    fun getPlotSizeLevels(plotType: PlotType): List<Level>? {
+    fun getPlotSizeLevels(plotType: PlotType): List<Level> {
         return if (plotType == PlotType.GUILD) guildConfig.guildPlotSizeLevels else personalConfig.personalPlotSizeLevels
     }
 
-    fun getShopLevels(plotType: PlotType): List<Level>? {
+    fun getShopLevels(plotType: PlotType): List<Level> {
         return if (plotType == PlotType.GUILD) guildConfig.guildShopLevels else personalConfig.personalShopLevels
     }
 
-    fun getTotemLimit(plotType: PlotType): List<Level>? {
+    fun getTotemLimit(plotType: PlotType): List<Level> {
         return if (plotType == PlotType.GUILD) guildConfig.guildTotemLimit else personalConfig.personalTotemLimit
     }
 
-    fun getVisitorLimit(plotType: PlotType): List<Level>? {
+    fun getVisitorLimit(plotType: PlotType): List<Level> {
         return if (plotType == PlotType.GUILD) guildConfig.guildVisitorLimit else personalConfig.personalVisitorLimit
     }
 }

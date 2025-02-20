@@ -16,6 +16,9 @@ import org.spongepowered.configurate.kotlin.extensions.get
 import org.spongepowered.configurate.kotlin.extensions.set
 import org.spongepowered.configurate.kotlin.objectMapperFactory
 
+/*
+Help wrangling configurate to work from members of Syscraft
+ */
 class ConfigReader(override val plugin: Plop): Addon, State {
 
     private lateinit var mainConfigLoader: HoconConfigurationLoader

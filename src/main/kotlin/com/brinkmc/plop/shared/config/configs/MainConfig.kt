@@ -7,5 +7,5 @@ import org.spongepowered.configurate.objectmapping.meta.Setting
 @ConfigSerializable
 data class MainConfig(
     @Setting("PluginName")
-    val pluginName: String?
+    val pluginName: String = "Plop"
 )

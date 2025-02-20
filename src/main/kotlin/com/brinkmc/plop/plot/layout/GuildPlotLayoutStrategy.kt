@@ -16,21 +16,15 @@ import org.bukkit.WorldCreator
 import kotlin.math.max
 import kotlin.times
 
-class GuildPlotLayoutStrategy(override val plugin: Plop): BaseLayoutStrategy(plugin) {
+class GuildPlotLayoutStrategy(override val plugin: Plop, override val plotType: PlotType): BaseLayoutStrategy(plugin, plotType) {
 
-    override val maxPlotLength: Double = plotConfig.getPlotMaxSize(PlotType.GUILD)?.toDouble() ?: run {
+    override val maxPlotLength: Double = plotConfig.getPlotMaxSize(plotType)?.toDouble() ?: run {
         logger.error("Failed to get max plot length for guild plots")
         0.0
     }
     override val maxPreviewLimit: Int
-        get() = (plugin.plots.handler.getPlotMap().size * 3) + 100
-    override val worldName: String = plotConfig.getPlotWorld(PlotType.GUILD) ?: run {
-        logger.error("Failed to get world name for guild plots")
-        ""
-    }
-    override val worldGen: String = plotConfig.getPlotWorldGenerator(PlotType.GUILD) ?: run {
-        logger.error("Failed to get world generator for guild plots")
-        ""
-    }
+        get() = (plugin.hooks.worldGuard.getPlotRegions(plotType).size * 3) + 100
+    override val worldName: String = plotConfig.getPlotWorld(plotType)
+    override val worldGen: String = plotConfig.getPlotWorldGenerator(plotType)
 
 }

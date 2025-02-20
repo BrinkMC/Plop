@@ -36,11 +36,16 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
         INNER JOIN plots_factory_limits AS factory_lim ON factory_lim.plot_id = plots.plot_id
         INNER JOIN plots_shop_limits AS shop_lim ON shop_lim.plot_id = plots.plot_id
         INNER JOIN plots_visitor_limits AS visitor_lim ON visitor_lim.plot_id = plots.plot_id
-        INNER JOIN plots_visits AS visit ON visits.plot_id = plots.plot_id 
+        INNER JOIN plots_visit_records AS visit ON visits.plot_id = plots.plot_id 
         WHERE plots.plot_id = ?
     """.trimIndent() // Draws complete dataset for 1 plot
             val resultSet = DB.query(query, plotId.toString())
-            return@asyncScope resultSet?.let { mapToPlot(it) }
+            if (resultSet?.next() == true) {
+                return@asyncScope mapToPlot(resultSet)
+            }
+            else {
+                return@asyncScope null
+            }
         }
     }
 
@@ -53,23 +58,28 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
         INNER JOIN plots_factory_limits AS factory_lim ON factory_lim.plot_id = plots.plot_id
         INNER JOIN plots_shop_limits AS shop_lim ON shop_lim.plot_id = plots.plot_id
         INNER JOIN plots_visitor_limits AS visitor_lim ON visitor_lim.plot_id = plots.plot_id
-        INNER JOIN plots_visits AS visit ON visit.plot_id = plots.plot_id
+        INNER JOIN plots_visit_records AS visit ON visit.plot_id = plots.plot_id
         WHERE plots.owner_id = ?
     """.trimIndent() // Draws complete dataset for 1 plot using owner
             val resultSet = DB.query(query, ownerId.toString())
-            return@asyncScope resultSet?.let { mapToPlot(it) }
+            if (resultSet?.next() == true) {
+                return@asyncScope mapToPlot(resultSet)
+            }
+            else {
+                return@asyncScope null
+            }
         }
     }
 
-    suspend fun load(plotKey: PlotKey): Plot  {
+    suspend fun load(plotKey: PlotKey): Plot? {
         return if (plotKey.plotId != null) {
-            loadPlotId(plotKey.plotId) ?: throw IllegalArgumentException("Plot not found")
+            loadPlotId(plotKey.plotId)
 
         } else if (plotKey.ownerId != null) {
-            loadPlotOwner(plotKey.ownerId) ?: throw IllegalArgumentException("Plot not found")
+            loadPlotOwner(plotKey.ownerId)
 
         } else {
-            throw IllegalArgumentException("Invalid plot key")
+            null
         }
     }
 
@@ -86,7 +96,6 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
                     ?: throw IllegalArgumentException("Invalid centre location"), // If it fails to load, throw exception
                 home = resultSet.getString("home").toLocation()
                     ?: throw IllegalArgumentException("Invalid home location"),
-                world = resultSet.getString("world") ?: throw IllegalArgumentException("Invalid world"),
                 visit = resultSet.getString("visit").toLocation()
                     ?: throw IllegalArgumentException("Invalid visit location")
             )

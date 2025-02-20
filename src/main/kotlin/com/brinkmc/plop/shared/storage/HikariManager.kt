@@ -12,9 +12,12 @@ class HikariManager(override val plugin: Plop): Addon, State {
 
     override suspend fun load() {
 
+        // Copy schema.sql to resources
+        plugin.saveResource("schema.sql", false)
+
         database = HikariDataSource()
 
-        database.jdbcUrl = "jdbc:mariadb://${sqlConfig.host}/${sqlConfig.database}"
+        database.jdbcUrl = "jdbc:mysql://${sqlConfig.host}/${sqlConfig.database}"
         database.username = sqlConfig.user
         database.password = sqlConfig.password
 
@@ -22,7 +25,9 @@ class HikariManager(override val plugin: Plop): Addon, State {
         try {
             val connection = database.connection
             getSchemaStatements("schema.sql").forEach { statement ->
-                connection.prepareStatement(statement).execute()
+                if (statement.isNotEmpty()) {
+                    connection.prepareStatement(statement).execute()
+                }
             }
         }
         catch (e: Exception) {

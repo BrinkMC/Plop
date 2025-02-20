@@ -1,6 +1,7 @@
 package com.brinkmc.plop.plot.layout
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.preview.Direction
 import com.brinkmc.plop.plot.preview.StringLocation
 import com.brinkmc.plop.shared.base.Addon
@@ -13,7 +14,7 @@ import org.bukkit.World
 import org.bukkit.WorldCreator
 import java.util.concurrent.atomic.AtomicBoolean
 
-abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
+abstract class BaseLayoutStrategy(override val plugin: Plop, open val plotType: PlotType) : State, Addon {
 
     protected abstract val maxPlotLength: Double
     protected abstract val maxPreviewLimit: Int
@@ -26,17 +27,12 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
     lateinit var centrePlot: Location
 
     override suspend fun load() {
-        // Create world if it doesn't exist already
-        if (plugin.server.getWorld(worldName) == null) {
-            plugin.server.createWorld(WorldCreator.name(worldName).generator(worldGen))
-        }
-
         world = plugin.server.getWorld(worldName)!!
         // Now that we can set a world which isn't null
 
         val half: Double = (maxPlotLength / 2)
         centrePlot = Location(world, half, 100.0, half) // Set centre plot
-
+        logger.info("Generating open positions in world $worldName")
         generateOpenPositions()
     }
 
@@ -46,20 +42,6 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
 
     private fun generateOpenPositions() {
         openPlots.clear()
-
-        val avoidList = hashSetOf<StringLocation>() // List of pre-existing plots
-
-        for (plot in plugin.plots.handler.getPlotMap().values) {
-            avoidList.add(
-                StringLocation(
-                    plot.claim.world,
-                    plot.claim.centre.x,
-                    plot.claim.centre.y,
-                    plot.claim.centre.z
-                )
-            ) // Centre should be in format x, 100, z
-        }
-
         // Tracking values
         var length = 1
         var lengthCount = 0
@@ -95,9 +77,9 @@ abstract class BaseLayoutStrategy(override val plugin: Plop) : State, Addon {
                 }
             }
 
-            val isClaimed = avoidList.contains(StringLocation(initialLocation.world.name,initialLocation.x, initialLocation.y, initialLocation.z))
+            val isNotClaimed = (plugin.hooks.worldGuard.getRegions(initialLocation)?.size == 2)
 
-            if (!isClaimed) {
+            if (isNotClaimed) {
                 openPlots.append(
                     StringLocation(
                         initialLocation.world.name,

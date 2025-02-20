@@ -11,6 +11,7 @@ import com.sk89q.worldguard.WorldGuard
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion
 import me.glaremasters.guilds.Guilds
 import org.bukkit.Bukkit
+import org.bukkit.World
 import java.util.*
 
 /*
@@ -43,17 +44,11 @@ data class Plot(
             val guild = Guilds.getApi().getGuild(ownerId)
             if (guild != null) {
                 PlotOwner.GuildOwner(guild)
-            }
-            else {
+            } else {
                 throw IllegalStateException("Guild not found for plot $plotId")
             }
-        }
-        else {
+        } else {
             PlotOwner.PlayerOwner(Bukkit.getOfflinePlayer(ownerId))
         }
-    }
-
-    fun getRegion(worldGuard: WorldGuard): ProtectedCuboidRegion {
-        return worldGuard.platform.regionContainer.get(this.claim.world.localWorld())?.regions?.get(this.plotId.toString()) as ProtectedCuboidRegion
     }
 }

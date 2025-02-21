@@ -77,7 +77,7 @@ abstract class BaseLayoutStrategy(override val plugin: Plop, open val plotType: 
                 }
             }
 
-            val isNotClaimed = (plugin.hooks.worldGuard.getRegions(initialLocation)?.size == 2)
+            val isNotClaimed = (plugin.hooks.worldGuard.getRegions(initialLocation)?.size == 0)
 
             if (isNotClaimed) {
                 openPlots.append(
@@ -86,7 +86,7 @@ abstract class BaseLayoutStrategy(override val plugin: Plop, open val plotType: 
                         initialLocation.x,
                         initialLocation.y,
                         initialLocation.z,
-                        AtomicBoolean(false)
+                        AtomicBoolean(true)
                     )
                 ) // Location isn't being looked at
             }
@@ -94,57 +94,55 @@ abstract class BaseLayoutStrategy(override val plugin: Plop, open val plotType: 
         } while (openPlots.size < maxPreviewLimit)
     }
 
-    fun getFirstFree(): Node<StringLocation>? {
+    suspend fun getFirstFree(): Node<StringLocation>? { return asyncScope {
         var next = openPlots.first() // Get the first node
-        while (next != null && !next.value.free) { // Loop while no free plots
+        while (next != null) { // Loop until the end of the list
+            if (next.value.free) { // Check if the plot is free
+                return@asyncScope next
+            }
             next = next.next
-
-            if (next == null) {
-                logger.error("No plot available at all?")
-                return null
-            }
-
         }
-        return next
-    }
+        logger.error("No plot available at all?")
+        return@asyncScope null
+    } }
 
-    fun getNextFreePlot(node: Node<StringLocation>): Node<StringLocation>? {
-        var looked = false
-        var next = node.next // Next node
-        while (next != null && !next.value.free) { // Loop while no free plots
-            next = next.next
-
-            if (next == null && looked) {
-                logger.error("No plot available forwards?? Bizarre")
-                return null
+    suspend fun getNextFreePlot(node: Node<StringLocation>): Node<StringLocation>? { return asyncScope {
+        val origin = node
+        var search = node.next
+        while (search != origin) {
+            if (search == null) {
+                search = openPlots.first()
+                continue
+                // Start from the last node
             }
 
-            if (next == null) {
-                next = openPlots.first()
-                looked = true
+            if (search.value.free) {
+                return@asyncScope search
             }
 
+            search = search.next
         }
-        return next
-    }
+        logger.error("No plot available backwards?? Bizarre")
+        return@asyncScope null
+    } }
 
-    fun getPreviousFreePlot(node: Node<StringLocation>): Node<StringLocation>? {
-        var looked = false
-        var previous = node.prev // Previous node
-        while (previous != null && !previous.value.free) { // Loop while no free plots
-            previous = previous.next
-
-            if (previous == null && looked) {
-                logger.error("No plot available backwards?? Bizarre")
-                return null
+    suspend fun getPreviousFreePlot(node: Node<StringLocation>): Node<StringLocation>? { return asyncScope {
+        val origin = node
+        var search = node.prev
+        while (search != origin) {
+            if (search == null) {
+                search = openPlots.last()
+                continue
+                // Start from the last node
             }
 
-            if (previous == null) {
-                previous = openPlots.last()
-                looked = true
+            if (search.value.free) {
+                return@asyncScope search
             }
 
+            search = search.prev
         }
-        return previous
-    }
+        logger.error("No plot available backwards?? Bizarre")
+        return@asyncScope null
+    } }
 }

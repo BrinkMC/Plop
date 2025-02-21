@@ -5,7 +5,6 @@ import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.base.PlotOwner
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import org.bukkit.block.Vault
 import org.bukkit.entity.Player
 
 class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
@@ -31,7 +30,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         // Using the economy API, check if they can afford it
 
         if (plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            initiator.sendFormattedMessage(lang.get("not-enough-money"))
+            initiator.sendMiniMessage(lang.get("not-enough-money"))
             return
         }
 
@@ -48,7 +47,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
 
         // Using the economy API, check if they can afford it
         if (plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendFormattedMessage(lang.get("not-enough-money"))
+            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendMiniMessage(lang.get("not-enough-money"))
             return
         }
 
@@ -66,7 +65,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         // Using the economy API, check if they can afford it
 
         if (plot.owner.hasBalance(economy, potentialLevel?.price?.toDouble() ?: 0.0)) {
-            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendFormattedMessage(lang.get("not-enough-money"))
+            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendMiniMessage(lang.get("not-enough-money"))
             return
         }
 
@@ -84,7 +83,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         // Using the economy API, check if they can afford it
 
         if (plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendFormattedMessage(lang.get("not-enough-money"))
+            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendMiniMessage(lang.get("not-enough-money"))
             return
         }
 

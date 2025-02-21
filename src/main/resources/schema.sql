@@ -1,106 +1,84 @@
-# Plot Schema
-create table if not exists `plots_plots`
-(
-    plot_id varchar(36) not null,
-    type enum('Personal', 'Guild') not null,
-    owner_id varchar(36) not null,
-    primary key (plot_id)
-);
+CREATE TABLE IF NOT EXISTS `plots` (
+    `plot_id` VARCHAR(36) NOT NULL,
+    `type` ENUM('PERSONAL','GUILD') NOT NULL,
+    PRIMARY KEY (`plot_id`)
+    );
 
-create table if not exists `plots_claims`
-(
-    centre text not null,
-    home text null,
-    visit text null,
-    plot_id varchar(36) not null,
-    primary key (plot_id),
-    foreign key (plot_id) references plots_plots(plot_id)
-);
+CREATE TABLE IF NOT EXISTS `plot_claims` (
+    `plot_id` VARCHAR(36) NOT NULL,
+    `centre` TEXT NOT NULL,
+    `home` TEXT NOT NULL,
+    `visit` TEXT NOT NULL,
+    PRIMARY KEY (`plot_id`),
+    FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
+    );
 
-create table if not exists `plots_totems`
-(
-    totem_id int auto_increment not null,
-    totem_location text      not null,
-    totem_type     text        not null,
-    plot_id        varchar(36) not null,
-    primary key (totem_id),
-    foreign key (plot_id) references plots_plots(plot_id)
-);
+CREATE TABLE IF NOT EXISTS `plot_sizes` (
+    `plot_id` VARCHAR(36) NOT NULL,
+    `size_level` INT NOT NULL,
+    PRIMARY KEY (`plot_id`),
+    FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
+    );
 
-create table if not exists `plots_sizes`
-(
-    level int not null,
-    plot_id varchar(36) not null,
-    primary key (plot_id),
-    foreign key (plot_id) references plots_plots(plot_id)
-);
+CREATE TABLE IF NOT EXISTS `plot_factories` (
+    `plot_id` VARCHAR(36) NOT NULL,
+    `factory_level` INT NOT NULL,
+    PRIMARY KEY (`plot_id`),
+    FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
+    );
 
-create table if not exists `plots_factory_limits`
-(
-    level int not null,
-    plot_id varchar(36) not null,
-    primary key (plot_id),
-    foreign key (plot_id) references plots_plots(plot_id)
-);
+CREATE TABLE IF NOT EXISTS `plot_factory_locations` (
+    `factory_id` INT AUTO_INCREMENT NOT NULL,
+    `plot_id` VARCHAR(36) NOT NULL,
+    `factory_location` TEXT NOT NULL,
+    PRIMARY KEY (`factory_id`),
+    FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
+    );
 
-create table if not exists `plots_factory_locations`
-(
-    factory_id int auto_increment not null,
-    factory_location text not null,
-    plot_id varchar(36) not null,
-    primary key (factory_id),
-    foreign key (plot_id) references plots_plots(plot_id)
-);
+CREATE TABLE IF NOT EXISTS `plot_shops` (
+    `plot_id` VARCHAR(36) NOT NULL,
+    `shop_level` INT NOT NULL,
+    PRIMARY KEY (`plot_id`),
+    FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
+    );
 
-create table if not exists `plots_shop_limits`
-(
-    level int not null,
-    plot_id varchar(36) not null,
-    primary key (plot_id),
-    foreign key (plot_id) references plots_plots(plot_id)
-);
+CREATE TABLE IF NOT EXISTS `plot_shop_locations` (
+    `shop_loc_id` INT AUTO_INCREMENT NOT NULL,
+    `plot_id` VARCHAR(36) NOT NULL,
+    `shop_uuid` VARCHAR(36) NOT NULL,
+    PRIMARY KEY (`shop_loc_id`),
+    FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
+    );
 
-create table if not exists `plots_shop_locations`
-(
-    shop_id varchar(36) not null,
-    plot_id varchar(36) not null,
-    primary key (shop_id),
-    foreign key (plot_id) references plots_plots(plot_id)
-);
+CREATE TABLE IF NOT EXISTS `plot_totem_levels` (
+    `plot_id` VARCHAR(36) NOT NULL,
+    `totem_level` INT NOT NULL,
+    PRIMARY KEY (`plot_id`),
+    FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
+    );
 
-create table if not exists `plots_visitor_limits`
-(
-    allow_visitors binary not null,
-    level int not null,
-    current_amount int,
-    plot_id varchar(36) not null,
-    primary key (plot_id),
-    foreign key (plot_id) references plots_plots(plot_id)
-);
+CREATE TABLE IF NOT EXISTS `plot_totems` (
+    `totem_id` INT AUTO_INCREMENT NOT NULL,
+    `plot_id` VARCHAR(36) NOT NULL,
+    `totem_type` TEXT NOT NULL,
+    `totem_location` TEXT NOT NULL,
+    PRIMARY KEY (`totem_id`),
+    FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
+    );
 
-create table if not exists `plots_visit_records`
-(
-    visit_record_id int auto_increment primary key not null,
-    plot_id varchar(36) not null,
-    visit_timestamp timestamp not null default current_timestamp,
-    foreign key (plot_id) references plots_plots(plot_id)
-);
+CREATE TABLE IF NOT EXISTS `plot_visits` (
+    `plot_id` VARCHAR(36) NOT NULL,
+    `allow_visitors` BINARY(1) NOT NULL,
+    `visit_level` INT NOT NULL,
+    `current_visits` INT NOT NULL,
+    PRIMARY KEY (`plot_id`),
+    FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
+    );
 
-# Shop Schema
-create table if not exists `shops_shops`
-(
-    shop_id varchar(36) not null,
-    loc varchar(36) not null,
-    owner_id varchar(36) not null,
-    ware text,
-    stock int,
-    price float,
-    primary key (shop_id)
-);
-
-create table if not exists `saved_inventories`
-(
-    player_uuid varchar(36) not null,
-    inventory text,
-    primary key (player_uuid)
-);
+CREATE TABLE IF NOT EXISTS `plot_visit_timestamps` (
+    `record_id` INT AUTO_INCREMENT NOT NULL,
+    `plot_id` VARCHAR(36) NOT NULL,
+    `visit_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`record_id`),
+    FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
+    );

@@ -4,10 +4,8 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.command.utils.CmdAddon
 import org.incendo.cloud.paper.util.sender.Source
-import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.context.CommandContext
-import org.incendo.cloud.paper.util.sender.PlayerSource
 
 internal class CommandAdminDeleteShop(override val plugin: Plop) : Addon, CmdAddon {
 
@@ -18,7 +16,7 @@ internal class CommandAdminDeleteShop(override val plugin: Plop) : Addon, CmdAdd
         val player = getPlayer(sender.sender())
 
         if (!player.hasPermission("plop.admin.claim")) {
-            player.sendFormattedMessage(lang.get("no-permission"))
+            player.sendMiniMessage(lang.get("no-permission"))
             return
         }
 

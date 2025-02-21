@@ -1,23 +1,34 @@
 package com.brinkmc.plop.shared.util
 
+import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.preview.Direction
+import com.brinkmc.plop.shared.base.Addon
+import org.bukkit.HeightMap
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.World
 import org.bukkit.block.Block
+import org.bukkit.plugin.Plugin
+import kotlin.ranges.rangeTo
 
 /*
 Credit to Andross for the code, and HawkFalcon for commissioning it
  */
 
-object LocationUtils {
+class LocationUtils(override val plugin: Plop): Addon {
 
-    private val HOLLOW_MATERIALS: Set<Material> = Material.values().filter { it.isEmpty }.toSet()
+    private val HOLLOW_MATERIALS: Set<Material> = Material.entries.filter { it.isEmpty }.toSet()
 
-    private fun isBlockUnsafe(world: World, x: Int, y: Int, z: Int): Boolean {
-        return isBlockDamaging(world, x, y, z) || isBlockAboveAir(world, x, y, z)
+    private fun isBlockUnsafe(location: Location): Boolean {
+        return isBlockDamaging(location) || isBlockAboveAir(location)
     }
 
-    private fun isBlockDamaging(world: World, x: Int, y: Int, z: Int): Boolean {
+    private fun isBlockDamaging(location: Location): Boolean {
+        val world = location.world
+        val x = location.blockX
+        val y = location.blockY
+        val z = location.blockZ
+
         val below: Block = world.getBlockAt(x, y - 1, z)
         if (below.type == Material.LAVA || below.type == Material.FIRE) return true
 
@@ -27,79 +38,64 @@ object LocationUtils {
         return (!HOLLOW_MATERIALS.contains(world.getBlockAt(x, y, z).type)) || (!HOLLOW_MATERIALS.contains(world.getBlockAt(x, y + 1, z).type))
     }
 
-    private fun isBlockAboveAir(world: World, x: Int, y: Int, z: Int): Boolean {
+    private fun isBlockAboveAir(location: Location): Boolean {
+        val world = location.world
+        val x = location.blockX
+        val y = location.blockY
+        val z = location.blockZ
+
         return y > world.maxHeight || HOLLOW_MATERIALS.contains(world.getBlockAt(x, y - 1, z).type)
     }
 
-    private const val RADIUS = 3
+    suspend fun getSafe(location: Location): Location? { return asyncScope {
+        val world = location.world
+        val maxDistance: Int = 16
+        var safe = false
 
-    private val VOLUME: Array<Vector3D>
+        var length = 1
+        var lengthCount = 0
+        var direction = Direction.NORTH
+        var initialLocation = location.block.location.clone().add(0.5, 0.0, 0.5)
 
-    data class Vector3D(val x: Int, val y: Int, val z: Int)
+        do {
+            initialLocation = when (direction) { // Change logic depending on direction
+                Direction.NORTH -> {
+                    initialLocation.add(1.0, 0.0, 0.0)
+                }
+                Direction.EAST -> {
+                    initialLocation.add(0.0, 0.0, 1.0)
+                }
 
-    init {
-        val pos = mutableListOf<Vector3D>()
-        for (x in -RADIUS..RADIUS) {
-            for (y in -RADIUS..RADIUS) {
-                for (z in -RADIUS..RADIUS) {
-                    pos.add(Vector3D(x, y, z))
+                Direction.SOUTH -> {
+                    initialLocation.subtract(1.0, 0.0, 0.0)
+                }
+
+                Direction.WEST -> {
+                    initialLocation.subtract(0.0, 0.0, 1.0)
                 }
             }
-        }
-        pos.sortBy { it.x * it.x + it.y * it.y + it.z * it.z }
-        VOLUME = pos.toTypedArray()
-    }
+            initialLocation.y = world.getHighestBlockAt(initialLocation, HeightMap.WORLD_SURFACE).y.toDouble() + 1.0
 
-    @JvmStatic
-    fun Location.getSafeDestination(): Location? {
-        val world: World = this.world ?: return null
-        var x = this.blockX
-        var y = this.y.toInt()
-        var z = this.blockZ
-        val origX = x
-        val origY = y
-        val origZ = z
-        while (isBlockAboveAir(world, x, y, z)) {
-            y -= 1
-            if (y < 0) {
-                y = origY
-                break
-            }
-        }
-        if (isBlockUnsafe(world, x, y, z)) {
-            x = if (this.x.toInt() == origX) x - 1 else x + 1
-            z = if (this.z.toInt() == origZ) z - 1 else z + 1
-        }
-        var i = 0
-        while (isBlockUnsafe(world, x, y, z)) {
-            i++
-            if (i >= VOLUME.size) {
-                x = origX
-                y = origY + RADIUS
-                z = origZ
-                break
-            }
-            x = origX + VOLUME[i].x
-            y = origY + VOLUME[i].y
-            z = origZ + VOLUME[i].z
-        }
-        while (isBlockUnsafe(world, x, y, z)) {
-            y += 1
-            if (y >= world.maxHeight) {
-                x += 1
-                break
-            }
-        }
-        while (isBlockUnsafe(world, x, y, z)) {
-            y -= 1
-            if (y <= 1) {
-                x += 1
-                y = world.getHighestBlockYAt(x, z)
-                if (x - 48 > this.blockX) {
-                    return null
+            lengthCount++ // Increment, it goes 1,1,2,2,3,3,4,4,5,5,6,6 which is handy can change every north and south
+
+            if (lengthCount == length) {
+                lengthCount = 0
+                direction = direction.next()
+                if (direction == Direction.NORTH || direction == Direction.SOUTH) {
+                    length++
                 }
             }
-        }
-        return Location(world, x + 0.5, y.toDouble(), z + 0.5, this.yaw, this.pitch)
-    }
+
+            for (i in (-2)..2) {
+                val newLocation = initialLocation.clone().add(0.0, i.toDouble(), 0.0)
+                if(!isBlockUnsafe(newLocation)) {
+                    safe = true
+                    initialLocation = newLocation
+                    break
+                }
+            }
+        } while (!safe && length < maxDistance)
+
+        return@asyncScope initialLocation
+    } }
 }

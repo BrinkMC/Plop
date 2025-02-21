@@ -6,17 +6,17 @@ import com.brinkmc.plop.shared.command.utils.CmdAddon
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.incendo.cloud.annotations.Command
 
-internal class CommandPlotSetHome(override val plugin: Plop) : Addon, CmdAddon {
+internal class CommandPlotSetEntrance(override val plugin: Plop): Addon, CmdAddon {
 
-    @Command("plot set home")
-    suspend fun setHome(
+    @Command("plot set entrance")
+    suspend fun setEntrance(
         sender: CommandSourceStack
     ) {
         val player = getPlayer(sender.sender)
         val plot = player.getCurrentPlot()
 
         if (plot == null) {
-            player.sendMiniMessage(lang.get("plot.not-in-plot"))
+            player.sendMiniMessage(lang.get("plot.not-in-claim"))
             return
         }
 
@@ -25,15 +25,12 @@ internal class CommandPlotSetHome(override val plugin: Plop) : Addon, CmdAddon {
             return
         }
 
-        if (!player.hasPermission("plop.plot.command.sethome")) {
+        if (!player.hasPermission("plop.plot.command.setentrance")) {
             player.sendMiniMessage(lang.get("plot.no-permission"))
             return
         }
 
-        plot.claim.home = player.location
-        player.sendMiniMessage(lang.get("plot.home-set"))
+        plot.claim.visit = player.location
+        player.sendMiniMessage(lang.get("plot.entrance-set"))
     }
-
 }
-
-

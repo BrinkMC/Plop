@@ -5,15 +5,10 @@ import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.command.utils.CmdAddon
 import io.papermc.paper.command.brigadier.CommandSourceStack
-import org.bukkit.command.CommandSender
-import org.incendo.cloud.paper.util.sender.Source
-import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.CommandDescription
 import org.incendo.cloud.annotations.Permission
-import org.incendo.cloud.paper.util.sender.PlayerSource
-import javax.annotation.Nullable
 
 internal class CommandPlotPreview(override val plugin: Plop): Addon, CmdAddon {
 
@@ -22,16 +17,11 @@ internal class CommandPlotPreview(override val plugin: Plop): Addon, CmdAddon {
     @Permission("plop.plot.command.preview")
     suspend fun plotPreview(
         sender: CommandSourceStack,
-        @Nullable @Argument("PlotType") type: PlotType?
+        @Argument("PlotType") type: PlotType?
     ) {
         val player = getPlayer(sender.sender)
 
-        if (type != null) {
-            plots.previewHandler.startPreview(player.uniqueId, type) // Initiate preview
-            return
-        }
-
-        val personalPlot = player.personalPlot()
+        val personalPlot = player.personalPlot() // Get potential plots
         val guildPlot = player.guildPlot()
 
         if (personalPlot == null && guildPlot == null) {
@@ -49,7 +39,7 @@ internal class CommandPlotPreview(override val plugin: Plop): Addon, CmdAddon {
             return
         }
 
-        player.sendFormattedMessage(lang.get("command.already-claimed"))
+        player.sendMiniMessage(lang.get("command.already-claimed-max"))
     }
 
 

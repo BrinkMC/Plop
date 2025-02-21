@@ -1,6 +1,7 @@
 package com.brinkmc.plop.shared.hooks
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.base.PlotOwner
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
@@ -21,6 +22,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion
 import com.sk89q.worldguard.protection.regions.RegionContainer
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.OfflinePlayer
 import org.bukkit.World
 import org.bukkit.entity.Player
 import java.util.UUID
@@ -83,46 +85,88 @@ class WorldGuard(override val plugin: Plop): Addon, State {
     }
 
     // Create a region to claim around the new plot, the plot has uuid as its name
-    suspend fun createRegion(uuid: UUID) { plugin.sync {
+    suspend fun createRegion(uuid: UUID) {
         val plot = plots.handler.getPlotById(uuid) ?: run {
             logger.error("Critical problem in creating a region, plot doesn't exist")
-            return@sync
+            return
         }
 
         val plotWorld = plotConfig.getPlotWorld(plot.type)?.world() ?: run {
             logger.error("No such world exists")
-            return@sync
+            return
         }
 
         val owner = plot.owner
 
-
         val min = BlockVector3.at(plot.claim.centre.blockX - plot.size.max, plotWorld.minHeight, plot.claim.centre.blockZ - plot.size.max)
         val max = BlockVector3.at(plot.claim.centre.blockX + plot.size.max - 1, plotWorld.maxHeight, plot.claim.centre.blockZ + plot.size.max - 1) // Define region size and location
 
-        val domain = DefaultDomain()
-        val protectedRegion: ProtectedCuboidRegion = when (owner) {
-            is PlotOwner.GuildOwner -> {
+        syncScope {
+            val domain = DefaultDomain()
+            val protectedRegion: ProtectedCuboidRegion = when (owner) {
+                is PlotOwner.GuildOwner -> {
 
-                for (member in owner.guild.members ?: listOf()) { // Add all guild members to region domain
-                    domain.addPlayer(member.uuid.toString())
+                    for (member in owner.guild.members ?: listOf()) { // Add all guild members to region domain
+                        domain.addPlayer(member.uuid.toString())
+                    }
+
+                    ProtectedCuboidRegion(owner.guild.id.toString(), min, max) // Initiate the region
                 }
 
-                ProtectedCuboidRegion(owner.guild.id.toString(), min, max) // Initiate the region
+                is PlotOwner.PlayerOwner -> {
+
+                    domain.addPlayer(owner.player.uniqueId.toString()) // Add player to domain of region
+
+                    ProtectedCuboidRegion(owner.player.uniqueId.toString(), min, max)
+                }
             }
 
-            is PlotOwner.PlayerOwner -> {
+            protectedRegion.owners = domain // Update owners of region
 
-                domain.addPlayer(owner.player.uniqueId.toString()) // Add player to domain of region
+            worldGuardPlatform.regionContainer.get(plotWorld.localWorld())?.addRegion(protectedRegion) // Add region to the world
+    } }
 
-                ProtectedCuboidRegion(owner.player.uniqueId.toString(), min, max)
-            }
+    suspend fun deleteRegion(uuid: UUID) {
+        val plot = plots.handler.getPlotById(uuid) ?: run {
+            logger.error("Critical problem in deleting a region, plot doesn't exist")
+            return
         }
 
-        protectedRegion.owners = domain // Update owners of region
+        val plotWorld = plotConfig.getPlotWorld(plot.type).world() ?: run {
+            logger.error("No such world exists")
+            return
+        }
 
-        worldGuardPlatform.regionContainer.get(plotWorld.localWorld())?.addRegion(protectedRegion) // Add region to the world
-    } }
+        syncScope {
+            worldGuardPlatform.regionContainer.get(plotWorld.localWorld())?.removeRegion(uuid.toString())
+        }
+    }
+
+    fun addMember(plot: Plot, player: Player) {
+        val region = getRegion(plotConfig.getPlotWorld(plot.type), plot.plotId) ?: run {
+            logger.error("Critical problem in adding a member, region doesn't exist")
+            return
+        }
+
+        val domain = region.owners ?: DefaultDomain()
+
+        domain.addPlayer(player.uniqueId.toString())
+
+        region.owners = domain
+    }
+
+    fun removeMember(plot: Plot, player: OfflinePlayer) {
+        val region = getRegion(plotConfig.getPlotWorld(plot.type), plot.plotId) ?: run {
+            logger.error("Critical problem in removing a member, region doesn't exist")
+            return
+        }
+
+        val domain = region.owners ?: DefaultDomain()
+
+        domain.removePlayer(player.uniqueId.toString())
+
+        region.owners = domain
+    }
 }
 
 object Locals {

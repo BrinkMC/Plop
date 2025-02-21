@@ -18,10 +18,7 @@ import kotlin.times
 
 class GuildPlotLayoutStrategy(override val plugin: Plop, override val plotType: PlotType): BaseLayoutStrategy(plugin, plotType) {
 
-    override val maxPlotLength: Double = plotConfig.getPlotMaxSize(plotType)?.toDouble() ?: run {
-        logger.error("Failed to get max plot length for guild plots")
-        0.0
-    }
+    override val maxPlotLength: Double = plotConfig.getPlotMaxSize(plotType).toDouble()
     override val maxPreviewLimit: Int
         get() = (plugin.hooks.worldGuard.getPlotRegions(plotType).size * 3) + 100
     override val worldName: String = plotConfig.getPlotWorld(plotType)

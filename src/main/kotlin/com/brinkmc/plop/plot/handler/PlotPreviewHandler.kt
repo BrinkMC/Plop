@@ -7,9 +7,6 @@ import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.preview.PreviewInstance
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.util.GuiUtils.stacksToBase64
-import com.noxcrew.interfaces.InterfacesListeners
-import org.bukkit.Bukkit
 import java.util.UUID
 
 /*
@@ -32,69 +29,93 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
     }
 
     override suspend fun kill() {
+        for (preview in previews) {
+            preview.value.returnTeleport()
+            preview.value.interfaceView?.close()
+            preview.value.returnInventory()
+        }
+
         previews.clear()
     }
 
     suspend fun startPreview(player: UUID, type: PlotType) {
 
-        val bukkitPlayer = Bukkit.getPlayer(player)
+        val bukkitPlayer = player.player()
 
         if (bukkitPlayer == null) { // Validation check to see if player exists
             logger.error("Failed to start preview, player doesn't exist")
             return
         }
 
+        val guild = bukkitPlayer.guild()
+
+        // Handle potential forced guild plot errors
+        if (type == PlotType.GUILD && guild == null) {
+            bukkitPlayer.sendMiniMessage(lang.get("preview.start.no-guild"))
+            return
+        }
+
+        if (type == PlotType.GUILD && (guild?.size ?: 0) <= plotConfig.guildConfig.minSize-1) {
+            bukkitPlayer.sendMiniMessage(lang.get("preview.start.guild-too-small"))
+            return
+        }
+
+        if (type == PlotType.GUILD && guild?.guildMaster?.uuid != player) {
+            bukkitPlayer.sendMiniMessage(lang.get("preview.start.not-guild-master"))
+            return
+        }
+
         // Handle if player is trying to preview with a plot, match all possible combinations
-        if (plots.handler.hasGuildPlot(player) && plots.handler.hasPersonalPlot(player)) {
-            bukkitPlayer.sendFormattedMessage(lang.get("preview.has-plots.all"))
+        val guildPlot = bukkitPlayer.guildPlot()
+        val personalPlot = bukkitPlayer.personalPlot()
+
+        if (guildPlot != null && personalPlot != null) {
+            bukkitPlayer.sendMiniMessage(lang.get("preview.plots.max-plots"))
             return
         }
 
-        if (plots.handler.hasPersonalPlot(player) && type == PlotType.PERSONAL) {
-            bukkitPlayer.sendFormattedMessage(lang.get("preview.has-plots.personal"))
+        if (personalPlot != null && type == PlotType.PERSONAL) {
+            bukkitPlayer.sendMiniMessage(lang.get("preview.has-plots.personal"))
             return
         }
 
-        if (plots.handler.hasGuildPlot(player) && type == PlotType.GUILD) {
-            bukkitPlayer.sendFormattedMessage(lang.get("preview.has-plots.guild"))
+        if (guildPlot != null && type == PlotType.GUILD) {
+            bukkitPlayer.sendMiniMessage(lang.get("preview.has-plots.guild"))
             return
         }
 
-        val view = plugin.menus.openHotbarPreview(bukkitPlayer)
-
-        val previewInstance = PreviewInstance( // Create new preview instance
-            plugin,
-            player,
-            bukkitPlayer.location.clone(),
-            view
-        )
-
-        // Initiate the next two lateinit vals
-        previewInstance.type = type
-
-        when (type) {
+        val viewPlot = when (type) {
             PlotType.PERSONAL -> {
-                previewInstance.viewPlot = personalPreviewHandler.getFirstFree() ?: run {
+                personalPreviewHandler.getFirstFree() ?: run {
                     logger.error("No free personal plots :(") // Handle having no free plots
                     return
                 }
             }
 
             PlotType.GUILD -> {
-                previewInstance.viewPlot = guildPlotLayoutStrategy.getFirstFree() ?: run {
+                guildPlotLayoutStrategy.getFirstFree() ?: run {
                     logger.error("No free guild plots :(") // Handle having no free plots
                     return
                 }
             }
         }
 
-        previewInstance.viewPlot.value.free = false
-        bukkitPlayer.teleport(previewInstance.viewPlot.value.toLocation()) // Teleport player
+        val previewInstance = PreviewInstance( // Create new preview instance
+            plugin,
+            type,
+            viewPlot,
+            player,
+            bukkitPlayer.location.clone(),
+            bukkitPlayer.inventory.contents.clone() // Save inventory or nothing
+        )
 
         // Add to the loaded instances
         previews.put(player, previewInstance)
 
-
+        previewInstance.teleportToViewPlot() // Update player to correct location
+        val view = plugin.menus.hotbarPreview.open(bukkitPlayer, null) // Start hotbar preview
+        previewInstance.interfaceView = view // Save hotbar preview to instance
+        bukkitPlayer.updateBorder() // Update border
     }
 
     suspend fun switchPreview(player: UUID) {
@@ -105,10 +126,37 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
             return
         }
 
-        val bukkitPlayer = Bukkit.getPlayer(player)
+        val bukkitPlayer = player.player()
 
         if (bukkitPlayer == null) { // Validation check to see if player exists
             logger.error("Failed to switch preview, player doesn't exist")
+            return
+        }
+
+        val guild = bukkitPlayer.guild()
+
+        if (previewInstance.type == PlotType.PERSONAL && guild == null) {
+            bukkitPlayer.sendMiniMessage(lang.get("preview.switch.no-guild"))
+            return
+        }
+
+        if (previewInstance.type == PlotType.PERSONAL && (guild?.size ?: 0) <= plotConfig.guildConfig.minSize-1) {
+            bukkitPlayer.sendMiniMessage(lang.get("preview.switch.guild-too-small"))
+            return
+        }
+
+        if (previewInstance.type == PlotType.PERSONAL && guild?.guildMaster?.uuid != player) {
+            bukkitPlayer.sendMiniMessage(lang.get("preview.switch.not-guild-master"))
+            return
+        }
+
+        if (previewInstance.type == PlotType.PERSONAL && bukkitPlayer.guildPlot() != null) {
+            bukkitPlayer.sendMiniMessage(lang.get("preview.switch.has-guild-plot"))
+            return
+        }
+
+        if (previewInstance.type == PlotType.GUILD && bukkitPlayer.personalPlot() != null) {
+            bukkitPlayer.sendMiniMessage(lang.get("preview.switch.has-personal-plot"))
             return
         }
 
@@ -133,9 +181,8 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
             }
         }
 
-        bukkitPlayer.teleport(previewInstance.viewPlot.value.toLocation()) // Teleport player
-
-        // Teleport
+        previewInstance.teleportToViewPlot() // Teleport
+        bukkitPlayer.updateBorder() // Update border
     }
 
     suspend fun endPreview(player: UUID) {
@@ -146,19 +193,17 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
             return
         }
 
-        previewInstance.viewPlot.value.free = true
 
         previewInstance.returnTeleport()
+        previewInstance.interfaceView?.close()
+        previewInstance.returnInventory()
 
         previews.remove(player) // Remove from map
-
-        InterfacesListeners.INSTANCE.getOpenInterface(player)?.close()
-
-        return
     }
 
     suspend fun claimPlot(player: UUID) {
         val previewInstance = previews[player] // Get preview
+        val bukkitPlayer = player.player()
 
         if (previewInstance == null) {
             logger.error("No such preview")
@@ -174,12 +219,14 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
             }
         }
 
-        InterfacesListeners.INSTANCE.getOpenInterface(player)?.close()
-
+        previewInstance.interfaceView?.close()
+        previewInstance.returnInventory()
+        bukkitPlayer?.allowFlight = false
+        bukkitPlayer?.isFlying = false
         previews.remove(player) // Remove from map
     }
 
-    fun nextPlot(player: UUID) {
+    suspend fun nextPlot(player: UUID) {
         val previewInstance = previews[player]
 
         if (previewInstance == null) {
@@ -202,13 +249,11 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
                 }
             }
         }
-        previewInstance.viewPlot.value.free = false
 
         previewInstance.teleportToViewPlot() // Update player logic
-        return
     }
 
-    fun previousPlot(player: UUID) {
+    suspend fun previousPlot(player: UUID) {
         val previewInstance = previews[player]
 
         if (previewInstance == null) {
@@ -216,7 +261,7 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
             return
         }
 
-        previewInstance.viewPlot.value.free = true
+        previewInstance.viewPlot.value.free = true // Free up current plot for next players
         when (previewInstance.type) { // Handle guild vs personal logic
             PlotType.PERSONAL ->  {
                 previewInstance.viewPlot = personalPreviewHandler.getPreviousFreePlot(previewInstance.viewPlot) ?: run {
@@ -231,10 +276,8 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
                 }
             }
         }
-        previewInstance.viewPlot.value.free = false
 
         previewInstance.teleportToViewPlot() // Update player logic
-        return
     }
 
     fun getPreview(player: UUID): PreviewInstance? {

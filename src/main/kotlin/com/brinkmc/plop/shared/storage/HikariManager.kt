@@ -4,11 +4,28 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.zaxxer.hikari.HikariDataSource
+import java.sql.Connection
 import java.sql.ResultSet
+import java.util.concurrent.LinkedBlockingQueue
 
 class HikariManager(override val plugin: Plop): Addon, State {
 
     private lateinit var database: HikariDataSource
+    private val connections = LinkedBlockingQueue<Connection>()
+
+    fun getConnection(): Connection {
+        return connections.take()
+    }
+
+    fun releaseConnection(connection: Connection) {
+        connections.put(connection)
+    }
+
+    fun closeAllConnections() {
+        connections.forEach { connection ->
+            connection.close()
+        }
+    }
 
     override suspend fun load() {
 
@@ -21,14 +38,24 @@ class HikariManager(override val plugin: Plop): Addon, State {
         database.username = sqlConfig.user
         database.password = sqlConfig.password
 
+        try {
+            for (i in 1..7) {
+                connections.add(database.connection)
+            }
+        } catch (e: Exception) {
+            logger.error("${e.message}")
+            return
+        }
+
         // Get connection and create tables
         try {
-            val connection = database.connection
+            val connection = getConnection()
             getSchemaStatements("schema.sql").forEach { statement ->
                 if (statement.isNotEmpty()) {
                     connection.prepareStatement(statement).execute()
                 }
             }
+            releaseConnection(connection)
         }
         catch (e: Exception) {
             logger.error("${e.message}")
@@ -37,19 +64,22 @@ class HikariManager(override val plugin: Plop): Addon, State {
     }
 
     override suspend fun kill() { asyncScope {
-        database.close() // Kill database connection
+        closeAllConnections() // Close all connections
+        database.close() // Kill database
     }}
 
     // Query the database, returns results
     suspend fun query(query: String, vararg params: Any): ResultSet? {
         return asyncScope {
             return@asyncScope try {
-                val connection = database.connection
+                val connection = getConnection()
                 val preparedStatement = connection.prepareStatement(query)
                 params.forEachIndexed { index, param -> // "Prevent" SQL injection
                     preparedStatement.setObject(index + 1, param)
                 }
-                preparedStatement.executeQuery() // Actually execute and returns
+                val resultSet = preparedStatement.executeQuery() // Actually execute and returns
+                releaseConnection(connection)
+                resultSet
             } catch (exception: Exception) { // Code has failed catastrophically
                 logger.error("Failed to query MySQL :( -> ${exception.message}")
                 null
@@ -59,13 +89,14 @@ class HikariManager(override val plugin: Plop): Addon, State {
 
     suspend fun update(query: String, vararg params: Any): Int? {
         return try {
-            val connection = database.connection // Establish connection
+            val connection = getConnection() // Establish connection
             val preparedStatement = connection.prepareStatement(query)
             params.forEachIndexed { index, param -> // "Prevent" SQL injection
                 preparedStatement.setObject(index + 1, param)
             }
-            preparedStatement.executeUpdate() // Updates the code and returns number of lines affected
-
+            val result = preparedStatement.executeUpdate() // Updates the code and returns number of lines affected
+            releaseConnection(connection)
+            result
         } catch (exception: Exception) { // Code has failed catastrophically
             logger.error("Failed to update MySQL :( -> ${exception.message}")
             null

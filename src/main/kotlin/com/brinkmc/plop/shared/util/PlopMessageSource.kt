@@ -74,6 +74,4 @@ class PlopMessageSource(override val plugin: Plop): State, Addon {
     fun findMessage(find: String): String? {
         return hashOfStrings[find]
     }
-
-
 }

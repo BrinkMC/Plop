@@ -25,14 +25,11 @@ enum class PlotType {
 }
 
 data class Plot(
-    val plotId: UUID, // Unique ID for the plot
+    val plotId: UUID, // Unique ID for the plot, could correlate to either Player UUID or Guild UUID depending on type below
     val type: PlotType,
 
-    // Primary
-    val ownerId: UUID, // It may be a Player UUID OR Guild UUID
-
     // Plot data
-    val claim: PlotClaim,
+    var claim: PlotClaim,
     var visit: PlotVisit,
     var size: PlotSize,
     var factory: PlotFactory,
@@ -41,14 +38,15 @@ data class Plot(
 ) {
     val owner: PlotOwner by lazy {
         if (type == PlotType.GUILD) {
-            val guild = Guilds.getApi().getGuild(ownerId)
+            val guild = Guilds.getApi().getGuild(plotId) // Try to find guild
+
             if (guild != null) {
                 PlotOwner.GuildOwner(guild)
             } else {
                 throw IllegalStateException("Guild not found for plot $plotId")
             }
         } else {
-            PlotOwner.PlayerOwner(Bukkit.getOfflinePlayer(ownerId))
+            PlotOwner.PlayerOwner(Bukkit.getOfflinePlayer(plotId))
         }
     }
 }

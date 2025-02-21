@@ -6,12 +6,12 @@ import com.brinkmc.plop.shared.command.utils.CmdAddon
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.incendo.cloud.annotations.Command
 
-internal class CommandPlotSetHome(override val plugin: Plop) : Addon, CmdAddon {
+internal class CommandPlotVisitToggle(override val plugin: Plop) : Addon, CmdAddon {
 
-    @Command("plot set home")
-    suspend fun setHome(
+    @Command("plot toggle visit")
+    suspend fun toggleVisit(
         sender: CommandSourceStack
-    ) {
+    ){
         val player = getPlayer(sender.sender)
         val plot = player.getCurrentPlot()
 
@@ -25,15 +25,13 @@ internal class CommandPlotSetHome(override val plugin: Plop) : Addon, CmdAddon {
             return
         }
 
-        if (!player.hasPermission("plop.plot.command.sethome")) {
+        if (!player.hasPermission("plop.plot.visit.toggle")) {
             player.sendMiniMessage(lang.get("plot.no-permission"))
             return
         }
 
-        plot.claim.home = player.location
-        player.sendMiniMessage(lang.get("plot.home-set"))
+        plot.visit.visitable = !plot.visit.visitable // Swap state
+        player.sendMiniMessage(lang.get("plot.visit.toggle"))
+
     }
-
 }
-
-

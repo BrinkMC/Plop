@@ -1,8 +1,9 @@
 package com.brinkmc.plop.shared.command.utils
 
+import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
+import com.brinkmc.plop.shared.base.Addon
 import io.papermc.paper.command.brigadier.CommandSourceStack
-import org.incendo.cloud.paper.util.sender.Source
 import org.incendo.cloud.context.CommandContext
 import org.incendo.cloud.context.CommandInput
 import org.incendo.cloud.parser.ArgumentParseResult
@@ -27,8 +28,12 @@ class PlotTypeParser<CommandSourceStack>: ArgumentParser<CommandSourceStack, Plo
         val input = commandInput.readStringSkipWhitespace()
 
         return when (input) {
-            "personal" -> ArgumentParseResult.success(PlotType.PERSONAL)
-            "guild" -> ArgumentParseResult.success(PlotType.GUILD)
+            "personal" -> {
+                ArgumentParseResult.success(PlotType.PERSONAL)
+            }
+            "guild" -> {
+                ArgumentParseResult.success(PlotType.GUILD)
+            }
             else -> ArgumentParseResult.failure(Exception("Invalid plot type"))
         }
     }

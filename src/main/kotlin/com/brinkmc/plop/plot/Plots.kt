@@ -9,6 +9,7 @@ import com.brinkmc.plop.plot.handler.PlotShopHandler
 import com.brinkmc.plop.plot.handler.PlotSizeHandler
 import com.brinkmc.plop.plot.handler.PlotUpgradeHandler
 import com.brinkmc.plop.plot.handler.PlotVisitHandler
+import com.brinkmc.plop.plot.nexus.NexusManager
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
@@ -27,6 +28,8 @@ class Plots(override val plugin: Plop): Addon, State {
     lateinit var claimHandler: PlotClaimHandler
     lateinit var shopHandler: PlotShopHandler
     lateinit var sizeHandler: PlotSizeHandler
+
+    lateinit var nexusManager: NexusManager
 
     override suspend fun load() {
         logger.info("Loading Plots...")
@@ -62,6 +65,7 @@ class Plots(override val plugin: Plop): Addon, State {
         claimHandler = PlotClaimHandler(plugin)
         shopHandler = PlotShopHandler(plugin)
         sizeHandler = PlotSizeHandler(plugin)
+        nexusManager = NexusManager(plugin)
 
         listOf(
             handler,
@@ -71,12 +75,23 @@ class Plots(override val plugin: Plop): Addon, State {
             factoryHandler,
             claimHandler,
             shopHandler,
-            sizeHandler
+            sizeHandler,
+            nexusManager
         ).forEach { handler -> (handler as State).load() }
     }
 
     override suspend fun kill() {
-        TODO("Not yet implemented")
+        listOf(
+            handler,
+            visitorHandler,
+            upgradeHandler,
+            previewHandler,
+            factoryHandler,
+            claimHandler,
+            shopHandler,
+            sizeHandler,
+            nexusManager
+        ).forEach { handler -> (handler as State).kill() }
     }
 
 

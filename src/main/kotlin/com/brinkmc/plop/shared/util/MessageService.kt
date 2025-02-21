@@ -22,6 +22,10 @@ class MessageService(override val plugin: Plop): Addon {
 
     val plopMessageSource = plugin.plopMessageSource()
 
+    fun decode(string: String): Component {
+        return miniMessage.deserialize(string)
+    }
+
     fun get(string: String, player: Player? = null): Component {
         return if (player == null) {
             miniMessage.deserialize(plopMessageSource.findMessage(string) ?: "<red>No message set for $string!")

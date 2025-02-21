@@ -19,7 +19,7 @@ class PlotCache(override val plugin: Plop): Addon, State {
 
     private val databaseHandler = DatabasePlot(plugin)
 
-    private val plotMap = ConcurrentHashMap<PlotKey, Deferred<Plot?>>()
+    private val plotMap = ConcurrentHashMap<UUID, Deferred<Plot?>>()
 
     override suspend fun load() {
         cacheSave() // Get the task going
@@ -37,8 +37,8 @@ class PlotCache(override val plugin: Plop): Addon, State {
         }
     }
 
-    suspend fun getPlotById(plotId: UUID): Plot? {
-        val key = PlotKey(plotId = plotId)
+    suspend fun getPlot(plotId: UUID): Plot? {
+        val key = plotId
         return asyncScope {
             if (!plotMap.containsKey(key)) {
                 // Cache miss, create a new job
@@ -48,34 +48,26 @@ class PlotCache(override val plugin: Plop): Addon, State {
             }
 
             // Await suspends the current context until the value of the ``Deferred`` job is ready.
-            plotMap[key]?.await()
-        }
-    }
-
-    suspend fun getPlotByOwner(ownerId: UUID?): Plot? {
-        val key = PlotKey(ownerId = ownerId)
-        return asyncScope {
-            if (!plotMap.containsKey(key)) {
-                // Cache miss, create a new job
-                plotMap[key] = async(Dispatchers.IO) {
-                    databaseHandler.load(key)
-                }
+            val result = plotMap[key]?.await()
+            if (result == null) {
+                plotMap.remove(key) // Get rid of it because it's useless
             }
-
-            // Await suspends the current context until the value of the ``Deferred`` job is ready.
-            plotMap[key]?.await()
+            result
         }
     }
 
     suspend fun addPlot(plot: Plot) {
         asyncScope {
-            databaseHandler.create(plot) // Adds the plot to the database, can be lazy called later
+            plotMap.remove(plot.plotId) // In case it was there before
+            databaseHandler.create(plot) // Adds the plot to the database
+            getPlot(plot.plotId) // Adds the plot to the cache
         }
     }
 
-    suspend fun deletePlot(plot: Plot) {
+    suspend fun  deletePlot(plot: Plot) {
         asyncScope {
             databaseHandler.delete(plot) // Deletes the plot from the database
+            plotMap.remove(plot.plotId)
         }
     }
 
@@ -86,30 +78,5 @@ class PlotCache(override val plugin: Plop): Addon, State {
                 databaseHandler.save(awaited)
             }
         }
-    }
-
-}
-
-/*
-Plot key so that I can find things fast in O(1) time
-
-Plot can either have
-(plotId & ownerId) or (plotId & guildId)
- */
-
-data class PlotKey(
-    val plotId: UUID? = null,
-    val ownerId: UUID? = null
-) {
-    // Literally overrides the == sign for PlotKeys lol
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true // Check if both references point to the same object
-        if (javaClass != other?.javaClass) return false // Check if the object is the same as PlotKey
-        other as PlotKey // Cast to PlotKey because it's the same, and we can treat it as such
-        return ( plotId == other.plotId || ownerId == other.ownerId ) // Finally compare if the two are the same
-    }
-
-    override fun hashCode(): Int {
-        return Objects.hash(plotId, ownerId) // Create hash from all 2 things put together
     }
 }

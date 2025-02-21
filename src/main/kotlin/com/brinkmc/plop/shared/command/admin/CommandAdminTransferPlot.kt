@@ -8,7 +8,6 @@ import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.context.CommandContext
-import org.incendo.cloud.paper.util.sender.PlayerSource
 
 internal class CommandAdminTransferPlot(override val plugin: Plop) : Addon, CmdAddon {
 
@@ -20,7 +19,7 @@ internal class CommandAdminTransferPlot(override val plugin: Plop) : Addon, CmdA
         val player = getPlayer(sender.sender())
 
         if (!player.hasPermission("plop.admin.claim")) {
-            player.sendFormattedMessage(lang.get("no-permission"))
+            player.sendMiniMessage(lang.get("no-permission"))
             return
         }
 

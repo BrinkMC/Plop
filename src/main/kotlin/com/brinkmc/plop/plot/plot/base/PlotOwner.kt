@@ -21,7 +21,6 @@ sealed class PlotOwner {
         }
     }
 
-
     data class PlayerOwner(val player: OfflinePlayer): PlotOwner() {
         fun onlinePlayer(): Player? {
             return Bukkit.getPlayer(player.uniqueId)
@@ -81,6 +80,28 @@ sealed class PlotOwner {
             }
             is PlayerOwner -> {
                 economy.deposit(player, amount)
+            }
+        }
+    }
+
+    fun isPlayer(check: Player) {
+        when (this) {
+            is GuildOwner -> {
+                members.contains(check.uniqueId)
+            }
+            is PlayerOwner -> {
+                player.uniqueId == check.uniqueId
+            }
+        }
+    }
+
+    fun getPlayers(): List<UUID> {
+        return when (this) {
+            is GuildOwner -> {
+                members
+            }
+            is PlayerOwner -> {
+                listOf(player.uniqueId)
             }
         }
     }

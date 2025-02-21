@@ -14,6 +14,9 @@ data class GuildConfig(
     @Setting("Generator")
     val guildPlotWorldGenerator: String = "overworld",
 
+    @Setting("MinGuildSize")
+    val minSize: Int = 3,
+
     @Setting("Factory")
     val guildFactoryLevels: List<Level> = listOf(
         Level(4, 300),

@@ -5,7 +5,6 @@ import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.base.PlotOwner
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.storage.PlotCache
-import com.brinkmc.plop.plot.storage.PlotKey
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hooks.Locals.world
@@ -41,32 +40,32 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
     }
 
     // Search functions
-    suspend fun getPlotById(plotId: UUID): Plot? {
-        return plotCache.getPlotById(plotId)
-    }
-
-    // Get plot by owner (for PersonalPlot)
-    suspend fun getPlotByOwner(ownerId: UUID?): Plot? {
-        return plotCache.getPlotByOwner(ownerId)
+    suspend fun getPlotById(plotId: UUID?): Plot? {
+        if (plotId == null) return null
+        return plotCache.getPlot(plotId)
     }
 
     suspend fun getPlotsByMembership(playerId: UUID): List<Plot> { // Gets all plots someone is in
         return listOfNotNull(
-            getPlotByOwner(playerId),
-            getPlotByOwner(playerId.guild()?.id)
+            getPlotById(playerId),
+            getPlotById(playerId.guild()?.id)
         )
     }
 
     suspend fun hasGuildPlot(player: UUID): Boolean {
-        return getPlotByOwner(player.guild()?.id) != null
+        return getPlotById(player.guild()?.id) != null
     }
 
     suspend fun hasPersonalPlot(player: UUID): Boolean {
-        return getPlotByOwner(player) != null
+        return getPlotById(player) != null
     }
 
     suspend fun addPlot(plot: Plot) {
         plotCache.addPlot(plot)
+    }
+
+    suspend fun deletePlot(plot: Plot) {
+        plotCache.deletePlot(plot)
     }
 
     suspend fun getPlotFromLocation(location: Location): Plot? {
@@ -82,23 +81,35 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
         )
     }
 
-    suspend fun updateBorder(player: UUID) { plugin.sync {
-            val bukkitPlayer = plugin.server.getPlayer(player) ?: run {
-                logger.error("Failed to send fake border to player $player")
-                return@sync
+    fun updateBorder(player: UUID) { plugin.async {
+        val bukkitPlayer = plugin.server.getPlayer(player) ?: run {
+            logger.error("Failed to send fake border to player $player")
+            return@async
+        }
+
+        val potentialPreview = plots.previewHandler.getPreview(player)
+        if (potentialPreview != null) { // Check if player is in a preview
+            syncScope {
+                borderAPI.setBorder(bukkitPlayer, plotConfig.getPlotMaxSize(potentialPreview.type).toDouble(), potentialPreview.viewPlot.value.toLocation())
+            }
+            return@async
+        }
+
+
+        if (getPlotWorlds().contains(bukkitPlayer.world)) { // Run logic for getting plot they are in
+            val plot = getPlotFromLocation(bukkitPlayer.location)
+
+            if (plot == null) { // Make sure plot isn't null
+                return@async
             }
 
-            if (getPlotWorlds().contains(bukkitPlayer.world)) { // Run logic for getting plot they are in
-                val plot = getPlotFromLocation(bukkitPlayer.location)
-
-                if (plot == null) { // Make sure plot isn't null
-                    logger.error("Unable to get the plot for player $player when updating border")
-                    return@sync
-                }
-
+            syncScope {
                 borderAPI.setBorder(bukkitPlayer, plot.size.current.toDouble(), plot.claim.centre) // Send the player the border
-            } else {
-                borderAPI.resetWorldBorderToGlobal(bukkitPlayer);
             }
+        } else {
+            syncScope {
+                borderAPI.resetWorldBorderToGlobal(bukkitPlayer)
+            }
+        }
     } }
 }

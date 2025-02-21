@@ -16,7 +16,7 @@ class Economy(override val plugin: Plop): Addon, State {
     private lateinit var economyAPI: Economy // Guild API
 
     override suspend fun load() {
-        val rsp: RegisteredServiceProvider<Economy?>? = Bukkit.getServer().servicesManager.getRegistration(Economy::class.java)
+        val rsp: RegisteredServiceProvider<Economy?>? = server.servicesManager.getRegistration(Economy::class.java)
         economyAPI = rsp?.provider ?: throw IllegalStateException("No economy provider found!")
     }
 

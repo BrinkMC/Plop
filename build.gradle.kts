@@ -37,7 +37,7 @@ dependencies {
     compileOnly("me.glaremasters", "guilds", "3.5.7.0")
     compileOnly("io.lumine", "Mythic-Dist", "5.7.2")
     compileOnly(fileTree("libs/") { include("*.jar") })
-    compileOnly("com.github.yannicklamprecht:worldborderapi:1.201.0:dev") // Weird import
+    compileOnly("com.github.yannicklamprecht:worldborderapi:1.206.1:dev") // Weird import
     compileOnly("com.github.retrooper", "packetevents-spigot", "2.7.0")
 
 

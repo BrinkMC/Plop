@@ -4,26 +4,32 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.command.utils.CmdAddon
 import io.papermc.paper.command.brigadier.CommandSourceStack
-import org.bukkit.command.CommandSender
-import org.incendo.cloud.paper.util.sender.Source
-import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Command
-import org.incendo.cloud.context.CommandContext
-import org.incendo.cloud.paper.util.sender.PlayerSource
 
 internal class CommandAdminUnclaimPlot(override val plugin: Plop) : Addon, CmdAddon {
 
     @Command("plop plot unclaim")
-    suspend fun claimPlot(
+    suspend fun unclaimPlot(
         sender: CommandSourceStack
     ) {
         val player = getPlayer(sender.sender)
 
         if (!player.hasPermission("plop.admin.claim")) {
-            player.sendFormattedMessage(lang.get("no-permission"))
+            player.sendMiniMessage(lang.get("no-permission"))
             return
         }
 
+        // Initiate unclaim based on player's location
+        val plot = player.getCurrentPlot()
+
+        if (plot == null) {
+            player.sendMiniMessage(lang.get("no-plot"))
+            return
+        }
+
+        plugin.hooks.worldGuard.deleteRegion(plot.plotId)
+        plots.handler.deletePlot(plot)
+        player.sendMiniMessage(lang.get("plot-unclaimed"))
     }
 
 }

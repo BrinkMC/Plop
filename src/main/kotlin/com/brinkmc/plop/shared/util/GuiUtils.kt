@@ -1,17 +1,14 @@
 package com.brinkmc.plop.shared.util
 
-import com.brinkmc.plop.Plop
+import me.glaremasters.guilds.guild.Guild
+import me.glaremasters.guilds.guild.GuildMember
 import net.kyori.adventure.text.Component
+import org.bukkit.OfflinePlayer
+import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
-import org.bukkit.persistence.PersistentDataType
-import org.bukkit.util.io.BukkitObjectInputStream
-import org.bukkit.util.io.BukkitObjectOutputStream
-import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.util.UUID
-import kotlin.reflect.KProperty
+import org.bukkit.inventory.meta.SkullMeta
+import java.util.stream.Collectors
 
 
 /*
@@ -47,63 +44,17 @@ object GuiUtils {
         return this
     }
 
-    /*
-    Utility taken from SaveInventory https://github.com/PretzelJohn/SaveInventory/blob/main/src/com/pretzel/dev/saveinventory/lib/Util.java
-     */
-    fun stacksToBase64(contents: Array<ItemStack?>): String {
-        try {
-            val outputStream = ByteArrayOutputStream()
-            val dataOutput = BukkitObjectOutputStream(outputStream)
-
-            dataOutput.writeInt(contents.size)
-            for (stack in contents) dataOutput.writeObject(stack)
-            dataOutput.close()
-            return Base64Coder.encodeLines(outputStream.toByteArray()).replace("\n", "").replace("\r", "")
-        } catch (e: Exception) {
-            throw IllegalStateException("Unable to save item stacks.", e)
-        }
+    fun ItemStack.setSkull(owner: OfflinePlayer?): ItemStack {
+        val meta = itemMeta as org.bukkit.inventory.meta.SkullMeta
+        meta.playerProfile = owner?.playerProfile
+        itemMeta = meta
+        return this
     }
 
-    /*
-    Utility taken from SaveInventory https://github.com/PretzelJohn/SaveInventory/blob/main/src/com/pretzel/dev/saveinventory/lib/Util.java
-     */
-    fun stacksFromBase64(data: String?): Array<out ItemStack?> {
-        if (data == null || Base64Coder.decodeLines(data) == null) return arrayOf()
-
-        val inputStream = ByteArrayInputStream(Base64Coder.decodeLines(data))
-        var dataInput: BukkitObjectInputStream? = null
-        var stacks: Array<ItemStack?>? = null
-
-        try {
-            dataInput = BukkitObjectInputStream(inputStream)
-            stacks = arrayOfNulls(dataInput.readInt())
-        } catch (e: IOException) {
-            println(e.message)
-        }
-
-        for (i in stacks!!.indices) {
-            try {
-                stacks[i] = dataInput!!.readObject() as ItemStack
-            } catch (e: IOException) {
-                try {
-                    dataInput!!.close()
-                } catch (ignored: IOException) {
-                }
-                println(e)
-            } catch (e: ClassNotFoundException) {
-                try {
-                    dataInput!!.close()
-                } catch (ignored: IOException) {
-                }
-                println(e)
-            }
-        }
-
-        try {
-            dataInput!!.close()
-        } catch (ignored: IOException) {
-        }
-
-        return stacks
+    fun ItemStack.setSkull(owner: Guild?): ItemStack {
+        val meta = itemMeta as org.bukkit.inventory.meta.SkullMeta
+        meta.playerProfile = (owner?.guildSkull?.itemStack?.itemMeta as SkullMeta).playerProfile
+        itemMeta = meta
+        return this
     }
 }

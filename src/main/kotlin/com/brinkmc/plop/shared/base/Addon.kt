@@ -110,7 +110,7 @@ internal interface Addon {
         get() = plots.factoryHandler.getMaximumFactoryLimit(this.plotType)
 
     val PlotVisit.amount: Int
-        get() = plotConfig.getPlotSizeLevels(this.plotType).get(this.level)?.value ?: -1
+        get() = plotConfig.getPlotSizeLevels(this.plotType)[this.level].value ?: -1
 
 
 
@@ -190,8 +190,6 @@ internal interface Addon {
     }
 
     // Locations
-
-
 
     suspend fun Location.getSafeDestination(): Location? {
         return plugin.locationUtils.getSafe(this)

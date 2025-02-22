@@ -3,6 +3,7 @@ package com.brinkmc.plop
 import com.brinkmc.plop.plot.Plots
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.command.admin.*
+import com.brinkmc.plop.shared.command.plot.general.CommandNexusBook
 import com.brinkmc.plop.shared.command.plot.general.CommandPlotHome
 import com.brinkmc.plop.shared.command.plot.general.CommandPlotVisit
 import com.brinkmc.plop.shared.command.plot.nexus.CommandPlotSetEntrance
@@ -26,6 +27,7 @@ import com.brinkmc.plop.shared.hooks.MythicMobs
 import com.brinkmc.plop.shared.hooks.PacketEvents
 import com.brinkmc.plop.shared.hooks.WorldGuard
 import com.brinkmc.plop.shared.hooks.listener.GeneralListener
+import com.brinkmc.plop.shared.hooks.listener.GuildListener
 import com.brinkmc.plop.shared.hooks.listener.PreviewListener
 import com.brinkmc.plop.shared.hooks.listener.MythicListener
 import com.brinkmc.plop.shared.hooks.listener.PlayerInteract
@@ -73,7 +75,8 @@ class Plop : State, SuspendingJavaPlugin() {
     private lateinit var generalListener: GeneralListener
     private lateinit var mythicListener: MythicListener
     private lateinit var previewListener: PreviewListener
-    private lateinit var playerInteractListener: PlayerInteract
+    private lateinit var guildListener: GuildListener
+    private lateinit var playerListener: PlayerInteract
 
     lateinit var gson: Gson
 
@@ -159,14 +162,16 @@ class Plop : State, SuspendingJavaPlugin() {
         generalListener = GeneralListener(this)
         previewListener = PreviewListener(this)
         mythicListener = MythicListener(this)
-        playerInteractListener = PlayerInteract(this)
+        guildListener = GuildListener(this)
+        playerListener = PlayerInteract(this)
 
         // Listeners
         listOf(
             generalListener,
             mythicListener,
             previewListener,
-            playerInteractListener
+            guildListener,
+            playerListener
         ).forEach { listener -> server.pluginManager.registerSuspendingEvents(listener, this) }
         plugin.slF4JLogger.info("Finished hooking listeners")
     }
@@ -188,6 +193,7 @@ class Plop : State, SuspendingJavaPlugin() {
         listOf(
             CommandAdminUnclaimPlot(plugin),
             CommandAdminResetPlot(plugin),
+            CommandNexusBook(plugin),
             CommandPlotHome(plugin),
             CommandPlotVisit(plugin),
             CommandPlotSetEntrance(plugin),

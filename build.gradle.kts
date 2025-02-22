@@ -70,6 +70,7 @@ dependencies {
     implementation("org.spongepowered", "configurate-extra-kotlin")
 
     implementation("com.zaxxer", "HikariCP", "6.2.1")
+    implementation("com.sksamuel.aedile", "aedile-core", "2.0.3")
     implementation("org.bstats", "bstats-bukkit", "3.0.2")
     implementation("io.papermc", "paperlib", "1.0.8")
 }
@@ -121,7 +122,9 @@ tasks {
             "org.spongepowered.configurate",
             "com.github.benmanes",
             "org.bstats",
-            "net.fabricmc.mappingio"
+            "net.fabricmc.mappingio",
+            "com.github.ben-manes.caffeine",
+            "com.sksamuel.aedile"
         ).forEach { pkg ->
             relocate(pkg, "$prefix.$pkg")
         }

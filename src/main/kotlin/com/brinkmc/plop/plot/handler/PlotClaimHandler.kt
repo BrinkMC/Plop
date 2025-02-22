@@ -3,15 +3,16 @@ package com.brinkmc.plop.plot.handler
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.base.PlotType
-import com.brinkmc.plop.plot.plot.modifier.PlotClaim
-import com.brinkmc.plop.plot.plot.modifier.PlotFactory
-import com.brinkmc.plop.plot.plot.modifier.PlotSize
-import com.brinkmc.plop.plot.plot.modifier.PlotShop
-import com.brinkmc.plop.plot.plot.modifier.PlotTotem
-import com.brinkmc.plop.plot.plot.modifier.PlotVisit
+import com.brinkmc.plop.plot.plot.modifier.*
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import java.util.UUID
+import com.brinkmc.plop.shared.hooks.Locals.localWorld
+import com.sk89q.worldedit.WorldEdit
+import com.sk89q.worldedit.function.operation.Operations
+import com.sk89q.worldedit.math.BlockVector3
+import com.sk89q.worldedit.session.ClipboardHolder
+import java.util.*
+
 
 class PlotClaimHandler(override val plugin: Plop): Addon, State {
     override suspend fun load() { }
@@ -60,7 +61,27 @@ class PlotClaimHandler(override val plugin: Plop): Addon, State {
 
         // Send in the schematic
         val schematic = plots.nexusManager.getSchematic()
+        val location = newPlot.claim.home.subtract(0.0, 1.0, 0.0)
 
+        syncScope {
+            val editSession = WorldEdit.getInstance().newEditSession(location.world.localWorld())
+            editSession.use {
+                try {
+                    val operation = ClipboardHolder(schematic)
+                        .createPaste(editSession)
+                        .to(BlockVector3.at(location.x, location.y, location.z))
+                        .ignoreAirBlocks(false)
+                        .build()
+                    Operations.complete(operation)
+                } catch (e: Exception) {
+                    logger.error("Failed to paste schematic for plot $uuid")
+                    logger.error(e.message)
+                }
+            }
+
+            // Teleport player to the new schematic
+            player.player()?.teleport(location)
+        }
         player.player()?.updateBorder() // Update the border again to new smaller size
     }
 }

@@ -3,7 +3,7 @@ package com.brinkmc.plop.shared.command.plot.preview
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.command.utils.CmdAddon
+import com.brinkmc.plop.shared.util.CmdAddon
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
@@ -23,6 +23,11 @@ internal class CommandPlotPreview(override val plugin: Plop): Addon, CmdAddon {
 
         val personalPlot = player.personalPlot() // Get potential plots
         val guildPlot = player.guildPlot()
+
+        if (plots.previewHandler.getPreview(player.uniqueId) != null) {
+            player.sendMiniMessage(lang.get("command.already-previewing"))
+            return
+        }
 
         if (personalPlot == null && guildPlot == null) {
             plots.previewHandler.startPreview(player.uniqueId, PlotType.PERSONAL) // Initiate preview personal if left empty

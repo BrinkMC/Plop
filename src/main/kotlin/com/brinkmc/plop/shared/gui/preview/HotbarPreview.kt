@@ -3,10 +3,13 @@ package com.brinkmc.plop.shared.gui.preview
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
+import com.brinkmc.plop.shared.util.Cooldown
 import com.brinkmc.plop.shared.util.GuiUtils.description
 import com.brinkmc.plop.shared.util.GuiUtils.name
 import com.brinkmc.plop.shared.util.GuiUtils.setSkull
 import com.brinkmc.plop.shared.util.RegistrableInterface
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
@@ -21,10 +24,14 @@ import kotlinx.coroutines.launch
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
+import java.util.concurrent.TimeUnit
 import kotlin.collections.get
 import kotlin.math.log
+import kotlin.math.roundToInt
 
 class HotbarPreview(override val plugin: Plop): Addon {
+    // Requires a cooldown
+    private val cooldownHandle = Cooldown(plugin, 5)
 
     // Inventory items
     val BACK_BUTTON: ItemStack = ItemStack(Material.ARROW)
@@ -51,6 +58,8 @@ class HotbarPreview(override val plugin: Plop): Addon {
         .name(lang.get("preview.cancel-button.name"))
         .description(lang.get("preview.cancel-button.desc"))
 
+
+
     private val inventory = buildPlayerInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
@@ -62,15 +71,19 @@ class HotbarPreview(override val plugin: Plop): Addon {
             plotType = updateType(view) // Update plot type
 
             pane.hotbar[0] = StaticElement(drawable(BACK_BUTTON)) { (player) -> plugin.async {
+                if (cooldownHandle.bool(player)) return@async
                 plots.previewHandler.previousPlot(player.uniqueId)
             }}
             pane.hotbar[1] = StaticElement(drawable(CONFIRM_BUTTON)){ (player) -> plugin.async {
+                if (cooldownHandle.bool(player)) return@async
                 plots.claimHandler.initiateClaim(player.uniqueId, plotType)
             }}
             pane.hotbar[7] = StaticElement(drawable(CANCEL_BUTTON)) { (player) -> plugin.async {
+                if (cooldownHandle.bool(player)) return@async
                 plots.previewHandler.endPreview(player.uniqueId)
             }}
             pane.hotbar[8] = StaticElement(drawable(FORWARD_BUTTON)) { (player) -> plugin.async {
+                if (cooldownHandle.bool(player)) return@async
                 plots.previewHandler.nextPlot(player.uniqueId)
             }}
         }
@@ -85,14 +98,16 @@ class HotbarPreview(override val plugin: Plop): Addon {
 
             when (plotType) { // Determine the toggle button orientation
                 PlotType.PERSONAL -> { pane.hotbar[3] = StaticElement(drawable(individualPersonalClone)) { (player) -> plugin.async {
-                        plots.previewHandler.switchPreview(player.uniqueId) // Update preview
-                        plotType = updateType(view)
-                        view.redrawComplete()
+                    if (cooldownHandle.bool(player)) return@async
+                    plots.previewHandler.switchPreview(player.uniqueId) // Update preview
+                    plotType = updateType(view)
+                    view.redrawComplete()
                 } } }
                 PlotType.GUILD -> { pane.hotbar[3] = StaticElement(drawable(individualGuildClone)) { (player) -> plugin.async {
-                        plots.previewHandler.switchPreview(player.uniqueId) // Update preview
-                        plotType = updateType(view)
-                        view.redrawComplete()
+                    if (cooldownHandle.bool(player)) return@async
+                    plots.previewHandler.switchPreview(player.uniqueId) // Update preview
+                    plotType = updateType(view)
+                    view.redrawComplete()
                 } } }
             }
         }

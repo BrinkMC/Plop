@@ -2,7 +2,7 @@ package com.brinkmc.plop.shared.command.admin
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.command.utils.CmdAddon
+import com.brinkmc.plop.shared.util.CmdAddon
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.incendo.cloud.annotations.Command
 

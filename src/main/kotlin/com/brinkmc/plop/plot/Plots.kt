@@ -33,8 +33,9 @@ class Plots(override val plugin: Plop): Addon, State {
 
     override suspend fun load() {
         logger.info("Loading Plots...")
+
         // Create worlds on main thread
-        plugin.sync {
+        syncScope {
 
             val personalWorldName = plotConfig.getPlotWorld(PlotType.PERSONAL)
             val guildWorldName = plotConfig.getPlotWorld(PlotType.GUILD)

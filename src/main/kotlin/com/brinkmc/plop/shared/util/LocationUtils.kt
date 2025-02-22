@@ -17,7 +17,7 @@ Credit to Andross for the code, and HawkFalcon for commissioning it
 
 class LocationUtils(override val plugin: Plop): Addon {
 
-    private val HOLLOW_MATERIALS: Set<Material> = Material.entries.filter { it.isEmpty }.toSet()
+    private val HOLLOW_MATERIALS: Set<Material> = Material.entries.filter { it.isEmpty || !it.isSolid}.toSet()
 
     private fun isBlockUnsafe(location: Location): Boolean {
         return isBlockDamaging(location) || isBlockAboveAir(location)

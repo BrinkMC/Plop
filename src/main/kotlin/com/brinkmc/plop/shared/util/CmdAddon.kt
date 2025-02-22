@@ -1,9 +1,8 @@
-package com.brinkmc.plop.shared.command.utils
+package com.brinkmc.plop.shared.util
 
 import org.bukkit.command.CommandSender
 import org.incendo.cloud.paper.util.sender.Source
 import org.bukkit.entity.Player
-import org.incendo.cloud.paper.util.sender.PlayerSource
 
 internal interface CmdAddon {
 

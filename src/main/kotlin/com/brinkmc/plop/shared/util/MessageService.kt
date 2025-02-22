@@ -26,12 +26,20 @@ class MessageService(override val plugin: Plop): Addon {
         return miniMessage.deserialize(string)
     }
 
-    fun get(string: String, player: Player? = null): Component {
+    fun get(string: String, player: Player? = null, vararg args: Any): Component {
         return if (player == null) {
-            miniMessage.deserialize(plopMessageSource.findMessage(string) ?: "<red>No message set for $string!")
+            miniMessage.deserialize(dealWithArgs(plopMessageSource.findMessage(string) ?: "<red>No message set for $string", args))
         } else {
-            miniMessage.deserialize(plopMessageSource.findMessage(string) ?: "<red>No message set for $string", profileTags.name(player))
+            miniMessage.deserialize(dealWithArgs(plopMessageSource.findMessage(string) ?: "<red>No message set for $string", args), profileTags.name(player))
         }
+    }
+
+    fun dealWithArgs(string: String, vararg args: Any): String {
+        var stringBuilder = string
+        for (i in 0..(args.size-1)) {
+            stringBuilder = stringBuilder.replace("%$i", args[i].toString())
+        }
+        return stringBuilder
     }
 
     // Provide functionality to the Addon reference

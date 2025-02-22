@@ -25,12 +25,12 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
 
     lateinit var borderAPI: WorldBorderApi // Late init as it is not available on startup
 
-    override suspend fun load() { plugin.sync {
+    override suspend fun load() { syncScope {
         plotCache = PlotCache(plugin) // Load the cache + database
 
         borderAPI = server.servicesManager.getRegistration<WorldBorderApi?>(WorldBorderApi::class.java)?.provider ?: run {
             logger.error("Failed to get WorldBorderAPI")
-            return@sync
+            return@syncScope
         }
     }}
 
@@ -68,11 +68,11 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
         plotCache.deletePlot(plot)
     }
 
-    suspend fun getPlotFromLocation(location: Location): Plot? {
+    suspend fun getPlotFromLocation(location: Location): Plot? { return asyncScope {
         val worldGuardRegions = plugin.hooks.worldGuard.getRegions(location) // WorldGuard is async so it is fine to access async
-        if (worldGuardRegions?.size != 1) return null // Must only be one region player is standing in if it is a plot world
-        return getPlotById(UUID.fromString(worldGuardRegions.first()?.id))
-    }
+        if (worldGuardRegions?.size != 1) return@asyncScope null // Must only be one region player is standing in if it is a plot world
+        return@asyncScope getPlotById(UUID.fromString(worldGuardRegions.first()?.id))
+    } }
     
     fun getPlotWorlds(): List<World> {
         return listOfNotNull(

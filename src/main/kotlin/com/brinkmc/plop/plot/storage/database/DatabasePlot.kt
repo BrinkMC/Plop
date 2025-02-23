@@ -9,8 +9,8 @@ import com.brinkmc.plop.plot.plot.modifier.PlotShop
 import com.brinkmc.plop.plot.plot.modifier.PlotSize
 import com.brinkmc.plop.plot.plot.modifier.PlotTotem
 import com.brinkmc.plop.plot.plot.modifier.PlotVisit
-import com.brinkmc.plop.plot.plot.structure.TOTEM_TYPE
 import com.brinkmc.plop.plot.plot.structure.Totem
+import com.brinkmc.plop.plot.plot.structure.TotemType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.Funcs.fullString
@@ -49,7 +49,7 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
                 size = PlotSize(0,PlotType.PERSONAL),
                 factory = PlotFactory(0, mutableListOf(),PlotType.PERSONAL),
                 shop = PlotShop(0, mutableListOf(),PlotType.PERSONAL),
-                totem = PlotTotem(0, mutableListOf(),PlotType.PERSONAL)
+                totem = PlotTotem(0, mutableListOf(),true,PlotType.PERSONAL)
             )
         } else null
     }
@@ -102,18 +102,21 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
 
     private suspend fun loadTotem(plotId: UUID, plotType: PlotType): PlotTotem {
         var level = 0
+        var enableLightning = true
         val rs = DB.query("SELECT * FROM plot_totem_levels WHERE plot_id=?", plotId.toString())
         if (rs?.next() == true) {
             level = rs.getInt("totem_level")
+            enableLightning = rs.getBoolean("enable_lightning")
         }
+
         val totemsRs = DB.query("SELECT * FROM plot_totems WHERE plot_id=?", plotId.toString())
         val totemList = mutableListOf<Totem>()
         while (totemsRs?.next() == true) {
-            val tType = TOTEM_TYPE.valueOf(totemsRs.getString("totem_type"))
+            val tType = TotemType.valueOf(totemsRs.getString("totem_type"))
             val loc = totemsRs.getString("totem_location").toLocation() ?: continue
             totemList.add(Totem(totemsRs.getInt("totem_id"), tType, loc))
         }
-        return PlotTotem(level, totemList, plotType)
+        return PlotTotem(level, totemList, enableLightning, plotType)
     }
 
     private suspend fun loadVisits(plotId: UUID, plotType: PlotType): PlotVisit {
@@ -180,8 +183,8 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
             DB.update("INSERT INTO plot_shop_locations (plot_id, shop_uuid) VALUES (?,?)", id, shop.toString())
         }
         // totems
-        DB.update("INSERT INTO plot_totem_levels (plot_id, totem_level) VALUES (?,?) ON DUPLICATE KEY UPDATE totem_level=VALUES(totem_level)",
-            id, plot.totem.level)
+        DB.update("INSERT INTO plot_totem_levels (plot_id, totem_level, enable_lightning) VALUES (?,?, ?) ON DUPLICATE KEY UPDATE totem_level=VALUES(totem_level, enable_lightning)",
+            id, plot.totem.level, plot.totem.enableLightning)
         DB.update("DELETE FROM plot_totems WHERE plot_id=?", id)
         for (totem in plot.totem.totems) {
             DB.update("INSERT INTO plot_totems (plot_id, totem_type, totem_location) VALUES (?,?,?)",

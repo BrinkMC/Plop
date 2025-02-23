@@ -20,14 +20,5 @@ class GeneralListener(override val plugin: Plop): Addon, State, Listener {
         playerJoinEvent.player.updateBorder()
     }
 
-    @EventHandler
-    suspend fun onPlayerQuit(playerQuitEvent: PlayerQuitEvent) {
-        val potentialPreview = plots.previewHandler.getPreview(playerQuitEvent.player.uniqueId)
 
-        if (potentialPreview == null) { // Check is in preview
-            return
-        }
-
-        plots.previewHandler.endPreview(playerQuitEvent.player.uniqueId) // Remove
-    }
 }

@@ -61,7 +61,7 @@ class PlotClaimHandler(override val plugin: Plop): Addon, State {
 
         // Send in the schematic
         val schematic = plots.nexusManager.getSchematic()
-        val location = newPlot.claim.home.subtract(0.0, 1.0, 0.0)
+        val location = newPlot.claim.home.subtract(0.0, 1.0, 0.0) // Subtract 1 from Y to place the schematic on the ground
 
         syncScope {
             val editSession = WorldEdit.getInstance().newEditSession(location.world.localWorld())
@@ -80,7 +80,7 @@ class PlotClaimHandler(override val plugin: Plop): Addon, State {
             }
 
             // Teleport player to the new schematic
-            player.player()?.teleport(location)
+            player.player()?.teleport(location.add(0.0, 0.1, 0.0))
         }
         player.player()?.updateBorder() // Update the border again to new smaller size
     }

@@ -9,24 +9,27 @@ import com.sksamuel.aedile.core.expireAfterWrite
 import org.bukkit.command.CommandSender
 import org.incendo.cloud.paper.util.sender.Source
 import org.bukkit.entity.Player
+import org.bukkit.potion.PotionEffectType
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-class Cooldown(override val plugin: Plop, val cooldownLength: Long): Addon {
+class Cooldown(override val plugin: Plop, val cooldown: Duration): Addon {
 
     val cooldowns: Cache<Player, Long> = Caffeine.newBuilder()
-        .expireAfterWrite(cooldownLength.seconds)
+        .expireAfterWrite(cooldown)
         .asCache<Player, Long>()
 
     suspend fun checkCooldown(player: Player): Int? {
-        var cooldown = cooldowns.getIfPresent(player)
-        if (cooldown == null) {
+        var remaining = cooldowns.getIfPresent(player)
+        if (remaining == null) {
             cooldowns.put(player, System.currentTimeMillis())
             return null
         }
         // Remaining seconds
-        return (((cooldownLength*1000) + cooldown - System.currentTimeMillis()) / 1000.0).roundToInt()
+        return (((cooldown.inWholeMilliseconds) + remaining - System.currentTimeMillis()) / 1000.0).roundToInt()
     }
 
     suspend fun bool(player: Player): Boolean {

@@ -13,7 +13,9 @@ import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerTeleportEvent
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toKotlinDuration
 
 class PreviewListener(override val plugin: Plop): Addon, State, Listener {
@@ -23,12 +25,13 @@ class PreviewListener(override val plugin: Plop): Addon, State, Listener {
 
     @EventHandler
     suspend fun updateWorldBorder(event: PlayerTeleportEvent) {
-        delay(Tick.of(5).toKotlinDuration())
+        delay(10.milliseconds)
         event.player.updateBorder()
     }
 
     @EventHandler
     suspend fun updateWorldBorder(event: PlayerDeathEvent) {
+        delay(10.milliseconds)
         event.player.updateBorder()
     }
 
@@ -67,5 +70,16 @@ class PreviewListener(override val plugin: Plop): Addon, State, Listener {
         }
 
         event.isCancelled = true
+    }
+
+    @EventHandler
+    suspend fun onPlayerQuit(playerQuitEvent: PlayerQuitEvent) {
+        val potentialPreview = plots.previewHandler.getPreview(playerQuitEvent.player.uniqueId)
+
+        if (potentialPreview == null) { // Check is in preview
+            return
+        }
+
+        plots.previewHandler.endPreview(playerQuitEvent.player.uniqueId) // Remove
     }
 }

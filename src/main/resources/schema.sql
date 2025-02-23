@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS `plot_shop_locations` (
 CREATE TABLE IF NOT EXISTS `plot_totem_levels` (
     `plot_id` VARCHAR(36) NOT NULL,
     `totem_level` INT NOT NULL,
+    `enable_lightning` BINARY(1) NOT NULL,
     PRIMARY KEY (`plot_id`),
     FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
     );

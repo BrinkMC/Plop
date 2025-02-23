@@ -189,6 +189,10 @@ internal interface Addon {
         return plots.handler.getPlotFromLocation(location)
     }
 
+    suspend fun Location.getCurrentPlot(): Plot? {
+        return plots.handler.getPlotFromLocation(this)
+    }
+
     // Locations
 
     suspend fun Location.getSafeDestination(): Location? {

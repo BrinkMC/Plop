@@ -29,8 +29,8 @@ import com.brinkmc.plop.shared.hooks.WorldGuard
 import com.brinkmc.plop.shared.hooks.listener.GeneralListener
 import com.brinkmc.plop.shared.hooks.listener.GuildListener
 import com.brinkmc.plop.shared.hooks.listener.PreviewListener
-import com.brinkmc.plop.shared.hooks.listener.MythicListener
-import com.brinkmc.plop.shared.hooks.listener.PlayerInteract
+import com.brinkmc.plop.shared.hooks.listener.DamageListener
+import com.brinkmc.plop.shared.hooks.listener.NexusListener
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.LocationUtils
 import com.brinkmc.plop.shared.util.MessageService
@@ -43,7 +43,6 @@ import com.google.gson.Gson
 import com.noxcrew.interfaces.InterfacesListeners
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack
-import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.bukkit.parser.PlayerParser
@@ -73,10 +72,10 @@ class Plop : State, SuspendingJavaPlugin() {
 
 
     private lateinit var generalListener: GeneralListener
-    private lateinit var mythicListener: MythicListener
+    private lateinit var mythicListener: DamageListener
     private lateinit var previewListener: PreviewListener
     private lateinit var guildListener: GuildListener
-    private lateinit var playerListener: PlayerInteract
+    private lateinit var playerListener: NexusListener
 
     lateinit var gson: Gson
 
@@ -161,9 +160,9 @@ class Plop : State, SuspendingJavaPlugin() {
         plugin.slF4JLogger.info("Initiating listeners")
         generalListener = GeneralListener(this)
         previewListener = PreviewListener(this)
-        mythicListener = MythicListener(this)
+        mythicListener = DamageListener(this)
         guildListener = GuildListener(this)
-        playerListener = PlayerInteract(this)
+        playerListener = NexusListener(this)
 
         // Listeners
         listOf(

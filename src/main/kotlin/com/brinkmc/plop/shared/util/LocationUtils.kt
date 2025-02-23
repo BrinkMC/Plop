@@ -96,6 +96,6 @@ class LocationUtils(override val plugin: Plop): Addon {
             }
         } while (!safe && length < maxDistance)
 
-        return@asyncScope initialLocation
+        return@asyncScope initialLocation.add(0.0, 1.0, 0.0)
     } }
 }

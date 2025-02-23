@@ -12,20 +12,10 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageEvent
 
-class MythicListener(override val plugin: Plop): Addon, State, Listener {
+class DamageListener(override val plugin: Plop): Addon, State, Listener {
     override suspend fun load() {}
 
     override suspend fun kill() {}
-
-    @EventHandler // Handle nexus placement + totem placement and registering in system
-    suspend fun onMythicFurniturePlace(mythicFurniturePlaceEvent: MythicFurniturePlaceEvent) {
-
-    }
-
-    @EventHandler
-    suspend fun onMythicFurnitureRemove(mythicFurnitureRemoveEvent: MythicFurnitureRemoveEvent) {
-
-    }
 
     // Duo of events to prevent attacks in plots
     @EventHandler

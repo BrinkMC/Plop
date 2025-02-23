@@ -28,10 +28,11 @@ import java.util.concurrent.TimeUnit
 import kotlin.collections.get
 import kotlin.math.log
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 class HotbarPreview(override val plugin: Plop): Addon {
     // Requires a cooldown
-    private val cooldownHandle = Cooldown(plugin, 5)
+    private val cooldownHandle = Cooldown(plugin, 3.seconds)
 
     // Inventory items
     val BACK_BUTTON: ItemStack = ItemStack(Material.ARROW)

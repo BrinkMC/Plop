@@ -23,7 +23,7 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
 
     private lateinit var plotCache: PlotCache
 
-    lateinit var borderAPI: WorldBorderApi // Late init as it is not available on startup
+    private lateinit var borderAPI: WorldBorderApi // Late init as it is not available on startup
 
     override suspend fun load() { syncScope {
         plotCache = PlotCache(plugin) // Load the cache + database
@@ -97,11 +97,7 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
 
 
         if (getPlotWorlds().contains(bukkitPlayer.world)) { // Run logic for getting plot they are in
-            val plot = getPlotFromLocation(bukkitPlayer.location)
-
-            if (plot == null) { // Make sure plot isn't null
-                return@async
-            }
+            val plot = getPlotFromLocation(bukkitPlayer.location) ?:  return@async // Make sure plot isn't null
 
             syncScope {
                 borderAPI.setBorder(bukkitPlayer, plot.size.current.toDouble(), plot.claim.centre) // Send the player the border

@@ -31,7 +31,7 @@ class TotemListener(override val plugin: Plop): Addon, State, Listener {
     @EventHandler // Handle nexus placement + totem placement and registering in system
     suspend fun onMythicFurniturePlace(mythicFurniturePlaceEvent: MythicFurniturePlaceEvent) {
         // Register a totem if it's placed
-        mythicFurniturePlaceEvent.furnitureItemContext.item.
+        mythicFurniturePlaceEvent.furnitureItemContext.it
     }
 
     @EventHandler

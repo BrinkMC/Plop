@@ -77,8 +77,6 @@ class Plop : State, SuspendingJavaPlugin() {
     private lateinit var guildListener: GuildListener
     private lateinit var playerListener: NexusListener
 
-    lateinit var gson: Gson
-
 
     override suspend fun onLoadAsync() {
         com.github.retrooper.packetevents.PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
@@ -138,9 +136,6 @@ class Plop : State, SuspendingJavaPlugin() {
         // Enable all menus
         plugin.slF4JLogger.info("Creating menus and hotbars")
         menus = Menus(plugin)
-
-        // Enable gson library for messages
-        plugin.gson = Gson()
 
         // Register listener
         loadListeners()

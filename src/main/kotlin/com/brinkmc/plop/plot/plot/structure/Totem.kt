@@ -11,7 +11,6 @@ enum class TotemType {
 }
 
 data class Totem(
-    val totemId: Int,
     val totemType: TotemType,
     val location: Location
 )

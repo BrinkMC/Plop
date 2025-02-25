@@ -8,6 +8,7 @@ import io.lumine.mythiccrucible.events.MythicFurniturePlaceEvent
 import io.lumine.mythiccrucible.events.MythicFurnitureRemoveEvent
 import org.bukkit.Material
 import org.bukkit.World
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBurnEvent
@@ -29,14 +30,105 @@ class TotemListener(override val plugin: Plop): Addon, State, Listener {
     override suspend fun kill() {}
 
     @EventHandler // Handle nexus placement + totem placement and registering in system
-    suspend fun onMythicFurniturePlace(mythicFurniturePlaceEvent: MythicFurniturePlaceEvent) {
+    suspend fun onMythicFurniturePlace(event: MythicFurniturePlaceEvent) {
         // Register a totem if it's placed
-        mythicFurniturePlaceEvent.furnitureItemContext.it
+        val key = event.furnitureItemContext.config.key
+
+        if (!key.startsWith(totemConfig.totemId)) { // Ignore if not a totem
+            return
+        }
+
+        val totemType = plots.totemHandler.getTotemTypeFromKey(key) ?: return
+
+        // Determined that the totem is valid
+
+        val player = event.player
+        val plot = event.block.location.getCurrentPlot()
+
+        if (plot == null) {
+            event.isCancelled = true
+            player.sendMiniMessage("plot.not-plot")
+            return
+        }
+
+        if (!plot.owner.getPlayers().contains(player.uniqueId)) {
+            event.isCancelled = true
+            player.sendMiniMessage("plot.not-owner")
+            return
+        }
+
+        if (!player.hasPermission("plop.totem.place")) {
+            event.isCancelled = true
+            player.sendMiniMessage("plot.no-permission")
+            return
+        }
+
+        if (plot.totem.totems.size >= plot.totem.limit) {
+            event.isCancelled = true
+            player.sendMiniMessage("plot.totem.limit")
+            return
+        }
+
+        plot.totem.addTotem(totemType, event.block.location)
+
+        syncScope {
+            // Send lightning
+            event.block.location.world?.strikeLightningEffect(event.block.location)
+        }
+        player.sendMiniMessage("plot.totem.place-success")
     }
 
     @EventHandler
-    suspend fun onMythicFurnitureRemove(mythicFurnitureRemoveEvent: MythicFurnitureRemoveEvent) {
+    suspend fun onMythicFurnitureRemove(event: MythicFurnitureRemoveEvent) {
+        // Register a totem if it's placed
+        val key = event.furnitureItemContext.config.key
 
+        if (!key.startsWith(totemConfig.totemId)) {
+            return
+        }
+
+        val totemType = plots.totemHandler.getTotemTypeFromKey(key) ?: return
+
+        // Determined that the totem is valid
+         val player = try {
+            event.breaker as Player
+         } catch (e: Exception) {
+             logger.error("Mystical force deleted totem")
+             return
+         }
+        val plot = event.furniture.location.getCurrentPlot()
+
+        if (plot == null) {
+            event.isCancelled = true
+            player.sendMiniMessage("plot.not-plot")
+            return
+        }
+
+        if (!plot.owner.getPlayers().contains(player.uniqueId)) {
+            event.isCancelled = true
+            player.sendMiniMessage("plot.not-owner")
+            return
+        }
+
+        if (!player.hasPermission("plop.totem.break")) {
+            event.isCancelled = true
+            player.sendMiniMessage("plot.no-permission")
+            return
+        }
+
+        if (plot.totem.totems.size >= plot.totem.limit) {
+            event.isCancelled = true
+            player.sendMiniMessage("plot.totem.limit")
+            return
+        }
+
+        plot.totem.removeTotem(totemType, event.furniture.location.toLocation())
+
+        syncScope {
+            // Send lightning
+            event.furniture.location.toLocation().world.strikeLightningEffect(event.furniture.location.toLocation())
+        }
+        player.sendMiniMessage("plot.totem.delete-success")
     }
 
     @EventHandler
@@ -46,11 +138,7 @@ class TotemListener(override val plugin: Plop): Addon, State, Listener {
             return
         }
 
-        val potentialPlot = location.getCurrentPlot()
-
-        if (potentialPlot == null) {
-            return
-        }
+        val potentialPlot = location.getCurrentPlot() ?: return
 
         if (!potentialPlot.totem.getTypes().contains(TotemType.FIRE_SPREAD)) {
             return
@@ -77,11 +165,7 @@ class TotemListener(override val plugin: Plop): Addon, State, Listener {
             return
         }
 
-        val potentialPlot = location.getCurrentPlot()
-
-        if (potentialPlot == null) {
-            return
-        }
+        val potentialPlot = location.getCurrentPlot() ?: return
 
         if (!potentialPlot.totem.getTypes().contains(TotemType.ICE_MELT)) {
             return
@@ -108,11 +192,7 @@ class TotemListener(override val plugin: Plop): Addon, State, Listener {
             return
         }
 
-        val potentialPlot = location.getCurrentPlot()
-
-        if (potentialPlot == null) {
-            return
-        }
+        val potentialPlot = location.getCurrentPlot() ?: return
 
         if (!potentialPlot.totem.getTypes().contains(TotemType.LEAF_DECAY)) {
             return

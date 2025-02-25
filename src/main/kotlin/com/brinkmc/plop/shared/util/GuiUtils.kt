@@ -1,5 +1,6 @@
 package com.brinkmc.plop.shared.util
 
+import com.brinkmc.plop.plot.plot.base.PlotOwner
 import me.glaremasters.guilds.guild.Guild
 import me.glaremasters.guilds.guild.GuildMember
 import net.kyori.adventure.text.Component
@@ -44,16 +45,9 @@ object GuiUtils {
         return this
     }
 
-    fun ItemStack.setSkull(owner: OfflinePlayer?): ItemStack {
-        val meta = itemMeta as org.bukkit.inventory.meta.SkullMeta
-        meta.playerProfile = owner?.playerProfile
-        itemMeta = meta
-        return this
-    }
-
-    fun ItemStack.setSkull(owner: Guild?): ItemStack {
-        val meta = itemMeta as org.bukkit.inventory.meta.SkullMeta
-        meta.playerProfile = (owner?.guildSkull?.itemStack?.itemMeta as SkullMeta).playerProfile
+    fun ItemStack.setSkull(owner: PlotOwner): ItemStack {
+        val meta = itemMeta as SkullMeta
+        meta.playerProfile = owner.getSkull()
         itemMeta = meta
         return this
     }

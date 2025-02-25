@@ -6,6 +6,7 @@ import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.plot.modifier.PlotFactory
 import com.brinkmc.plop.plot.plot.modifier.PlotSize
+import com.brinkmc.plop.plot.plot.modifier.PlotTotem
 import com.brinkmc.plop.plot.plot.modifier.PlotVisit
 import com.brinkmc.plop.shared.config.ConfigReader
 import com.brinkmc.plop.shared.config.configs.*
@@ -18,6 +19,7 @@ import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.github.shynixn.mccoroutine.bukkit.scope
+import io.lumine.mythic.api.adapters.AbstractLocation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
@@ -27,10 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.glaremasters.guilds.guild.Guild
 import net.kyori.adventure.text.Component
-import org.bukkit.Location
-import org.bukkit.OfflinePlayer
-import org.bukkit.Server
-import org.bukkit.World
+import org.bukkit.*
 import org.bukkit.entity.Player
 import org.slf4j.Logger
 import java.util.UUID
@@ -109,10 +108,12 @@ internal interface Addon {
     val PlotFactory.max: Int
         get() = plots.factoryHandler.getMaximumFactoryLimit(this.plotType)
 
-    val PlotVisit.amount: Int
-        get() = plotConfig.getPlotSizeLevels(this.plotType)[this.level].value ?: -1
+    // PlotTotemHandler extenisons
+    val PlotTotem.limit: Int
+        get() = plots.totemHandler.getCurrentTotemLimit(this.plotType, this.level)
 
-
+    val PlotTotem.max: Int
+        get() = plots.totemHandler.getMaximumTotemLimit(this.plotType)
 
     // Provide an easy way to get formatted MiniMessage messages with custom tags also replaced properly
     fun Player.sendMiniMessage(message: String) {
@@ -191,6 +192,14 @@ internal interface Addon {
 
     suspend fun Location.getCurrentPlot(): Plot? {
         return plots.handler.getPlotFromLocation(this)
+    }
+
+    suspend fun AbstractLocation.getCurrentPlot(): Plot? {
+        return plots.handler.getPlotFromLocation(this.toLocation())
+    }
+
+    suspend fun AbstractLocation.toLocation(): Location {
+        return Location(Bukkit.getWorld(world.name), x, y, z)
     }
 
     // Locations

@@ -1,10 +1,12 @@
 package com.brinkmc.plop.plot.plot.base
 
 import com.brinkmc.plop.shared.hooks.Economy
+import com.destroystokyo.paper.profile.PlayerProfile
 import me.glaremasters.guilds.guild.Guild
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
+import org.bukkit.inventory.meta.SkullMeta
 import java.util.UUID
 
 sealed class PlotOwner {
@@ -102,6 +104,17 @@ sealed class PlotOwner {
             }
             is PlayerOwner -> {
                 listOf(player.uniqueId)
+            }
+        }
+    }
+
+    fun getSkull(): PlayerProfile? {
+        return when (this) {
+            is GuildOwner -> {
+                (guild.guildSkull.itemStack.itemMeta as SkullMeta).playerProfile
+            }
+            is PlayerOwner -> {
+                player.playerProfile as PlayerProfile
             }
         }
     }

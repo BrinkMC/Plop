@@ -7,6 +7,7 @@ import org.spongepowered.configurate.objectmapping.meta.Setting
 
 @ConfigSerializable
 data class TotemConfig(
-    @Setting("Totem")
-    val totem: String?
+    @Setting("TotemFurnitureId")
+    val totemId: String = "totem_"
+
 )

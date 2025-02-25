@@ -34,22 +34,14 @@ class GuildListener(override val plugin: Plop): Addon, State, Listener {
 
     @EventHandler
     suspend fun onGuildMemberAdd(event: GuildJoinEvent) {
-        val plot = event.guild.plot()
-
-        if (plot == null) {
-            return
-        }
+        val plot = event.guild.plot() ?: return
 
         plugin.hooks.worldGuard.addMember(plot, event.player)
     }
 
     @EventHandler
     suspend fun onGuildMemberRemove(event: GuildLeaveEvent) {
-        val plot = event.guild.plot()
-
-        if (plot == null) {
-            return
-        }
+        val plot = event.guild.plot() ?: return
 
         plugin.hooks.worldGuard.removeMember(plot, event.player)
     }

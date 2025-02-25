@@ -3,6 +3,7 @@ package com.brinkmc.plop.plot.handler
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.base.PlotType
+import com.brinkmc.plop.plot.plot.structure.TotemType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.config.serialisers.Level
@@ -10,14 +11,14 @@ import org.bukkit.configuration.file.YamlConfiguration
 import org.spongepowered.configurate.ConfigurateException
 import java.io.File
 
-class PlotShopHandler(override val plugin: Plop): Addon, State {
+class PlotTotemHandler(override val plugin: Plop): Addon, State {
 
     private val guildLevels = mutableListOf<Level>()
     private val personalLevels = mutableListOf<Level>()
 
     override suspend fun load() {
-        plotConfig.getShopLevels(PlotType.GUILD).let { guildLevels.addAll(it) } // Add all guild plot size levels
-        plotConfig.getShopLevels(PlotType.PERSONAL).let { personalLevels.addAll(it) }
+        plotConfig.getTotemLimit(PlotType.GUILD).let { guildLevels.addAll(it) } // Add all guild plot size levels
+        plotConfig.getTotemLimit(PlotType.PERSONAL).let { personalLevels.addAll(it) }
     }
 
     override suspend fun kill() {
@@ -26,6 +27,14 @@ class PlotShopHandler(override val plugin: Plop): Addon, State {
     }
 
     // Getters
+
+    fun getTotemTypeFromKey(key: String): TotemType {
+        var string = key
+        if (key.startsWith(totemConfig.totemId)) {
+            string = string.substringAfter(totemConfig.totemId)
+        }
+        return TotemType.valueOf(string)
+    }
 
     fun getHighestLevel(plotType: PlotType): Int {
         return when (plotType) {
@@ -41,14 +50,14 @@ class PlotShopHandler(override val plugin: Plop): Addon, State {
         }
     }
 
-    fun getCurrentShopLimit(plotType: PlotType, level: Int): Int {
+    fun getCurrentTotemLimit(plotType: PlotType, level: Int): Int {
         return when (plotType) {
             PlotType.GUILD -> guildLevels[level].value ?: -1
             PlotType.PERSONAL -> personalLevels[level].value ?: -1
         }
     }
 
-    fun getMaximumShopLimit(plotType: PlotType) : Int {
+    fun getMaximumTotemLimit(plotType: PlotType) : Int {
         return when (plotType) {
             PlotType.GUILD -> guildLevels.last().value ?: -1
             PlotType.PERSONAL -> personalLevels.last().value ?: -1

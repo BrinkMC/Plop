@@ -36,7 +36,7 @@ object Funcs {
         return stringToLocation(this)
     }
 
-    fun stringToLocation(locationString: String): Location? {
+    private fun stringToLocation(locationString: String): Location? {
         val parts = locationString.split(":")
         if (parts.size !in 4..6) return null // Make sure string is correct size to be real location
 

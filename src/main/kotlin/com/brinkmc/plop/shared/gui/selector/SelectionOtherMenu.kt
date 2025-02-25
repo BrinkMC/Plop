@@ -1,6 +1,7 @@
 package com.brinkmc.plop.shared.gui.selector
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.util.GuiUtils.description
@@ -37,18 +38,9 @@ class SelectionOtherMenu(override val plugin: Plop): Addon {
 
         withTransform { pane, view ->
 
-            val selectionPlayer = receiverChoice[view.player]
-            val selectionGuild = selectionPlayer?.guild()
+            val selectionPlot = receiverChoice[view.player]?.guildPlot() ?: return@withTransform
 
-            if (selectionGuild == null) {
-                return@withTransform
-            }
-
-            if (selectionGuild.plot() == null) {
-                return@withTransform
-            }
-
-            val individualGuildClone = GUILD_PLOT.clone().setSkull(selectionGuild)
+            val individualGuildClone = GUILD_PLOT.clone().setSkull(selectionPlot.owner)
 
             pane[0, 3] = StaticElement(drawable(individualGuildClone)) { (player) -> plugin.async {
                 plotTypeChoice[player]?.complete(PlotType.GUILD)
@@ -58,13 +50,9 @@ class SelectionOtherMenu(override val plugin: Plop): Addon {
 
         withTransform { pane, view ->
 
-            val selectionPlayer = receiverChoice[view.player]
+            val selectionPlot = receiverChoice[view.player]?.personalPlot() ?: return@withTransform
 
-            val individualPersonalClone = PERSONAL_PLOT.clone().setSkull(selectionPlayer)
-
-            if (selectionPlayer?.personalPlot() == null) {
-               return@withTransform
-            }
+            val individualPersonalClone = PERSONAL_PLOT.clone().setSkull(selectionPlot.owner)
 
             pane[0, 5] = StaticElement(drawable(individualPersonalClone)) { (player) -> plugin.async {
                 plotTypeChoice[player]?.complete(PlotType.PERSONAL)

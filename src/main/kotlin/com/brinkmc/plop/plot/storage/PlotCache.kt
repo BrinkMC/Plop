@@ -39,7 +39,7 @@ class PlotCache(override val plugin: Plop): Addon, State {
         cacheSave() // Get the task going
     }
 
-    suspend fun cacheSave() {
+    private suspend fun cacheSave() {
         while (true) {
             delay(5.minutes)
             asyncScope { plotMap.asMap().forEach { (id, plot) ->

@@ -16,14 +16,14 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-class Cooldown(override val plugin: Plop, val cooldown: Duration): Addon {
+class Cooldown(override val plugin: Plop, private val cooldown: Duration): Addon {
 
-    val cooldowns: Cache<Player, Long> = Caffeine.newBuilder()
+    private val cooldowns: Cache<Player, Long> = Caffeine.newBuilder()
         .expireAfterWrite(cooldown)
-        .asCache<Player, Long>()
+        .asCache()
 
-    suspend fun checkCooldown(player: Player): Int? {
-        var remaining = cooldowns.getIfPresent(player)
+    private suspend fun checkCooldown(player: Player): Int? {
+        val remaining = cooldowns.getIfPresent(player)
         if (remaining == null) {
             cooldowns.put(player, System.currentTimeMillis())
             return null

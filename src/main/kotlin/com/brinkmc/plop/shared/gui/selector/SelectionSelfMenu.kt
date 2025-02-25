@@ -38,10 +38,8 @@ class SelectionSelfMenu(override val plugin: Plop): Addon {
 
 
         withTransform { pane, view ->
-            val selectionPlayer = view.player
-            val selectionGuild = selectionPlayer.guild()
-
-            val individualGuildClone = GUILD_PLOT.clone().setSkull(selectionGuild)
+            val selectionPlot = view.player.guildPlot() ?: return@withTransform
+            val individualGuildClone = GUILD_PLOT.clone().setSkull(selectionPlot.owner)
 
             pane[0, 3] = StaticElement(drawable(individualGuildClone)) { (player) -> plugin.async {
                 plotTypeChoice[player]?.complete(PlotType.GUILD)
@@ -50,9 +48,8 @@ class SelectionSelfMenu(override val plugin: Plop): Addon {
         }
 
         withTransform { pane, view ->
-            val selectionPlayer = view.player
-
-            val individualPersonalClone = PERSONAL_PLOT.clone().setSkull(selectionPlayer)
+            val selectionPlot = view.player.personalPlot() ?: return@withTransform
+            val individualPersonalClone = PERSONAL_PLOT.clone().setSkull(selectionPlot.owner)
 
             pane[0, 5] = StaticElement(drawable(individualPersonalClone)) { (player) -> plugin.async {
                 plotTypeChoice[player]?.complete(PlotType.PERSONAL)

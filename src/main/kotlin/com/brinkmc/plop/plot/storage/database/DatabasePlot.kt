@@ -114,7 +114,7 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
         while (totemsRs?.next() == true) {
             val tType = TotemType.valueOf(totemsRs.getString("totem_type"))
             val loc = totemsRs.getString("totem_location").toLocation() ?: continue
-            totemList.add(Totem(totemsRs.getInt("totem_id"), tType, loc))
+            totemList.add(Totem(tType, loc))
         }
         return PlotTotem(level, totemList, enableLightning, plotType)
     }

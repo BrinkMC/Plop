@@ -17,7 +17,9 @@ class MenuNexusMain(override val plugin: Plop): Addon {
 
     val MAIN_OVERVIEW = ItemStack(Material.PLAYER_HEAD)
         .name(lang.get("nexus.main.overview.name"))
-        .description(lang.get("nexus.main.overview.desc"))
+
+    val UPGRADES = ItemStack(Material.SPLASH_POTION)
+        .name(lang.get("nexus.upgrades.name"))
 
     private val inventory = buildChestInterface {
         onlyCancelItemInteraction = false
@@ -25,11 +27,20 @@ class MenuNexusMain(override val plugin: Plop): Addon {
         rows = 6
 
         withTransform { pane, view ->
-            val individualMainOverview = MAIN_OVERVIEW.clone().setSkull(view.player)
+            // Determine plot
+            val plot = view.player.getCurrentPlot() ?: return@withTransform
+
+            // Main overview button
+            val individualMainOverview = MAIN_OVERVIEW.clone()
+                .setSkull(plot.owner)
+                .description(lang.get("nexus.main.overview.description", view.player, plot))
 
             pane[2, 4] = StaticElement(drawable(individualMainOverview)) { (player) -> plugin.async {
                 open(player)
             } }
+
+            pane[]
+
         }
     }
 

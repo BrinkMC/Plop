@@ -15,8 +15,8 @@ class PlotSizeHandler(override val plugin: Plop): Addon, State {
     private val personalLevels = mutableListOf<Level>()
 
     override suspend fun load() {
-        plotConfig.getPlotSizeLevels(PlotType.GUILD)?.let { guildLevels.addAll(it) } // Add all guild plot size levels
-        plotConfig.getPlotSizeLevels(PlotType.PERSONAL)?.let { personalLevels.addAll(it) }
+        plotConfig.getPlotSizeLevels(PlotType.GUILD).let { guildLevels.addAll(it) } // Add all guild plot size levels
+        plotConfig.getPlotSizeLevels(PlotType.PERSONAL).let { personalLevels.addAll(it) }
     }
 
     override suspend fun kill() {

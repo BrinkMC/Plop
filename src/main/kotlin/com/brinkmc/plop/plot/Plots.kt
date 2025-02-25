@@ -1,16 +1,10 @@
 package com.brinkmc.plop.plot
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.handler.PlotClaimHandler
-import com.brinkmc.plop.plot.handler.PlotFactoryHandler
-import com.brinkmc.plop.plot.handler.PlotHandler
-import com.brinkmc.plop.plot.handler.PlotPreviewHandler
-import com.brinkmc.plop.plot.handler.PlotShopHandler
-import com.brinkmc.plop.plot.handler.PlotSizeHandler
-import com.brinkmc.plop.plot.handler.PlotUpgradeHandler
-import com.brinkmc.plop.plot.handler.PlotVisitHandler
+import com.brinkmc.plop.plot.handler.*
 import com.brinkmc.plop.plot.nexus.NexusManager
 import com.brinkmc.plop.plot.plot.base.PlotType
+import com.brinkmc.plop.plot.plot.modifier.PlotTotem
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import org.bukkit.World
@@ -23,6 +17,7 @@ class Plots(override val plugin: Plop): Addon, State {
     lateinit var handler: PlotHandler
     lateinit var visitorHandler: PlotVisitHandler
     lateinit var upgradeHandler: PlotUpgradeHandler
+    lateinit var totemHandler: PlotTotemHandler
     lateinit var previewHandler: PlotPreviewHandler
     lateinit var factoryHandler: PlotFactoryHandler
     lateinit var claimHandler: PlotClaimHandler
@@ -62,6 +57,7 @@ class Plots(override val plugin: Plop): Addon, State {
         visitorHandler = PlotVisitHandler(plugin)
         upgradeHandler = PlotUpgradeHandler(plugin)
         previewHandler = PlotPreviewHandler(plugin)
+        totemHandler = PlotTotemHandler(plugin)
         factoryHandler = PlotFactoryHandler(plugin)
         claimHandler = PlotClaimHandler(plugin)
         shopHandler = PlotShopHandler(plugin)
@@ -73,6 +69,7 @@ class Plots(override val plugin: Plop): Addon, State {
             visitorHandler,
             upgradeHandler,
             previewHandler,
+            totemHandler,
             factoryHandler,
             claimHandler,
             shopHandler,
@@ -87,6 +84,7 @@ class Plots(override val plugin: Plop): Addon, State {
             visitorHandler,
             upgradeHandler,
             previewHandler,
+            totemHandler,
             factoryHandler,
             claimHandler,
             shopHandler,

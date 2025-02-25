@@ -7,6 +7,12 @@ import org.spongepowered.configurate.objectmapping.meta.Setting
 
 @ConfigSerializable
 data class ShopConfig(
-    @Setting("Range")
-    val viewRange: Int = 10
+
+    @Setting("Display")
+    val display: List<String> = listOf(
+        "TEXT:<red>Shop - <owner>",
+        "TEXT: Price <price> | Available <available>",
+        "TEXT: Sell Price <price>",
+        "ITEM:<item>"
+    ),
 )

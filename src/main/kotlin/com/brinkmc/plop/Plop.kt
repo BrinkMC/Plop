@@ -13,6 +13,8 @@ import com.brinkmc.plop.shared.command.plot.preview.CommandPlotPreview
 import com.brinkmc.plop.shared.command.processors.GeneralSuggestionProcessor
 import com.brinkmc.plop.shared.command.utils.PlotTypeParser
 import com.brinkmc.plop.shared.config.ConfigReader
+import com.brinkmc.plop.shared.display.NexusDisplay
+import com.brinkmc.plop.shared.display.ShopDisplay
 import com.brinkmc.plop.shared.gui.nexus.MenuNexusMain
 import com.brinkmc.plop.shared.gui.nexus.MenuPlotLogs
 import com.brinkmc.plop.shared.gui.nexus.MenuTotemList
@@ -31,6 +33,8 @@ import com.brinkmc.plop.shared.hooks.listener.GuildListener
 import com.brinkmc.plop.shared.hooks.listener.PreviewListener
 import com.brinkmc.plop.shared.hooks.listener.DamageListener
 import com.brinkmc.plop.shared.hooks.listener.NexusListener
+import com.brinkmc.plop.shared.hooks.listener.PlayerTracker
+import com.brinkmc.plop.shared.hooks.listener.TotemListener
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.LocationUtils
 import com.brinkmc.plop.shared.util.MessageService
@@ -70,13 +74,13 @@ class Plop : State, SuspendingJavaPlugin() {
     // Hooks
     lateinit var hooks: Hooks
 
-
+    private lateinit var damageListener: DamageListener
     private lateinit var generalListener: GeneralListener
-    private lateinit var mythicListener: DamageListener
-    private lateinit var previewListener: PreviewListener
     private lateinit var guildListener: GuildListener
-    private lateinit var playerListener: NexusListener
-
+    private lateinit var nexusListener: NexusListener
+    lateinit var playerTracker: PlayerTracker
+    private lateinit var previewListener: PreviewListener
+    private lateinit var totemListener: TotemListener
 
     override suspend fun onLoadAsync() {
         com.github.retrooper.packetevents.PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
@@ -153,19 +157,23 @@ class Plop : State, SuspendingJavaPlugin() {
         InterfacesListeners.install(this)
 
         plugin.slF4JLogger.info("Initiating listeners")
-        generalListener = GeneralListener(this)
-        previewListener = PreviewListener(this)
-        mythicListener = DamageListener(this)
-        guildListener = GuildListener(this)
-        playerListener = NexusListener(this)
+        damageListener = DamageListener(plugin)
+        generalListener = GeneralListener(plugin)
+        guildListener = GuildListener(plugin)
+        nexusListener = NexusListener(plugin)
+        playerTracker = PlayerTracker(plugin)
+        previewListener = PreviewListener(plugin)
+        totemListener = TotemListener(plugin)
 
         // Listeners
         listOf(
+            damageListener,
             generalListener,
-            mythicListener,
-            previewListener,
             guildListener,
-            playerListener
+            nexusListener,
+            playerTracker,
+            previewListener,
+            totemListener
         ).forEach { listener -> server.pluginManager.registerSuspendingEvents(listener, this) }
         plugin.slF4JLogger.info("Finished hooking listeners")
     }
@@ -220,6 +228,26 @@ class Plop : State, SuspendingJavaPlugin() {
     val namespacedKey: NamespacedKey
         get() = NamespacedKey(plugin, "plop")
 
+    // All displays used in plugin
+    class Displays(val plugin: Plop): State {
+        val shopDisplay = ShopDisplay(plugin)
+        val nexusDisplay = NexusDisplay(plugin)
+
+        override suspend fun load() {
+            listOf(
+                shopDisplay,
+                nexusDisplay
+            ).forEach { display -> display.load() }
+        }
+
+        override suspend fun kill() {
+            listOf(
+                shopDisplay,
+                nexusDisplay
+            ).forEach { display -> display.kill() }
+        }
+    }
+
     // Enable hooks
     class Hooks(val plugin: Plop): State {
         val guilds = Guilds(plugin)
@@ -249,6 +277,7 @@ class Plop : State, SuspendingJavaPlugin() {
         }
     }
 
+    // All menus used in the plugin
     class Menus(val plugin: Plop) {
         // Selectors
         val selectionSelfMenu = SelectionSelfMenu(plugin)

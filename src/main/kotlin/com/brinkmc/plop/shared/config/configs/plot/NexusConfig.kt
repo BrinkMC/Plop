@@ -1,5 +1,6 @@
 package com.brinkmc.plop.shared.config.configs.plot
 
+import io.lumine.mythiccrucible.generation.blockbench.BlockbenchModel
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 import org.spongepowered.configurate.objectmapping.meta.Setting
 
@@ -10,4 +11,13 @@ data class NexusConfig(
 
     @Setting("BookName")
     val bookName: String = "<red>Nexus",
+
+    @Setting("Display")
+    val display: List<String> = listOf(
+        "TEXT:Nexus for <plot_owner>",
+        "TEXT:<grey>Right click to open"
+    ),
+
+    @Setting("ViewDistance")
+    val viewDistance: Int = 100,
 )

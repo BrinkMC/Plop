@@ -11,6 +11,7 @@ import com.sk89q.worldguard.WorldGuard
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion
 import me.glaremasters.guilds.Guilds
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.World
 import java.util.*
 
@@ -29,6 +30,8 @@ data class Plot(
     val type: PlotType,
 
     // Plot data
+    var nexus: MutableList<Location>, // Nexus location
+
     var claim: PlotClaim,
     var visit: PlotVisit,
     var size: PlotSize,

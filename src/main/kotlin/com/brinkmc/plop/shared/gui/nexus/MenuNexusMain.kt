@@ -5,10 +5,6 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.util.GuiUtils.description
 import com.brinkmc.plop.shared.util.GuiUtils.name
 import com.brinkmc.plop.shared.util.GuiUtils.setSkull
-import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
-import com.noxcrew.interfaces.element.StaticElement
-import com.noxcrew.interfaces.interfaces.buildChestInterface
-import com.noxcrew.interfaces.view.InterfaceView
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -39,7 +35,6 @@ class MenuNexusMain(override val plugin: Plop): Addon {
                 open(player)
             } }
 
-            pane[]
 
         }
     }

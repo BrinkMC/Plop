@@ -37,10 +37,10 @@ class WorldGuard(override val plugin: Plop): Addon, State {
         get() = worldGuardPlatform.regionContainer
 
     private val personalPlotWorld: com.sk89q.worldedit.world.World?
-        get() = Bukkit.getWorld(plotConfig.getPlotWorld(PlotType.PERSONAL)!!)?.localWorld()
+        get() = Bukkit.getWorld(plotConfig.getPlotWorld(PlotType.PERSONAL))?.localWorld()
 
     private val guildPlotWorld: com.sk89q.worldedit.world.World?
-        get() = Bukkit.getWorld(plotConfig.getPlotWorld(PlotType.GUILD)!!)?.localWorld()
+        get() = Bukkit.getWorld(plotConfig.getPlotWorld(PlotType.GUILD))?.localWorld()
 
     override suspend fun load() {
         worldGuardAPI = WorldGuard.getInstance()

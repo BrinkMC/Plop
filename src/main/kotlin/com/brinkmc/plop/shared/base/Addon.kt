@@ -182,12 +182,10 @@ internal interface Addon {
 
     // Location check for player
 
-    suspend fun Player.inPlot(): Boolean {
-        return (plots.handler.getPlotFromLocation(location)?.plotId == player?.uniqueId) || (plots.handler.getPlotFromLocation(location)?.plotId == player?.guild()?.id)
-    }
-
     suspend fun Player.getCurrentPlot(): Plot? {
-        return plots.handler.getPlotFromLocation(location)
+        return plugin.playerTracker.locations.get(this) {
+            plots.handler.getPlotFromLocation(location)
+        }
     }
 
     suspend fun Location.getCurrentPlot(): Plot? {
@@ -206,5 +204,9 @@ internal interface Addon {
 
     suspend fun Location.getSafeDestination(): Location? {
         return plugin.locationUtils.getSafe(this)
+    }
+
+    suspend fun MutableList<Location>.getClosest(location: Location): Location? {
+        return plugin.locationUtils.getClosest(this, location)
     }
 }

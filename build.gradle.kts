@@ -14,6 +14,7 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.jpenilla.xyz/snapshots/")
     maven("https://repo.doesnt-want-to.work/snapshots/")
+    maven("https://jitpack.io/")
     maven("https://maven.enginehub.org/repo/")
     maven("https://maven.noxcrew.com/public")
     maven("https://eldonexus.de/repository/maven-releases/")
@@ -31,18 +32,19 @@ dependencies {
     implementation(platform(kotlin("bom")))
     implementation(kotlin("stdlib"))
 
-    compileOnly("dev.folia", "folia-api", "1.20.1-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper", "paper-api", "1.21.1-R0.1-SNAPSHOT")
     compileOnly("com.github.MilkBowl", "VaultAPI", "1.7.1")
     compileOnly("me.clip", "placeholderapi", "2.11.6")
     compileOnly("me.glaremasters", "guilds", "3.5.7.0")
     compileOnly("io.lumine", "Mythic-Dist", "5.7.2")
     compileOnly(fileTree("libs/") { include("*.jar") })
-    compileOnly("com.github.yannicklamprecht:worldborderapi:1.206.1:dev") // Weird import
+    compileOnly("com.github.yannicklamprecht:worldborderapi:1.211.0:dev") // Weird import
     compileOnly("com.github.retrooper", "packetevents-spigot", "2.7.0")
+    compileOnly("com.github.decentsoftware-eu", "decentholograms", "2.8.14")
 
 
-    compileOnly("com.sk89q.worldguard", "worldguard-core", "7.0.11")
-    compileOnly("com.sk89q.worldguard", "worldguard-bukkit", "7.0.11")
+    compileOnly("com.sk89q.worldguard", "worldguard-core", "7.0.12")
+    compileOnly("com.sk89q.worldguard", "worldguard-bukkit", "7.0.12")
     compileOnly("com.sk89q.worldedit", "worldedit-core", "7.3.9")
     compileOnly("com.sk89q.worldedit", "worldedit-core", "7.3.9")
 
@@ -63,7 +65,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-api","2.20.0")
     implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-core","2.20.0")
-    implementation("com.noxcrew.interfaces", "interfaces", "1.2.0")
+    implementation("com.noxcrew.interfaces", "interfaces", "1.3.2")
 
     implementation(platform("org.spongepowered:configurate-bom:4.1.2"))
     implementation("org.spongepowered", "configurate-hocon")
@@ -72,7 +74,6 @@ dependencies {
     implementation("com.zaxxer", "HikariCP", "6.2.1")
     implementation("com.sksamuel.aedile", "aedile-core", "2.0.3")
     implementation("org.bstats", "bstats-bukkit", "3.0.2")
-    implementation("io.papermc", "paperlib", "1.0.8")
 }
 
 version = (version as String)//.decorateVersion()

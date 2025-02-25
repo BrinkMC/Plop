@@ -35,6 +35,7 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
         plot.shop = loadShop(id, plot.type)
         plot.totem = loadTotem(id, plot.type)
         plot.visit = loadVisits(id, plot.type)
+        plot.nexus = loadNexus(id)
         return plot
     }
 
@@ -44,6 +45,7 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
             Plot(
                 plotId = plotId,
                 type = PlotType.valueOf(rs.getString("type")),
+                nexus = mutableListOf(),
                 claim = PlotClaim(Location(null, 0.0, 0.0, 0.0), Location(null,0.0,0.0,0.0), Location(null,0.0,0.0,0.0)),
                 visit = PlotVisit(true,0,0, mutableListOf(),PlotType.PERSONAL),
                 size = PlotSize(0,PlotType.PERSONAL),
@@ -119,6 +121,16 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
         return PlotTotem(level, totemList, enableLightning, plotType)
     }
 
+    private suspend fun loadNexus(plotId: UUID): MutableList<Location> {
+        val nexusRs = DB.query("SELECT * FROM plot_nexus WHERE plot_id=?", plotId.toString())
+        val nexusList = mutableListOf<Location>()
+        while (nexusRs?.next() == true) {
+            val loc = nexusRs.getString("nexus_location").toLocation() ?: continue
+            nexusList.add(loc)
+        }
+        return nexusList
+    }
+
     private suspend fun loadVisits(plotId: UUID, plotType: PlotType): PlotVisit {
         var visitable = true
         var level = 0
@@ -190,6 +202,13 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
             DB.update("INSERT INTO plot_totems (plot_id, totem_type, totem_location) VALUES (?,?,?)",
                 id, totem.totemType.toString(), totem.location.fullString(false))
         }
+
+        // nexus
+        DB.update("DELETE FROM plot_nexus WHERE plot_id=?", id)
+        for (nexus in plot.nexus) {
+            DB.update("INSERT INTO plot_nexus (plot_id, nexus_location) VALUES (?,?)", id, nexus.fullString(false))
+        }
+
         // visits
         DB.update("INSERT INTO plot_visits (plot_id, allow_visitors, visit_level, current_visits) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE allow_visitors=VALUES(allow_visitors), visit_level=VALUES(visit_level), current_visits=VALUES(current_visits)",
             id, plot.visit.visitable, plot.visit.level, plot.visit.currentVisits)
@@ -212,6 +231,7 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
         DB.update("DELETE FROM plot_sizes WHERE plot_id=?", id)
         DB.update("DELETE FROM plot_claims WHERE plot_id=?", id)
         DB.update("DELETE FROM plots WHERE plot_id=?", id)
+        DB.update("DELETE FROM plot_nexus WHERE plot_id=?", id)
     }
 
     suspend fun addVisit(plot: Plot) {

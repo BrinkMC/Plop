@@ -67,6 +67,14 @@ CREATE TABLE IF NOT EXISTS `plot_totems` (
     FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
     );
 
+CREATE TABLE IF NOT EXISTS `plot_nexus` (
+    `nexus_id` INT AUTO_INCREMENT NOT NULL,
+    `plot_id` VARCHAR(36) NOT NULL,
+    `nexus_location` TEXT NOT NULL,
+    PRIMARY KEY (`totem_id`),
+    FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
+)
+
 CREATE TABLE IF NOT EXISTS `plot_visits` (
     `plot_id` VARCHAR(36) NOT NULL,
     `allow_visitors` BINARY(1) NOT NULL,

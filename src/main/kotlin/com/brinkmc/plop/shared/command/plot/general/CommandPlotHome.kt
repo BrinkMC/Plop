@@ -21,7 +21,7 @@ class CommandPlotHome(override val plugin: Plop) : Addon, CmdAddon {
         val choice = plugin.menus.selectionSelfMenu.requestChoice(player, type, null) // Get choice because none was specified originally
 
         if (choice == null) {
-            player.sendMiniMessage(lang.get("plot.no-plot"))
+            player.sendMiniMessage("plot.no-plot")
             return
         }
 
@@ -33,6 +33,6 @@ class CommandPlotHome(override val plugin: Plop) : Addon, CmdAddon {
         syncScope {
             plot?.claim?.home?.let { player.teleport(it) }
         }
-        player.sendMiniMessage(lang.get("plot.teleport-complete"))
+        player.sendMiniMessage("plot.teleport-complete")
     }
 }

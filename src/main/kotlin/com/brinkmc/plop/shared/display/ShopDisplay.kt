@@ -4,7 +4,7 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shop.Shop
+import com.brinkmc.plop.shop.shop.Shop
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.sksamuel.aedile.core.asCache

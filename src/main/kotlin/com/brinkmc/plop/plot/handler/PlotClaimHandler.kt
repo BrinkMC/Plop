@@ -23,7 +23,7 @@ class PlotClaimHandler(override val plugin: Plop): Addon, State {
         val previewInstance = plots.previewHandler.getPreview(player)
         
         if (previewInstance == null) {
-            player.player()?.sendMiniMessage(lang.get("preview.start.no-preview"))
+            player.player()?.sendMiniMessage("preview.start.no-preview")
             return
         }
 
@@ -45,12 +45,13 @@ class PlotClaimHandler(override val plugin: Plop): Addon, State {
         val newPlot = Plot(
             uuid,
             plotType,
+            mutableListOf(),
             plotClaim,
             PlotVisit(true, 0, 0, mutableListOf(), plotType),
             PlotSize(0, plotType),
             PlotFactory(0, mutableListOf(), plotType),
             PlotShop(0, mutableListOf(), plotType),
-            PlotTotem(0, mutableListOf(), plotType) // No totems for a brand-new plot
+            PlotTotem(0, mutableListOf(),true, plotType) // No totems for a brand-new plot
         )
 
         plots.handler.addPlot(newPlot) // Register new plot in handler

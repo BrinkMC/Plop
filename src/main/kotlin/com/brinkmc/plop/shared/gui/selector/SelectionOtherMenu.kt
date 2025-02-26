@@ -23,12 +23,12 @@ class SelectionOtherMenu(override val plugin: Plop): Addon {
 
     // Inventory items
     val GUILD_PLOT: ItemStack = ItemStack(Material.PLAYER_HEAD)
-        .name(lang.get("selection-other.toggle-guild.name"))
-        .description(lang.get("selection-other.toggle-guild.desc"))
+        .name("selection-other.toggle-guild.name")
+        .description("selection-other.toggle-guild.desc")
 
     val PERSONAL_PLOT: ItemStack = ItemStack(Material.PLAYER_HEAD)
-        .name(lang.get("selection-other.toggle-personal.name"))
-        .description(lang.get("selection-other.toggle-personal.desc"))
+        .name("selection-other.toggle-personal.name")
+        .description("selection-other.toggle-personal.desc")
 
     private val inventory = buildChestInterface {
         onlyCancelItemInteraction = false

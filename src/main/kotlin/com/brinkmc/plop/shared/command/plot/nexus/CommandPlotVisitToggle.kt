@@ -16,22 +16,22 @@ internal class CommandPlotVisitToggle(override val plugin: Plop) : Addon, CmdAdd
         val plot = player.getCurrentPlot()
 
         if (plot == null) {
-            player.sendMiniMessage(lang.get("plot.not-in-plot"))
+            player.sendMiniMessage("plot.not-in-plot")
             return
         }
 
         if (!plot.owner.getPlayers().contains(player.uniqueId)) {
-            player.sendMiniMessage(lang.get("plot.not-owner"))
+            player.sendMiniMessage("plot.not-owner")
             return
         }
 
         if (!player.hasPermission("plop.plot.visit.toggle")) {
-            player.sendMiniMessage(lang.get("plot.no-permission"))
+            player.sendMiniMessage("plot.no-permission")
             return
         }
 
         plot.visit.visitable = !plot.visit.visitable // Swap state
-        player.sendMiniMessage(lang.get("plot.visit.toggle"))
+        player.sendMiniMessage("plot.visit.toggle")
 
     }
 }

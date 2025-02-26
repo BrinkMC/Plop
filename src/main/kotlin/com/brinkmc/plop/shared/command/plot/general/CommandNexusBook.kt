@@ -15,17 +15,17 @@ class CommandNexusBook(override val plugin: Plop) : Addon, CmdAddon {
         val player = getPlayer(sender.sender)
 
         if (player.inventory.contains(plots.nexusManager.NEXUS_BOOK)) {
-            player.sendMiniMessage(lang.get("plot.nexus.already-have"))
+            player.sendMiniMessage("plot.nexus.already-have")
             return
         }
 
         if (!player.world.isPlotWorld()) {
-            player.sendMiniMessage(lang.get("plot.nexus.not-in-plot-world"))
+            player.sendMiniMessage("plot.nexus.not-in-plot-world")
             return
         }
 
         if (!player.getPlots().contains(player.getCurrentPlot())) {
-            player.sendMiniMessage(lang.get("plot.nexus.not-in-plot"))
+            player.sendMiniMessage("plot.nexus.not-in-plot")
             return
         }
 

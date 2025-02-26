@@ -36,28 +36,28 @@ class HotbarPreview(override val plugin: Plop): Addon {
 
     // Inventory items
     val BACK_BUTTON: ItemStack = ItemStack(Material.ARROW)
-        .name(lang.get("preview.back-button.name"))
-        .description(lang.get("preview.back-button.desc"))
+        .name("preview.back-button.name")
+        .description("preview.back-button.desc")
 
     val FORWARD_BUTTON: ItemStack = ItemStack(Material.ARROW)
-        .name(lang.get("preview.forward-button.name"))
-        .description(lang.get("preview.forward-button.desc"))
+        .name("preview.forward-button.name")
+        .description("preview.forward-button.desc")
 
     val CONFIRM_BUTTON: ItemStack = ItemStack(Material.EMERALD)
-        .name(lang.get("preview.confirm-button.name"))
-        .description(lang.get("preview.confirm-button.desc"))
+        .name("preview.confirm-button.name")
+        .description("preview.confirm-button.desc")
 
     val TOGGLE_BUTTON_GUILD: ItemStack = ItemStack(Material.PLAYER_HEAD)
-        .name(lang.get("preview.toggle-button.guild-name"))
-        .description(lang.get("preview.toggle-button.guild-desc"))
+        .name("preview.toggle-button.guild-name")
+        .description("preview.toggle-button.guild-desc")
 
     val TOGGLE_BUTTON_PERSONAL: ItemStack = ItemStack(Material.PLAYER_HEAD)
-        .name(lang.get("preview.toggle-button.personal-name"))
-        .description(lang.get("preview.toggle-button.personal-desc"))
+        .name("preview.toggle-button.personal-name")
+        .description("preview.toggle-button.personal-desc")
 
     val CANCEL_BUTTON: ItemStack = ItemStack(Material.REDSTONE)
-        .name(lang.get("preview.cancel-button.name"))
-        .description(lang.get("preview.cancel-button.desc"))
+        .name("preview.cancel-button.name")
+        .description("preview.cancel-button.desc")
 
 
 

@@ -25,7 +25,7 @@ internal class CommandPlotPreview(override val plugin: Plop): Addon, CmdAddon {
         val guildPlot = player.guildPlot()
 
         if (plots.previewHandler.getPreview(player.uniqueId) != null) {
-            player.sendMiniMessage(lang.get("command.already-previewing"))
+            player.sendMiniMessage("command.already-previewing")
             return
         }
 
@@ -44,7 +44,7 @@ internal class CommandPlotPreview(override val plugin: Plop): Addon, CmdAddon {
             return
         }
 
-        player.sendMiniMessage(lang.get("command.already-claimed-max"))
+        player.sendMiniMessage("command.already-claimed-max")
     }
 
 

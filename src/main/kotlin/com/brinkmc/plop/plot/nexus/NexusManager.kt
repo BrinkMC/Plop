@@ -21,7 +21,7 @@ class NexusManager(override val plugin: Plop): Addon, State {
 
     val NEXUS_BOOK = ItemStack(Material.WRITTEN_BOOK)
         .name(lang.decode(plotConfig.nexusConfig.bookName))
-        .description(lang.get("nexus.book-desc"))
+        .description("nexus.book-desc")
 
     val schematicName = plotConfig.nexusConfig.schematicName
 

@@ -22,7 +22,7 @@ class CommandPlotVisit(override val plugin: Plop) : Addon, CmdAddon {
         val choice = plugin.menus.selectionOtherMenu.requestChoice(player, receiver, type, null)
 
         if (choice == null) {
-            player.sendMiniMessage(lang.get("plot.no-plot"))
+            player.sendMiniMessage("plot.no-plot")
             return
         }
 
@@ -33,13 +33,13 @@ class CommandPlotVisit(override val plugin: Plop) : Addon, CmdAddon {
         val plot = receiver.getPlot(type)
 
         if (plot?.visit?.visitable == false) {
-            player.sendMiniMessage(lang.get("plot.not-visitable"))
+            player.sendMiniMessage("plot.not-visitable")
             return
         }
 
         syncScope {
             plot?.claim?.home?.let { player.teleport(it) }
         }
-        player.sendMiniMessage(lang.get("plot.teleport-complete"))
+        player.sendMiniMessage("plot.teleport-complete")
     }
 }

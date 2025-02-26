@@ -35,7 +35,7 @@ class Cooldown(override val plugin: Plop, private val cooldown: Duration): Addon
     suspend fun bool(player: Player): Boolean {
         val cooldown = checkCooldown(player)
         if (cooldown != null) {
-            player.sendMiniMessage(lang.get("preview.cooldown", null, cooldown))
+            player.sendMiniMessage("preview.cooldown", null, cooldown))
             return true
         }
         return false

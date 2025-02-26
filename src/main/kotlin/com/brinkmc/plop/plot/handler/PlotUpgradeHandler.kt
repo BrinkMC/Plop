@@ -30,7 +30,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         // Using the economy API, check if they can afford it
 
         if (plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            initiator.sendMiniMessage(lang.get("not-enough-money"))
+            initiator.sendMiniMessage("not-enough-money")
             return
         }
 
@@ -47,7 +47,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
 
         // Using the economy API, check if they can afford it
         if (plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendMiniMessage(lang.get("not-enough-money"))
+            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendMiniMessage("not-enough-money")
             return
         }
 
@@ -65,14 +65,14 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         // Using the economy API, check if they can afford it
 
         if (plot.owner.hasBalance(economy, potentialLevel?.price?.toDouble() ?: 0.0)) {
-            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendMiniMessage(lang.get("not-enough-money"))
+            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendMiniMessage("not-enough-money")
             return
         }
 
         plots.shopHandler.upgradePlot(plot) // Update the plot in the database
     }
 
-    fun upgradeFactoryLevel(plot: Plot) {
+    fun upgradeFactoryLevel(plot: Plot, player: Player) {
         logger.info("Upgrading factory limit level")
 
         if (plot.factory.level == plots.factoryHandler.getHighestLevel(plot.type)) return // Already at max level
@@ -83,7 +83,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         // Using the economy API, check if they can afford it
 
         if (plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendMiniMessage(lang.get("not-enough-money"))
+            player.sendMiniMessage("not-enough-money")
             return
         }
 

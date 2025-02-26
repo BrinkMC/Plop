@@ -15,7 +15,7 @@ internal class CommandAdminClaimPlot(override val plugin: Plop) : Addon, CmdAddo
         val player = getPlayer(sender.sender)
 
         if (!player.hasPermission("plop.admin.claim")) {
-            player.sendMiniMessage(lang.get("no-permission"))
+            player.sendMiniMessage("no-permission")
             return
         }
 

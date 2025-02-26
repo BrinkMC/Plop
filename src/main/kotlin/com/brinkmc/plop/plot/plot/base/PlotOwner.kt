@@ -10,24 +10,9 @@ import org.bukkit.inventory.meta.SkullMeta
 import java.util.UUID
 
 sealed class PlotOwner {
-    data class GuildOwner(val guild: Guild): PlotOwner() {
+    data class GuildOwner(val guild: Guild): PlotOwner()
 
-        val members: MutableList<UUID> = guild.members.map { it.uuid }.toMutableList()
-
-        fun addMember(newMember: UUID) {
-            members.add(newMember)
-        }
-
-        fun removeMember(oldMember: UUID) {
-            members.remove(oldMember)
-        }
-    }
-
-    data class PlayerOwner(val player: OfflinePlayer): PlotOwner() {
-        fun onlinePlayer(): Player? {
-            return Bukkit.getPlayer(player.uniqueId)
-        }
-    }
+    data class PlayerOwner(val player: OfflinePlayer): PlotOwner()
 
     fun getName(): String {
         return when (this) {
@@ -100,7 +85,7 @@ sealed class PlotOwner {
     fun isPlayer(check: Player) {
         when (this) {
             is GuildOwner -> {
-                members.contains(check.uniqueId)
+                guild.members.map{ it.uuid }.contains(check.uniqueId)
             }
             is PlayerOwner -> {
                 player.uniqueId == check.uniqueId
@@ -111,7 +96,7 @@ sealed class PlotOwner {
     fun getPlayers(): List<UUID> {
         return when (this) {
             is GuildOwner -> {
-                members
+                guild.members.map{ it.uuid }
             }
             is PlayerOwner -> {
                 listOf(player.uniqueId)
@@ -125,7 +110,7 @@ sealed class PlotOwner {
                 (guild.guildSkull.itemStack.itemMeta as SkullMeta).playerProfile
             }
             is PlayerOwner -> {
-                player.playerProfile as PlayerProfile
+                player.playerProfile
             }
         }
     }

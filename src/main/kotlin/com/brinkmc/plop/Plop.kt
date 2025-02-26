@@ -33,7 +33,8 @@ import com.brinkmc.plop.shared.hooks.listener.GuildListener
 import com.brinkmc.plop.shared.hooks.listener.PreviewListener
 import com.brinkmc.plop.shared.hooks.listener.DamageListener
 import com.brinkmc.plop.shared.hooks.listener.NexusListener
-import com.brinkmc.plop.shared.hooks.listener.PlayerTracker
+import com.brinkmc.plop.shared.hooks.PlayerTracker
+import com.brinkmc.plop.shared.hooks.listener.ShopListener
 import com.brinkmc.plop.shared.hooks.listener.TotemListener
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.LocationUtils
@@ -79,6 +80,7 @@ class Plop : State, SuspendingJavaPlugin() {
     private lateinit var nexusListener: NexusListener
     lateinit var playerTracker: PlayerTracker
     private lateinit var previewListener: PreviewListener
+    private lateinit var shopListener: ShopListener
     private lateinit var totemListener: TotemListener
 
     override suspend fun onLoadAsync() {
@@ -162,6 +164,7 @@ class Plop : State, SuspendingJavaPlugin() {
         nexusListener = NexusListener(plugin)
         playerTracker = PlayerTracker(plugin)
         previewListener = PreviewListener(plugin)
+        shopListener = ShopListener(plugin)
         totemListener = TotemListener(plugin)
 
         // Listeners
@@ -172,6 +175,7 @@ class Plop : State, SuspendingJavaPlugin() {
             nexusListener,
             playerTracker,
             previewListener,
+            shopListener,
             totemListener
         ).forEach { listener -> server.pluginManager.registerSuspendingEvents(listener, this) }
         plugin.slF4JLogger.info("Finished hooking listeners")

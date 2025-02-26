@@ -12,6 +12,7 @@ import com.brinkmc.plop.shared.config.configs.*
 import com.brinkmc.plop.shared.hooks.Economy
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.message.MessageService
+import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.Shops
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
@@ -114,11 +115,19 @@ internal interface Addon {
 
     // Provide an easy way to get formatted MiniMessage messages with custom tags also replaced properly
     fun Player.sendMiniMessage(message: String) {
-        lang.sendFormattedMessageStr(this, message)
+        lang.deserialise(message).let { this.sendMessage(it) }
     }
 
-    fun Player.sendMiniMessage(message: Component) {
-        lang.sendFormattedMessageComp(this, message)
+    fun Player.sendMiniMessage(message: String, plot: Plot) {
+        lang.deserialise(message, plot).let { this.sendMessage(it) }
+    }
+
+    fun Player.sendMiniMessage(message: String, shop: Shop) {
+        lang.deserialise(message, shop).let { this.sendMessage(it) }
+    }
+
+    fun Player.sendMiniMessage(message: String, shop: Shop, plot: Plot) {
+        lang.deserialise(message, shop, plot).let { this.sendMessage(it) }
     }
 
     // Extension functions for Bukkit

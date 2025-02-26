@@ -1,7 +1,12 @@
 package com.brinkmc.plop.shared.util.message
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.shared.base.Addon
+import com.brinkmc.plop.shared.util.message.tags.PlayerTags
+import com.brinkmc.plop.shared.util.message.tags.PlotTags
+import com.brinkmc.plop.shared.util.message.tags.ShopTags
+import com.brinkmc.plop.shop.shop.Shop
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
@@ -11,82 +16,83 @@ import org.bukkit.entity.Player
 
 class MessageService(override val plugin: Plop): Addon {
 
-    private val profileTags = ProfileTags(plugin)
-    val miniMessage: MiniMessage = MiniMessage.builder()
+    private val miniMessage: MiniMessage = MiniMessage.builder()
         .tags(TagResolver.builder() // Define some of the tags
             .resolver(StandardTags.defaults())
             .build()
         )
         .build()
 
+    private val playerTags = PlayerTags(plugin, miniMessage)
+    private val shopTags = ShopTags(plugin, miniMessage)
+    private val plotTags = PlotTags(plugin, miniMessage)
+
     private val plopMessageSource = plugin.plopMessageSource()
 
-    // Provide functionality to the Addon reference
-    fun sendFormattedMessageStr(player: Player, message: String) {
-        player.sendMessage(
-            miniMessage.deserialize(message, profileTags.name(player))
+    // All possible iteration of deserialisation methods which are possible
+
+    fun deserialise(string: String): Component {
+        return miniMessage.deserialize(
+            plopMessageSource.findMessage(string) ?: string
         )
     }
 
-    fun sendFormattedMessageComp(player: Player, message: Component) {
-        player.sendMessage(
-            message
+    suspend fun deserialise(string: String, player: Player): Component {
+        return miniMessage.deserialize(
+            plopMessageSource.findMessage(string) ?: string,
+            playerTags.all(player) // Set the tags
         )
     }
 
-    fun decode(string: String): Component {
-        return miniMessage.deserialize(string)
-    }
-
-    fun get(string: String, player: Player? = null): Component {
-        return if (player == null) {
-            miniMessage.deserialize(
-                plopMessageSource.findMessage(string) ?: "<red>No message set for $string"
-            )
-        } else {
-            miniMessage.deserialize(
-                plopMessageSource.findMessage(string) ?: "<red>No message set for $string",
-                profileTags.name(player)
-            )
-        }
-    }
-}
-
-class ProfileTags(override val plugin: Plop) : Addon {
-
-    val miniMessage = plugin.getMessageService().miniMessage
-
-    suspend fun all(player: Player): TagResolver {
-
-        return TagResolver.resolver(
-            name(player),
-            personalPlotResolver(player),
-            guildPlotResolver(player)
-        )
-
-    }
-
-    private fun name(player: Player): TagResolver {
-        return Placeholder.component("name", player.displayName())
-    }
-
-    private suspend fun personalPlotResolver(player: Player): TagResolver {
-        val personalPlot = player.personalPlot()
-        return Placeholder.component(
-            "p_plot_owner",
-            miniMessage.deserialize(personalPlot?.owner?.getName() ?: "No Personal Plot")
+    fun deserialise(string: String, shop: Shop): Component {
+        return miniMessage.deserialize(
+            plopMessageSource.findMessage(string) ?: string,
+            shopTags.all(shop) // Set the tags
         )
     }
 
-    private suspend fun guildPlotResolver(player: Player): TagResolver {
-        val guild = player.guild()
-        val guildPlot = guild?.plot()
-        return Placeholder.component(
-            "g_plot_owner",
-            miniMessage.deserialize(guildPlot?.owner?.getName() ?: "No Guild Plot")
+    fun deserialise(string: String, plot: Plot): Component {
+        return miniMessage.deserialize(
+            plopMessageSource.findMessage(string) ?: string,
+            plotTags.all(plot) // Set the tags
+        )
+    }
+
+    suspend fun deserialise(string: String, player: Player, shop: Shop): Component {
+        return miniMessage.deserialize(
+            plopMessageSource.findMessage(string) ?: string,
+            playerTags.all(player),
+            shopTags.all(shop) // Set the tags
+        )
+    }
+
+    suspend fun deserialise(string: String, player: Player, plot: Plot): Component {
+        return miniMessage.deserialize(
+            plopMessageSource.findMessage(string) ?: string,
+            playerTags.all(player),
+            plotTags.all(plot) // Set the tags
+        )
+    }
+
+    fun deserialise(string: String, shop: Shop, plot: Plot): Component {
+        return miniMessage.deserialize(
+            plopMessageSource.findMessage(string) ?: string,
+            shopTags.all(shop),
+            plotTags.all(plot) // Set the tags
+        )
+    }
+
+    suspend fun deserialise(string: String, player: Player, shop: Shop, plot: Plot): Component {
+        return miniMessage.deserialize(
+            plopMessageSource.findMessage(string) ?: string,
+            playerTags.all(player),
+            shopTags.all(shop),
+            plotTags.all(plot) // Set the tags
         )
     }
 }
+
+
 
 
 

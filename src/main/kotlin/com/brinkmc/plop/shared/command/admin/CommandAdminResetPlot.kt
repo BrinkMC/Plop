@@ -20,7 +20,7 @@ internal class CommandAdminResetPlot(override val plugin: Plop) : Addon, CmdAddo
         val player = getPlayer(sender.sender)
 
         if (!player.hasPermission("plop.admin.claim")) {
-            player.sendMiniMessage(lang.get("no-permission"))
+            player.sendMiniMessage("no-permission")
             return
         }
 
@@ -34,26 +34,26 @@ internal class CommandAdminResetPlot(override val plugin: Plop) : Addon, CmdAddo
         val personalPlot = receiver.personalPlot()
 
         if (personalPlot == null) {
-            player.sendMiniMessage(lang.get("no-plot"))
+            player.sendMiniMessage("no-plot")
             return
         }
 
         plugin.hooks.worldGuard.deleteRegion(personalPlot.plotId)
         plots.handler.deletePlot(personalPlot)
-        player.sendMiniMessage(lang.get("plot-unclaimed"))
+        player.sendMiniMessage("plot-unclaimed")
     }
 
     suspend fun resetGuildPlot(player: Player, receiver: Player) {
         val guildPlot = receiver.guildPlot()
 
         if (guildPlot == null) {
-            player.sendMiniMessage(lang.get("no-plot"))
+            player.sendMiniMessage("no-plot")
             return
         }
 
         plugin.hooks.worldGuard.deleteRegion(guildPlot.plotId)
         plots.handler.deletePlot(guildPlot)
-        player.sendMiniMessage(lang.get("plot-unclaimed"))
+        player.sendMiniMessage("plot-unclaimed")
     }
 
 }

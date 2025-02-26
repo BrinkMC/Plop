@@ -9,7 +9,6 @@ import com.brinkmc.plop.shared.util.GuiUtils.setSkull
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.buildChestInterface
-import com.noxcrew.interfaces.view.ChestInterfaceView
 import com.noxcrew.interfaces.view.InterfaceView
 import kotlinx.coroutines.CompletableDeferred
 import org.bukkit.Material
@@ -22,12 +21,12 @@ class SelectionSelfMenu(override val plugin: Plop): Addon {
 
     // Inventory items
     val GUILD_PLOT: ItemStack = ItemStack(Material.PLAYER_HEAD)
-        .name(lang.get("selection-self.toggle-guild.name"))
-        .description(lang.get("selection-self.toggle-guild.desc"))
+        .name("selection-self.toggle-guild.name")
+        .description("selection-self.toggle-guild.desc")
 
     val PERSONAL_PLOT: ItemStack = ItemStack(Material.PLAYER_HEAD)
-        .name(lang.get("selection-self.toggle-personal.name"))
-        .description(lang.get("selection-self.toggle-personal.desc"))
+        .name("selection-self.toggle-personal.name")
+        .description("selection-self.toggle-personal.desc")
 
     private val inventory = buildChestInterface {
         onlyCancelItemInteraction = false

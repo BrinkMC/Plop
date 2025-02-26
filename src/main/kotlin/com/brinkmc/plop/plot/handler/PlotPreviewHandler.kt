@@ -51,17 +51,17 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
 
         // Handle potential forced guild plot errors
         if (type == PlotType.GUILD && guild == null) {
-            bukkitPlayer.sendMiniMessage(lang.get("preview.start.no-guild"))
+            bukkitPlayer.sendMiniMessage("preview.start.no-guild")
             return
         }
 
         if (type == PlotType.GUILD && (guild?.size ?: 0) <= plotConfig.guildConfig.minSize-1) {
-            bukkitPlayer.sendMiniMessage(lang.get("preview.start.guild-too-small"))
+            bukkitPlayer.sendMiniMessage("preview.start.guild-too-small")
             return
         }
 
         if (type == PlotType.GUILD && guild?.guildMaster?.uuid != player) {
-            bukkitPlayer.sendMiniMessage(lang.get("preview.start.not-guild-master"))
+            bukkitPlayer.sendMiniMessage("preview.start.not-guild-master")
             return
         }
 
@@ -70,17 +70,17 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
         val personalPlot = bukkitPlayer.personalPlot()
 
         if (guildPlot != null && personalPlot != null) {
-            bukkitPlayer.sendMiniMessage(lang.get("preview.plots.max-plots"))
+            bukkitPlayer.sendMiniMessage("preview.plots.max-plots")
             return
         }
 
         if (personalPlot != null && type == PlotType.PERSONAL) {
-            bukkitPlayer.sendMiniMessage(lang.get("preview.has-plots.personal"))
+            bukkitPlayer.sendMiniMessage("preview.has-plots.personal")
             return
         }
 
         if (guildPlot != null && type == PlotType.GUILD) {
-            bukkitPlayer.sendMiniMessage(lang.get("preview.has-plots.guild"))
+            bukkitPlayer.sendMiniMessage("preview.has-plots.guild")
             return
         }
 
@@ -136,27 +136,27 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
         val guild = bukkitPlayer.guild()
 
         if (previewInstance.type == PlotType.PERSONAL && guild == null) {
-            bukkitPlayer.sendMiniMessage(lang.get("preview.switch.no-guild"))
+            bukkitPlayer.sendMiniMessage("preview.switch.no-guild")
             return
         }
 
         if (previewInstance.type == PlotType.PERSONAL && (guild?.size ?: 0) <= plotConfig.guildConfig.minSize-1) {
-            bukkitPlayer.sendMiniMessage(lang.get("preview.switch.guild-too-small"))
+            bukkitPlayer.sendMiniMessage("preview.switch.guild-too-small")
             return
         }
 
         if (previewInstance.type == PlotType.PERSONAL && guild?.guildMaster?.uuid != player) {
-            bukkitPlayer.sendMiniMessage(lang.get("preview.switch.not-guild-master"))
+            bukkitPlayer.sendMiniMessage("preview.switch.not-guild-master")
             return
         }
 
         if (previewInstance.type == PlotType.PERSONAL && bukkitPlayer.guildPlot() != null) {
-            bukkitPlayer.sendMiniMessage(lang.get("preview.switch.has-guild-plot"))
+            bukkitPlayer.sendMiniMessage("preview.switch.has-guild-plot")
             return
         }
 
         if (previewInstance.type == PlotType.GUILD && bukkitPlayer.personalPlot() != null) {
-            bukkitPlayer.sendMiniMessage(lang.get("preview.switch.has-personal-plot"))
+            bukkitPlayer.sendMiniMessage("preview.switch.has-personal-plot")
             return
         }
 

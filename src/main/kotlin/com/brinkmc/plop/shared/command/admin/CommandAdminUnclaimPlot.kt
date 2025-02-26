@@ -15,7 +15,7 @@ internal class CommandAdminUnclaimPlot(override val plugin: Plop) : Addon, CmdAd
         val player = getPlayer(sender.sender)
 
         if (!player.hasPermission("plop.admin.claim")) {
-            player.sendMiniMessage(lang.get("no-permission"))
+            player.sendMiniMessage("no-permission")
             return
         }
 
@@ -23,13 +23,13 @@ internal class CommandAdminUnclaimPlot(override val plugin: Plop) : Addon, CmdAd
         val plot = player.getCurrentPlot()
 
         if (plot == null) {
-            player.sendMiniMessage(lang.get("no-plot"))
+            player.sendMiniMessage("no-plot")
             return
         }
 
         plugin.hooks.worldGuard.deleteRegion(plot.plotId)
         plots.handler.deletePlot(plot)
-        player.sendMiniMessage(lang.get("plot-unclaimed"))
+        player.sendMiniMessage("plot-unclaimed")
     }
 
 }

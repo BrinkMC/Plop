@@ -14,7 +14,7 @@ internal class CommandAdminCreateShop(override val plugin: Plop) : Addon, CmdAdd
     ) {
         val player = getPlayer(sender.sender)
         if (!player.hasPermission("plop.admin.claim")) {
-            player.sendMiniMessage(lang.get("no-permission"))
+            player.sendMiniMessage("no-permission")
             return
         }
 

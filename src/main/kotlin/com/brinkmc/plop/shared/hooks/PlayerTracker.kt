@@ -1,4 +1,4 @@
-package com.brinkmc.plop.shared.hooks.listener
+package com.brinkmc.plop.shared.hooks
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.Plot
@@ -6,7 +6,6 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.sksamuel.aedile.core.asCache
-import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority

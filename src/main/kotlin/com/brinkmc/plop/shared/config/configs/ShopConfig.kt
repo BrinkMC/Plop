@@ -8,6 +8,9 @@ import org.spongepowered.configurate.objectmapping.meta.Setting
 @ConfigSerializable
 data class ShopConfig(
 
+    @Setting("ViewDistance")
+    val viewDistance: Int = 100,
+
     @Setting("Display")
     val display: List<String> = listOf(
         "TEXT:<red>Shop - <owner>",

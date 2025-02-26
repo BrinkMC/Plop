@@ -7,13 +7,11 @@ import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.plot.modifier.PlotFactory
 import com.brinkmc.plop.plot.plot.modifier.PlotSize
 import com.brinkmc.plop.plot.plot.modifier.PlotTotem
-import com.brinkmc.plop.plot.plot.modifier.PlotVisit
 import com.brinkmc.plop.shared.config.ConfigReader
 import com.brinkmc.plop.shared.config.configs.*
 import com.brinkmc.plop.shared.hooks.Economy
 import com.brinkmc.plop.shared.storage.HikariManager
-import com.brinkmc.plop.shared.util.LocationUtils
-import com.brinkmc.plop.shared.util.MessageService
+import com.brinkmc.plop.shared.util.message.MessageService
 import com.brinkmc.plop.shop.Shops
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
@@ -22,7 +20,6 @@ import com.github.shynixn.mccoroutine.bukkit.scope
 import io.lumine.mythic.api.adapters.AbstractLocation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -207,6 +204,10 @@ internal interface Addon {
     }
 
     suspend fun MutableList<Location>.getClosest(location: Location): Location? {
+        return plugin.locationUtils.getClosest(this, location)
+    }
+
+    suspend fun List<Location>.getClosest(location: Location): Location? {
         return plugin.locationUtils.getClosest(this, location)
     }
 }

@@ -37,13 +37,12 @@ import com.brinkmc.plop.shared.hooks.listener.PlayerTracker
 import com.brinkmc.plop.shared.hooks.listener.TotemListener
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.LocationUtils
-import com.brinkmc.plop.shared.util.MessageService
-import com.brinkmc.plop.shared.util.PlopMessageSource
+import com.brinkmc.plop.shared.util.message.MessageService
+import com.brinkmc.plop.shared.util.message.PlopMessageSource
 import com.brinkmc.plop.shop.Shops
 import com.github.retrooper.packetevents.event.PacketListenerPriority
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.bukkit.registerSuspendingEvents
-import com.google.gson.Gson
 import com.noxcrew.interfaces.InterfacesListeners
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack

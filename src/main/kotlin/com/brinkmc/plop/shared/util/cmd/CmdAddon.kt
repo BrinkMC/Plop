@@ -1,4 +1,4 @@
-package com.brinkmc.plop.shared.util
+package com.brinkmc.plop.shared.util.cmd
 
 import org.bukkit.command.CommandSender
 import org.incendo.cloud.paper.util.sender.Source

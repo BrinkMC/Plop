@@ -29,6 +29,17 @@ sealed class PlotOwner {
         }
     }
 
+    fun getName(): String {
+        return when (this) {
+            is GuildOwner -> {
+                guild.name
+            }
+            is PlayerOwner -> {
+                player.name ?: "Unknown"
+            }
+        }
+    }
+
     fun getLeader(): OfflinePlayer {
         return when (this) {
             is GuildOwner -> {

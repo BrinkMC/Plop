@@ -61,11 +61,7 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
 
         val player = event.player
 
-        val plot = player.getCurrentPlot()
-
-        if (plot == null) {
-            return
-        }
+        val plot = player.getCurrentPlot() ?: return
 
         // Keep track that the nexus was destroyed
         plot.nexus.remove(lectern.block.location)
@@ -86,11 +82,7 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     suspend fun onNexus(event: PlayerInteractEvent) {
-        val block = event.clickedBlock
-
-        if (block == null) {
-            return
-        }
+        val block = event.clickedBlock ?: return
 
         if (block.type != Material.LECTERN) {
             return

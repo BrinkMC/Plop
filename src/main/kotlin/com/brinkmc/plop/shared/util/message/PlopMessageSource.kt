@@ -1,10 +1,8 @@
-package com.brinkmc.plop.shared.util
+package com.brinkmc.plop.shared.util.message
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import org.bukkit.Bukkit
-import org.bukkit.configuration.file.YamlConfiguration
 import org.spongepowered.configurate.ConfigurateException
 import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader

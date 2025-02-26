@@ -3,7 +3,7 @@ package com.brinkmc.plop.shared.command.plot.preview
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.util.CmdAddon
+import com.brinkmc.plop.shared.util.cmd.CmdAddon
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command

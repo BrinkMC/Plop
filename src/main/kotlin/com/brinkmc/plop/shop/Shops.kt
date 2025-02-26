@@ -6,6 +6,7 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import me.glaremasters.guilds.guild.Guild
 import org.bukkit.entity.Player
+import java.util.UUID
 import kotlin.math.log
 
 class Shops(override val plugin: Plop): Addon,State {
@@ -28,5 +29,14 @@ class Shops(override val plugin: Plop): Addon,State {
     suspend fun Guild.guildShops(): List<Shop> {
         // One-liner to return all shops found on a guild plot
         return shopList.filter { shop -> (plots.handler.getPlotFromLocation(shop.location)?.owner as PlotOwner.GuildOwner).guild?.id == this.id }
+    }
+
+    fun getShop(shopId: UUID): Shop? {
+        return shopList.find { shop -> shop.id == shopId }
+    }
+
+    fun addShop(shopId: UUID): Boolean {
+        // REMEMBER TO INVALIDATE CACHE IN SHOP DISPLAY
+        return shopList.any { shop -> shop.id == shopId }
     }
 }

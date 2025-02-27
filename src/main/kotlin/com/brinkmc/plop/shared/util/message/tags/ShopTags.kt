@@ -36,14 +36,14 @@ class ShopTags(override val plugin: Plop, val miniMessage: MiniMessage) : Addon 
     private fun sellingTag(shop: Shop): TagResolver {
         return Placeholder.component(
             "shop_selling",
-            Component.text(shop.ware.name)
+            shop.ware.displayName()
         )
     }
 
     private fun buyingTag(shop: Shop): TagResolver {
         return Placeholder.component(
             "shop_buying",
-            Component.text(shop.ware.name)
+            shop.ware.displayName()
         )
     }
 

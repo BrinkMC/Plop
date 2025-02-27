@@ -8,7 +8,6 @@ import com.brinkmc.plop.shared.hooks.Display
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.sksamuel.aedile.core.asCache
-import de.oliver.fancyholograms.api.data.HologramData
 import de.oliver.fancyholograms.api.data.TextHologramData
 import de.oliver.fancyholograms.api.hologram.Hologram
 import kotlinx.coroutines.delay
@@ -64,6 +63,10 @@ class NexusDisplay(override val plugin: Plop): Addon, State {
     }
 
     private suspend fun near(player: Player, plot: Plot, location: Location) {
+        if (active.getIfPresent(player) == true) { // It was active to begin with
+            return
+        }
+
         active[player] = true // It was inactive, now it should be active as player is close
 
         val tags = lang.getTags(player = player, plot = plot) // Get tags and replace

@@ -33,11 +33,11 @@ class Shops(override val plugin: Plop): Addon,State {
     }
 
     fun getShop(shopId: UUID): Shop? {
-        return shopList.find { shop -> shop.id == shopId }
+        return shopList.find { shop -> shop.shopId == shopId }
     }
 
     fun addShop(shopId: UUID): Boolean {
         // REMEMBER TO INVALIDATE CACHE IN SHOP DISPLAY
-        return shopList.any { shop -> shop.id == shopId }
+        return shopList.any { shop -> shop.shopId == shopId }
     }
 }

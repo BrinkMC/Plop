@@ -200,10 +200,6 @@ internal interface Addon {
         return plugin.locationUtils.getSafe(this)
     }
 
-    suspend fun MutableList<Location>.getClosest(location: Location): Location? {
-        return plugin.locationUtils.getClosest(this, location)
-    }
-
     suspend fun List<Location>.getClosest(location: Location): Location? {
         return plugin.locationUtils.getClosest(this, location)
     }

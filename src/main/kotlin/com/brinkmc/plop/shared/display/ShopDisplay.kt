@@ -96,6 +96,10 @@ class ShopDisplay(override val plugin: Plop): Addon, State {
     }
 
     private suspend fun near(player: Player, shop: Shop, plot: Plot, startLoc: Location) {
+        if (active.getIfPresent(player) == true) { // It was active to begin with
+            return
+        }
+
         active[player] = true // It was inactive, now it should be active as player is close
 
         val tags = lang.getTags(player = player, shop = shop, plot = plot) // Get tags and replace

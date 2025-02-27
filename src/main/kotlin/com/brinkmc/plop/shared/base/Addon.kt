@@ -3,6 +3,7 @@ package com.brinkmc.plop.shared.base
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.Plots
 import com.brinkmc.plop.plot.plot.base.Plot
+import com.brinkmc.plop.plot.plot.base.PlotOwner
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.plot.modifier.PlotFactory
 import com.brinkmc.plop.plot.plot.modifier.PlotSize
@@ -27,8 +28,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.glaremasters.guilds.guild.Guild
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import org.apache.http.util.Args
 import org.bukkit.*
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.SkullMeta
 import org.slf4j.Logger
 import java.util.UUID
 import kotlin.coroutines.CoroutineContext
@@ -112,23 +117,6 @@ internal interface Addon {
 
     val PlotTotem.max: Int
         get() = plots.totemHandler.getMaximumTotemLimit(this.plotType)
-
-    // Provide an easy way to get formatted MiniMessage messages with custom tags also replaced properly
-    fun Player.sendMiniMessage(message: String) {
-        lang.deserialise(message).let { this.sendMessage(it) }
-    }
-
-    fun Player.sendMiniMessage(message: String, plot: Plot) {
-        lang.deserialise(message, plot).let { this.sendMessage(it) }
-    }
-
-    fun Player.sendMiniMessage(message: String, shop: Shop) {
-        lang.deserialise(message, shop).let { this.sendMessage(it) }
-    }
-
-    fun Player.sendMiniMessage(message: String, shop: Shop, plot: Plot) {
-        lang.deserialise(message, shop, plot).let { this.sendMessage(it) }
-    }
 
     // Extension functions for Bukkit
     suspend fun Player.personalPlot(): Plot? {
@@ -219,4 +207,35 @@ internal interface Addon {
     suspend fun List<Location>.getClosest(location: Location): Location? {
         return plugin.locationUtils.getClosest(this, location)
     }
+
+    // Provide an easy way to get formatted MiniMessage messages with custom tags also replaced properly
+
+    fun Player.sendMiniMessage(message: String, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver) {
+        val component = lang.deserialise(message, player = this, shop = shop, plot = plot, args = args)
+        sendMessage(component)
+    }
+
+// GUI Extensions
+
+    fun ItemStack.name(name: String, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): ItemStack {
+        itemMeta = itemMeta.also { meta ->
+            meta.displayName(lang.deserialise(name, player = player, shop = shop, plot = plot, args = args))
+        }
+        return this
+    }
+
+    fun ItemStack.description(description: String, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): ItemStack {
+        itemMeta = itemMeta.also { meta ->
+            meta.lore(listOf(lang.deserialise(description, player = player, shop = shop, plot = plot, args = args)))
+        }
+        return this
+    }
+
+    fun ItemStack.setSkull(owner: PlotOwner?): ItemStack {
+        val meta = itemMeta as SkullMeta
+        meta.playerProfile = owner?.getSkull()
+        itemMeta = meta
+        return this
+    }
 }
+

@@ -20,7 +20,7 @@ internal class CommandPlotVisitToggle(override val plugin: Plop) : Addon, CmdAdd
             return
         }
 
-        if (!plot.owner.getPlayers().contains(player.uniqueId)) {
+        if (!plot.owner.isPlayer(player)) {
             player.sendMiniMessage("plot.not-owner")
             return
         }

@@ -37,7 +37,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         plots.sizeHandler.upgradePlot(plot) // Update the plot in the database
     }
 
-    fun upgradeVisitorLevel(plot: Plot) {
+    fun upgradeVisitorLevel(plot: Plot, initiator: Player) {
         logger.info("Upgrading plot visitor level")
 
         if (plot.visit.level == plots.visitorHandler.getHighestLevel(plot.type)) return // Already at max level
@@ -47,14 +47,14 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
 
         // Using the economy API, check if they can afford it
         if (plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendMiniMessage("not-enough-money")
+            initiator.sendMiniMessage("not-enough-money")
             return
         }
 
         plots.visitorHandler.upgradePlot(plot) // Update the plot in the database
     }
 
-    fun upgradeShopLevel(plot: Plot) {
+    fun upgradeShopLevel(plot: Plot, initiator: Player) {
         logger.info("Upgrading shop limit level")
 
         if (plot.shop.level == plots.shopHandler.getHighestLevel(plot.type)) return // Already at max level
@@ -65,14 +65,14 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         // Using the economy API, check if they can afford it
 
         if (plot.owner.hasBalance(economy, potentialLevel?.price?.toDouble() ?: 0.0)) {
-            (plot.owner as PlotOwner.PlayerOwner).onlinePlayer()?.sendMiniMessage("not-enough-money")
+            initiator.sendMiniMessage("not-enough-money")
             return
         }
 
         plots.shopHandler.upgradePlot(plot) // Update the plot in the database
     }
 
-    fun upgradeFactoryLevel(plot: Plot, player: Player) {
+    fun upgradeFactoryLevel(plot: Plot, initiator: Player) {
         logger.info("Upgrading factory limit level")
 
         if (plot.factory.level == plots.factoryHandler.getHighestLevel(plot.type)) return // Already at max level
@@ -83,7 +83,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         // Using the economy API, check if they can afford it
 
         if (plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            player.sendMiniMessage("not-enough-money")
+            initiator.sendMiniMessage("not-enough-money")
             return
         }
 

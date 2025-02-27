@@ -18,7 +18,7 @@ internal class CommandAdminTransferPlot(override val plugin: Plop) : Addon, CmdA
     ) {
         val player = getPlayer(sender.sender())
 
-        if (!player.hasPermission("plop.admin.claim") {
+        if (!player.hasPermission("plop.admin.claim")) {
             player.sendMiniMessage("no-permission")
             return
         }

@@ -4,9 +4,6 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.util.GuiUtils.description
-import com.brinkmc.plop.shared.util.GuiUtils.name
-import com.brinkmc.plop.shared.util.GuiUtils.setSkull
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.buildChestInterface

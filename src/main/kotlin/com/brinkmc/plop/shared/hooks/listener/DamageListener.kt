@@ -23,11 +23,12 @@ class DamageListener(override val plugin: Plop): Addon, State, Listener {
         // Prevent use of attacks inside plots unless it is your own
         val player = Bukkit.getPlayer(event.player.uniqueId) ?: return
 
-        if (!plots.handler.getPlotWorlds().contains(player.world)) { // Ignore if not in plot world
+        if (!player.world.isPlotWorld()) { // Ignore if not in plot world
             return
         }
+        val playerPlot = player.getCurrentPlot()?.owner?.isPlayer(player) ?: return
 
-        if (!player.getPlots().contains(player.getCurrentPlot())) { // Ignore if they're in own plot
+        if (!playerPlot) { // Ignore if they're in own plot
             return
         }
 
@@ -42,11 +43,16 @@ class DamageListener(override val plugin: Plop): Addon, State, Listener {
 
         val player = event.entity as Player
 
-        if (!plots.handler.getPlotWorlds().contains(player.world)) { // Ignore if not in plot world
+        if (!player.world.isPlotWorld()) { // Ignore if not in plot world
+            return
+        }
+        val plot = player.getCurrentPlot()
+
+        if (plot == null) {
             return
         }
 
-        if (player.getPlots().contains(player.getCurrentPlot())) { // Ignore if they're in own plot
+        if (plot.owner.isPlayer(player)) { // Ignore if they're in own plot
             return
         }
 

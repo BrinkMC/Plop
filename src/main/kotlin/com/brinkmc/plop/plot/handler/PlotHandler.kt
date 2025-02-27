@@ -96,7 +96,7 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
         }
 
 
-        if (getPlotWorlds().contains(bukkitPlayer.world)) { // Run logic for getting plot they are in
+        if (bukkitPlayer.world.isPlotWorld()) { // Run logic for getting plot they are in
             val plot = getPlotFromLocation(bukkitPlayer.location) ?:  return@async // Make sure plot isn't null
 
             syncScope {

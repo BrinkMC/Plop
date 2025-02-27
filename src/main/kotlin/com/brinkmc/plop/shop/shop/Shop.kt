@@ -6,6 +6,7 @@ import me.glaremasters.guilds.Guilds
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Item
+import org.bukkit.inventory.ItemStack
 import java.util.UUID
 
 enum class ShopType { // Types of shop
@@ -24,7 +25,7 @@ data class Shop (
 
     // Mutable
     var shopType: ShopType,
-    var ware: Item,
+    var ware: ItemStack,
     var stock: Int,
 
     // Modifiable

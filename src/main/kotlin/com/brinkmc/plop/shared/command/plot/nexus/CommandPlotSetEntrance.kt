@@ -20,7 +20,7 @@ internal class CommandPlotSetEntrance(override val plugin: Plop): Addon, CmdAddo
             return
         }
 
-        if (!plot.owner.getPlayers().contains(player.uniqueId)) {
+        if (!plot.owner.isPlayer(player)) {
             player.sendMiniMessage("plot.not-owner")
             return
         }

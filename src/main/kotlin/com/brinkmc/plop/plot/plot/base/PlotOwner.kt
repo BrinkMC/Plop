@@ -7,12 +7,14 @@ import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 import org.bukkit.inventory.meta.SkullMeta
+import java.util.Optional
 import java.util.UUID
 
 sealed class PlotOwner {
     data class GuildOwner(val guild: Guild): PlotOwner()
 
     data class PlayerOwner(val player: OfflinePlayer): PlotOwner()
+
 
     fun getName(): String {
         return when (this) {
@@ -82,8 +84,8 @@ sealed class PlotOwner {
         }
     }
 
-    fun isPlayer(check: Player) {
-        when (this) {
+    fun isPlayer(check: Player): Boolean {
+        return when (this) {
             is GuildOwner -> {
                 guild.members.map{ it.uuid }.contains(check.uniqueId)
             }

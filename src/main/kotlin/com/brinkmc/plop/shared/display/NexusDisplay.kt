@@ -4,20 +4,25 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shop.shop.Shop
+import com.brinkmc.plop.shared.hooks.Display
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.sksamuel.aedile.core.asCache
-import eu.decentsoftware.holograms.api.DHAPI
-import eu.decentsoftware.holograms.api.holograms.Hologram
+import de.oliver.fancyholograms.api.data.HologramData
+import de.oliver.fancyholograms.api.data.TextHologramData
+import de.oliver.fancyholograms.api.hologram.Hologram
 import kotlinx.coroutines.delay
 import org.bukkit.Location
 import org.bukkit.entity.Player
 
 class NexusDisplay(override val plugin: Plop): Addon, State {
 
-    val nexusHolograms = Caffeine.newBuilder().asCache<Player, Hologram>()
+    val active = Caffeine.newBuilder().asCache<Player, Boolean>()
+    val playerHolograms = Caffeine.newBuilder().asCache<Player, Hologram>()
     val renderDelay = 2.ticks
+
+    val hologramManager: Display
+        get() = plugin.hooks.display
 
     override suspend fun load() {
         renderTask()
@@ -47,23 +52,30 @@ class NexusDisplay(override val plugin: Plop): Addon, State {
     }
 
     private suspend fun far(player: Player) {
-        val potentialHologram = nexusHolograms.getIfPresent(player) ?: return // Is there a hologram?
-        if (!potentialHologram.isVisible(player)) { // There is hologram check if visible
+        if (active.getIfPresent(player) == false) { // It wasn't active to begin with
             return
         }
-        potentialHologram.removeShowPlayer(player) // It shouldn't be visible anymore
+
+        active[player] = false // It was active, now it shouldn't be
+
+
+        val potentialHologram = playerHolograms.getIfPresent(player) ?: return // Is there a hologram?
+        hologramManager.hideHologram(player, potentialHologram) // Hide the hologram
     }
 
     private suspend fun near(player: Player, plot: Plot, location: Location) {
-        val substitutedValues = plotConfig.nexusConfig.display.map {
-            it.replace("<owner>", plot.owner.getName())
-        }
-        val potentialHologram = nexusHolograms.get(player) {
-            val create = DHAPI.createHologram("nexus-${player.uniqueId}", location, false, substitutedValues)
-            create.isDefaultVisibleState = false
-            create
+        active[player] = true // It was inactive, now it should be active as player is close
+
+        val tags = lang.getTags(player = player, plot = plot) // Get tags and replace
+        val substitutedValues = plotConfig.nexusConfig.display.map { lang.resolveTags(it, tags) }
+
+        val potentialHologram = playerHolograms.get(player) {
+            val hologramData = TextHologramData("nexus-${player.uniqueId}", location)
+            hologramData.text = substitutedValues
+            hologramManager.createHologram(hologramData)
         }
         // Teleport the hologram to the new location (should be the same text e.t.c)
-        potentialHologram.location = location
+        potentialHologram.data.setLocation(location)
+        hologramManager.showHologram(player, potentialHologram)
     }
 }

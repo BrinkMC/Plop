@@ -24,7 +24,7 @@ class CommandNexusBook(override val plugin: Plop) : Addon, CmdAddon {
             return
         }
 
-        if (!player.getPlots().contains(player.getCurrentPlot())) {
+        if (player.getCurrentPlot()?.owner?.isPlayer(player) == true) {
             player.sendMiniMessage("plot.nexus.not-in-plot")
             return
         }

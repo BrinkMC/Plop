@@ -11,23 +11,26 @@ import org.bukkit.entity.Player
 
 class PlotTags(override val plugin: Plop, val miniMessage: MiniMessage) : Addon {
 
-    fun all(plot: Plot): TagResolver {
+    fun all(plot: Plot?): TagResolver {
+        if (plot == null) {
+            return TagResolver.resolver()
+        }
 
         return TagResolver.resolver(
-            name(plot),
-            shopLevel(plot)
+            nameTag(plot),
+            shopLevelTag(plot)
         )
 
     }
 
-    private fun name(plot: Plot): TagResolver {
+    private fun nameTag(plot: Plot): TagResolver {
         return Placeholder.component(
             "plot_owner",
             miniMessage.deserialize(plot.owner.getName())
         )
     }
 
-    private fun shopLevel(plot: Plot): TagResolver {
+    private fun shopLevelTag(plot: Plot): TagResolver {
         return Placeholder.component(
             "plot_shop_level",
             Component.text(plot.shop.level)

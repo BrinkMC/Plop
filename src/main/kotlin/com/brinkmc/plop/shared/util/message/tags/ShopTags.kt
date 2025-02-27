@@ -11,29 +11,53 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 
 class ShopTags(override val plugin: Plop, val miniMessage: MiniMessage) : Addon {
 
-    fun all(shop: Shop): TagResolver {
+    fun all(shop: Shop?): TagResolver {
+        if (shop == null) {
+            return TagResolver.resolver()
+        }
 
         return TagResolver.resolver(
-            name(shop),
-            selling(shop),
-            buying(shop),
-            quantity(shop),
-            price(shop)
+            nameTag(shop),
+            sellingTag(shop),
+            buyingTag(shop),
+            quantityTag(shop),
+            priceTag(shop)
         )
 
     }
 
-    private fun name(shop: Shop): TagResolver {
+    private fun nameTag(shop: Shop): TagResolver {
         return Placeholder.component(
             "shop_owner",
-            miniMessage.deserialize(shop.owner.name)
+            miniMessage.deserialize(shop.owner.getName())
         )
     }
 
-    private fun selling(shop: Shop): TagResolver {
+    private fun sellingTag(shop: Shop): TagResolver {
         return Placeholder.component(
             "shop_selling",
             Component.text(shop.ware.name)
+        )
+    }
+
+    private fun buyingTag(shop: Shop): TagResolver {
+        return Placeholder.component(
+            "shop_buying",
+            Component.text(shop.ware.name)
+        )
+    }
+
+    private fun quantityTag(shop: Shop): TagResolver {
+        return Placeholder.component(
+            "shop_quantity",
+            Component.text(shop.stock)
+        )
+    }
+
+    private fun priceTag(shop: Shop): TagResolver {
+        return Placeholder.component(
+            "shop_price",
+            Component.text(shop.price)
         )
     }
 }

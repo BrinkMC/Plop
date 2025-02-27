@@ -6,6 +6,10 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.sksamuel.aedile.core.Cache
 import com.sksamuel.aedile.core.asCache
 import com.sksamuel.aedile.core.expireAfterWrite
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.minimessage.tag.Tag
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.command.CommandSender
 import org.incendo.cloud.paper.util.sender.Source
 import org.bukkit.entity.Player
@@ -22,6 +26,10 @@ class Cooldown(override val plugin: Plop, private val cooldown: Duration): Addon
         .expireAfterWrite(cooldown)
         .asCache()
 
+    fun cooldownTag(cooldown: Int): TagResolver {
+        return Placeholder.component("cooldown", Component.text(cooldown))
+    }
+
     private suspend fun checkCooldown(player: Player): Int? {
         val remaining = cooldowns.getIfPresent(player)
         if (remaining == null) {
@@ -35,7 +43,7 @@ class Cooldown(override val plugin: Plop, private val cooldown: Duration): Addon
     suspend fun bool(player: Player): Boolean {
         val cooldown = checkCooldown(player)
         if (cooldown != null) {
-            player.sendMiniMessage("preview.cooldown", null, cooldown))
+            player.sendMiniMessage("preview.cooldown", args = arrayOf(cooldownTag(cooldown)))
             return true
         }
         return false

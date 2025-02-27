@@ -17,6 +17,7 @@ repositories {
     maven("https://jitpack.io/")
     maven("https://maven.enginehub.org/repo/")
     maven("https://maven.noxcrew.com/public")
+    maven("https://repo.fancyplugins.de/releases")
     maven("https://eldonexus.de/repository/maven-releases/")
     maven("https://repo.glaremasters.me/repository/public/")
     maven("https://mvn.lumine.io/repository/maven-public/")
@@ -40,7 +41,7 @@ dependencies {
     compileOnly(fileTree("libs/") { include("*.jar") })
     compileOnly("com.github.yannicklamprecht:worldborderapi:1.211.0:dev") // Weird import
     compileOnly("com.github.retrooper", "packetevents-spigot", "2.7.0")
-    compileOnly("com.github.decentsoftware-eu", "decentholograms", "2.8.14")
+    compileOnly("de.oliver", "FancyHolograms", "2.4.2")
 
 
     compileOnly("com.sk89q.worldguard", "worldguard-core", "7.0.12")

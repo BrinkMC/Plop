@@ -1,6 +1,5 @@
 package com.brinkmc.plop.shared.gui.shop.client
 
-import com.brinkmc.plop.shared.util.RegistrableInterface
 import com.noxcrew.interfaces.drawable.Drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.Interface

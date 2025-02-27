@@ -9,23 +9,26 @@ import org.bukkit.entity.Player
 
 class PlayerTags(override val plugin: Plop, val miniMessage: MiniMessage) : Addon {
 
-    suspend fun all(player: Player): TagResolver {
+    fun all(player: Player?): TagResolver {
+        if (player == null) {
+            return TagResolver.resolver()
+        }
 
         return TagResolver.resolver(
-            name(player),
-            wealth(player)
+            nameTag(player),
+            wealthTag(player)
         )
 
     }
 
-    private fun name(player: Player): TagResolver {
+    private fun nameTag(player: Player): TagResolver {
         return Placeholder.component(
             "name",
             player.displayName()
         )
     }
 
-    private fun wealth(player: Player): TagResolver {
+    private fun wealthTag(player: Player): TagResolver {
         return Placeholder.component(
             "wealth",
             miniMessage.deserialize(economy.getBalance(player).toString())

@@ -3,8 +3,6 @@ package com.brinkmc.plop.plot.nexus
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.util.GuiUtils.description
-import com.brinkmc.plop.shared.util.GuiUtils.name
 import com.noxcrew.interfaces.view.InterfaceView
 import com.sk89q.worldedit.extent.clipboard.Clipboard
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats
@@ -20,7 +18,7 @@ import java.io.IOException
 class NexusManager(override val plugin: Plop): Addon, State {
 
     val NEXUS_BOOK = ItemStack(Material.WRITTEN_BOOK)
-        .name(lang.decode(plotConfig.nexusConfig.bookName))
+        .name(plotConfig.nexusConfig.bookName)
         .description("nexus.book-desc")
 
     val schematicName = plotConfig.nexusConfig.schematicName

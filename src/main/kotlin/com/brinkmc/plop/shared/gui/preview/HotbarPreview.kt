@@ -4,10 +4,6 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.util.Cooldown
-import com.brinkmc.plop.shared.util.GuiUtils.description
-import com.brinkmc.plop.shared.util.GuiUtils.name
-import com.brinkmc.plop.shared.util.GuiUtils.setSkull
-import com.brinkmc.plop.shared.util.RegistrableInterface
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.shynixn.mccoroutine.bukkit.launch
@@ -90,21 +86,20 @@ class HotbarPreview(override val plugin: Plop): Addon {
         }
 
         withTransform(plotTypeProperty) { pane, view ->
-            val selectionPlayer = view.player
-            val selectionGuild = selectionPlayer.guild()
+            val personalPlot = view.player.personalPlot()
+            val guildPlot = view.player.guildPlot()
 
-            val individualGuildClone = TOGGLE_BUTTON_GUILD.clone().setSkull(selectionGuild) // Set to the skull meta
-
-            val individualPersonalClone = TOGGLE_BUTTON_PERSONAL.clone().setSkull(selectionPlayer) // Set to the skull meta
+            val individualPersonal = TOGGLE_BUTTON_PERSONAL.clone().setSkull(guildPlot?.owner) // Set to the skull meta
+            val individualGuild = TOGGLE_BUTTON_GUILD.clone().setSkull(personalPlot?.owner) // Set to the skull meta
 
             when (plotType) { // Determine the toggle button orientation
-                PlotType.PERSONAL -> { pane.hotbar[3] = StaticElement(drawable(individualPersonalClone)) { (player) -> plugin.async {
+                PlotType.PERSONAL -> { pane.hotbar[3] = StaticElement(drawable(individualPersonal)) { (player) -> plugin.async {
                     if (cooldownHandle.bool(player)) return@async
                     plots.previewHandler.switchPreview(player.uniqueId) // Update preview
                     plotType = updateType(view)
                     view.redrawComplete()
                 } } }
-                PlotType.GUILD -> { pane.hotbar[3] = StaticElement(drawable(individualGuildClone)) { (player) -> plugin.async {
+                PlotType.GUILD -> { pane.hotbar[3] = StaticElement(drawable(individualGuild)) { (player) -> plugin.async {
                     if (cooldownHandle.bool(player)) return@async
                     plots.previewHandler.switchPreview(player.uniqueId) // Update preview
                     plotType = updateType(view)

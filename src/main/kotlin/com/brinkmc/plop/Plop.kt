@@ -23,6 +23,7 @@ import com.brinkmc.plop.shared.gui.preview.HotbarPreview
 import com.brinkmc.plop.shared.gui.selector.SelectionOtherMenu
 import com.brinkmc.plop.shared.gui.selector.SelectionSelfMenu
 import com.brinkmc.plop.shared.gui.visit.MenuPlotList
+import com.brinkmc.plop.shared.hooks.Display
 import com.brinkmc.plop.shared.hooks.Economy
 import com.brinkmc.plop.shared.hooks.Guilds
 import com.brinkmc.plop.shared.hooks.MythicMobs
@@ -253,6 +254,7 @@ class Plop : State, SuspendingJavaPlugin() {
 
     // Enable hooks
     class Hooks(val plugin: Plop): State {
+        val display = Display(plugin)
         val guilds = Guilds(plugin)
         val packetEvents = PacketEvents(plugin)
         val mythicMobs = MythicMobs(plugin)
@@ -262,6 +264,7 @@ class Plop : State, SuspendingJavaPlugin() {
         override suspend fun load() {
             listOf(
                 guilds,
+                display,
                 mythicMobs,
                 worldGuard,
                 economy
@@ -273,6 +276,7 @@ class Plop : State, SuspendingJavaPlugin() {
         override suspend fun kill() {
             listOf(
                 guilds,
+                display,
                 mythicMobs,
                 worldGuard,
                 economy

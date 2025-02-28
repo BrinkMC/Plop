@@ -90,4 +90,21 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         plots.factoryHandler.upgradePlot(plot) // Update the plot in the database
     }
 
+    fun upgradeTotemLevel(plot: Plot, initiator: Player) {
+        logger.info("Upgrading totem level")
+
+        if (plot.totem.level == plots.totemHandler.getHighestLevel(plot.type)) return // Already at max level
+
+        // Calculate if they can afford it
+        val potentialLevel = plots.totemHandler.getLevel(plot.type, plot.totem.level + 1)
+
+        // Using the economy API, check if they can afford it
+
+        if (plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
+            initiator.sendMiniMessage("not-enough-money")
+            return
+        }
+
+        plots.totemHandler.upgradePlot(plot) // Update the plot in the database
+    }
 }

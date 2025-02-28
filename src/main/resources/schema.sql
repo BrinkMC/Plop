@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `plot_nexus` (
     `nexus_location` TEXT NOT NULL,
     PRIMARY KEY (`totem_id`),
     FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
-)
+    );
 
 CREATE TABLE IF NOT EXISTS `plot_visits` (
     `plot_id` VARCHAR(36) NOT NULL,
@@ -89,5 +89,18 @@ CREATE TABLE IF NOT EXISTS `plot_visit_timestamps` (
     `plot_id` VARCHAR(36) NOT NULL,
     `visit_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`record_id`),
+    FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
+    );
+
+CREATE TABLE IF NOT EXISTS `shops` (
+    `shop_id` VARCHAR(36) NOT NULL,
+    `plot_id` VARCHAR(36) NOT NULL,
+    `plot_type` TEXT NOT NULL,
+    `shop_location` TEXT NOT NULL,
+    `shop_type` TEXT NOT NULL,
+    `ware` TEXT NOT NULL,
+    `stock` INT NOT NULL,
+    `price` FLOAT NOT NULL,
+    PRIMARY KEY (`shop_id`),
     FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
     );

@@ -44,10 +44,10 @@ class PlotTotemHandler(override val plugin: Plop): Addon, State {
         }
     }
 
-    fun getLevel(plotType: PlotType, level: Int): Level? {
+    fun getLevel(plotType: PlotType, level: Int): Level {
         return when (plotType) {
-            PlotType.GUILD -> guildLevels.getOrNull(level)
-            PlotType.PERSONAL -> personalLevels.getOrNull(level)
+            PlotType.GUILD -> guildLevels[level]
+            PlotType.PERSONAL -> personalLevels[level]
         }
     }
 

@@ -79,10 +79,10 @@ class PlotClaimHandler(override val plugin: Plop): Addon, State {
                     logger.error(e.message)
                 }
             }
-
-            // Teleport player to the new schematic
-            player.player()?.teleport(location.add(0.0, 0.1, 0.0))
         }
+        // Teleport player to the new schematic
+        player.player()?.teleportAsync(location.add(0.0, 0.1, 0.0))
+
         player.player()?.updateBorder() // Update the border again to new smaller size
     }
 }

@@ -19,7 +19,7 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
     lateinit var guildPlotLayoutStrategy: GuildPlotLayoutStrategy
     lateinit var personalPreviewHandler: PersonalPlotLayoutStrategy
 
-    private val previews = mutableMapOf<UUID, PreviewInstance>()
+    private val previews = hashMapOf<UUID, PreviewInstance>()
 
     override suspend fun load() {
         guildPlotLayoutStrategy = GuildPlotLayoutStrategy(plugin, PlotType.GUILD)

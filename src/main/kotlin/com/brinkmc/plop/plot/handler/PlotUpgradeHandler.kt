@@ -29,7 +29,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
 
         // Using the economy API, check if they can afford it
 
-        if (plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
+        if (!plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
             initiator.sendMiniMessage("not-enough-money")
             return
         }
@@ -46,7 +46,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         val potentialLevel = plots.visitorHandler.getLevel(plot.type, plot.size.level + 1)
 
         // Using the economy API, check if they can afford it
-        if (plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
+        if (!plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
             initiator.sendMiniMessage("not-enough-money")
             return
         }
@@ -64,7 +64,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
 
         // Using the economy API, check if they can afford it
 
-        if (plot.owner.hasBalance(economy, potentialLevel?.price?.toDouble() ?: 0.0)) {
+        if (!plot.owner.hasBalance(economy, potentialLevel?.price?.toDouble() ?: 0.0)) {
             initiator.sendMiniMessage("not-enough-money")
             return
         }
@@ -82,7 +82,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
 
         // Using the economy API, check if they can afford it
 
-        if (plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
+        if (!plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
             initiator.sendMiniMessage("not-enough-money")
             return
         }
@@ -100,7 +100,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
 
         // Using the economy API, check if they can afford it
 
-        if (plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
+        if (!plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
             initiator.sendMiniMessage("not-enough-money")
             return
         }

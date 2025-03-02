@@ -73,13 +73,6 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
         if (worldGuardRegions?.size != 1) return@asyncScope null // Must only be one region player is standing in if it is a plot world
         return@asyncScope getPlotById(UUID.fromString(worldGuardRegions.first()?.id))
     } }
-    
-    fun getPlotWorlds(): List<World> {
-        return listOfNotNull(
-            plotConfig.getPlotWorld(PlotType.PERSONAL).world(),
-            plotConfig.getPlotWorld(PlotType.GUILD).world()
-        )
-    }
 
     fun updateBorder(player: UUID) { plugin.async {
         val bukkitPlayer = plugin.server.getPlayer(player) ?: run {

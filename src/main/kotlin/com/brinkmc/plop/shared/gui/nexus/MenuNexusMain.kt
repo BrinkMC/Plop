@@ -42,7 +42,15 @@ class MenuNexusMain(override val plugin: Plop): Addon {
                 open(player)
             } }
 
+            // Upgrades button
+            pane[2, 2] = StaticElement(drawable(UPGRADES)) { (player) -> plugin.async {
+                plugin.menus.nexusUpgradeMenu.open(player, view)
+            } }
 
+            // Totems button
+            pane[2, 6] = StaticElement(drawable(TOTEMS)) { (player) -> plugin.async {
+                plugin.menus.nexusTotemsMenu.open(player, view)
+            } }
         }
     }
 

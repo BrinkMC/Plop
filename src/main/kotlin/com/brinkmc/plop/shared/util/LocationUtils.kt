@@ -96,10 +96,6 @@ class LocationUtils(override val plugin: Plop): Addon {
             }
         } while (!safe && length < maxDistance)
 
-        return@asyncScope initialLocation.add(0.0, 1.0, 0.0)
+        return@asyncScope initialLocation.add(0.0, 0.0, 0.0)
     } }
-
-    fun getClosest(locations: List<Location>, location: Location, ): Location? {
-        return locations.minByOrNull { it.distanceSquared(location) }
-    }
 }

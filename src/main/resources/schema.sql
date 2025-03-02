@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `plot_nexus` (
     `nexus_id` INT AUTO_INCREMENT NOT NULL,
     `plot_id` VARCHAR(36) NOT NULL,
     `nexus_location` TEXT NOT NULL,
-    PRIMARY KEY (`totem_id`),
+    PRIMARY KEY (`nexus_id`),
     FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
     );
 
@@ -95,12 +95,29 @@ CREATE TABLE IF NOT EXISTS `plot_visit_timestamps` (
 CREATE TABLE IF NOT EXISTS `shops` (
     `shop_id` VARCHAR(36) NOT NULL,
     `plot_id` VARCHAR(36) NOT NULL,
-    `plot_type` TEXT NOT NULL,
-    `shop_location` TEXT NOT NULL,
-    `shop_type` TEXT NOT NULL,
-    `ware` TEXT NOT NULL,
+    `plot_type` ENUM('PERSONAL','GUILD') NOT NULL,
+    `shop_type` ENUM('BUY','SELL') NOT NULL,
+    `ware` BLOB NOT NULL,
     `stock` INT NOT NULL,
+    `stock_limit` INT NOT NULL DEFAULT 64,
+    `open` BOOLEAN NOT NULL DEFAULT TRUE,
     `price` FLOAT NOT NULL,
     PRIMARY KEY (`shop_id`),
     FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
+    );
+
+CREATE TABLE IF NOT EXISTS `shop_locations` (
+    `shop_id` VARCHAR(36) NOT NULL,
+    `shop_location` TEXT NOT NULL,
+    PRIMARY KEY (`shop_id`),
+    FOREIGN KEY (`shop_id`) REFERENCES `shops`(`shop_id`)
+    );
+
+CREATE TABLE IF NOT EXISTS `shops_log` (
+    `trans_id` INT AUTO_INCREMENT NOT NULL,
+    `shop_id` VARCHAR(36) NOT NULL,
+    `player_id` VARCHAR(36) NOT NULL,
+    `trans_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`trans_id`),
+    FOREIGN KEY (`shop_id`) REFERENCES `shops`(`shop_id`)
     );

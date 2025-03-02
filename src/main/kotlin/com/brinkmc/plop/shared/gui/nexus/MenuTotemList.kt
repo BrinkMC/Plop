@@ -5,9 +5,11 @@ import com.brinkmc.plop.shared.base.Addon
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.buildChestInterface
+import com.noxcrew.interfaces.view.InterfaceView
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Material
+import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
 class MenuTotemList(override val plugin: Plop): Addon {
@@ -16,6 +18,9 @@ class MenuTotemList(override val plugin: Plop): Addon {
 
     val name = "nexus.totem.list.name"
     val desc = "nexus.totem.list.desc"
+
+    val BACK = ItemStack(Material.REDSTONE)
+        .name("menu.back")
 
     // Only one list
     private val inventory = buildChestInterface {
@@ -43,7 +48,7 @@ class MenuTotemList(override val plugin: Plop): Addon {
             var k = 0
             for (i in 0..8) {
                 for (j in 0..5) {
-                    while (k <= totemItems.size) {
+                    while (k < totemItems.size) {
                         val totem = totemItems[k] // Populate every item of pane with totem till no more
                         k++
                         pane[i, j] = StaticElement(
@@ -55,6 +60,15 @@ class MenuTotemList(override val plugin: Plop): Addon {
                 }
             }
 
+            // Back button
+            pane[5, 8] = StaticElement(drawable(BACK)) { (player) -> plugin.async {
+                view.back()
+            } }
+
         }
+    }
+
+    suspend fun open(player: Player, prev: InterfaceView? = null) {
+        inventory.open(player, prev)
     }
 }

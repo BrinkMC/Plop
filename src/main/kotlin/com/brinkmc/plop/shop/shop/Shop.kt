@@ -27,6 +27,8 @@ data class Shop (
     var shopType: ShopType,
     var ware: ItemStack,
     var stock: Int,
+    var stockLimit: Int,
+    var open: Boolean,
 
     // Modifiable
     var price: Float

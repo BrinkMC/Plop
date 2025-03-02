@@ -30,9 +30,7 @@ class CommandPlotHome(override val plugin: Plop) : Addon, CmdAddon {
 
     suspend fun postTypeChosen(player: Player, type: PlotType) {
         val plot = player.getPlot(type)
-        syncScope {
-            plot?.claim?.home?.let { player.teleport(it) }
-        }
+        plot?.claim?.home?.let { player.teleportAsync(it) }
         player.sendMiniMessage("plot.teleport-complete")
     }
 }

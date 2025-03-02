@@ -6,6 +6,7 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hooks.Display
 import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.sksamuel.aedile.core.asCache
 import de.oliver.fancyholograms.api.data.TextHologramData
@@ -18,19 +19,20 @@ class NexusDisplay(override val plugin: Plop): Addon, State {
 
     val active = Caffeine.newBuilder().asCache<Player, Boolean>()
     val playerHolograms = Caffeine.newBuilder().asCache<Player, Hologram>()
-    val renderDelay = 2.ticks
+    val renderDelay = 3.ticks
 
     val hologramManager: Display
         get() = plugin.hooks.display
 
     override suspend fun load() {
-        renderTask()
+        plugin.launch { renderTask() }
     }
 
     override suspend fun kill() { }
 
     private suspend fun renderTask() {
-        while (true) { asyncScope {
+        asyncScope {
+        while (true) {
             for (player in server.onlinePlayers) {
                 plugin.playerTracker.locations.getIfPresent(player)?.let {
                     render(player, it)
@@ -43,9 +45,11 @@ class NexusDisplay(override val plugin: Plop): Addon, State {
     private suspend fun render(player: Player, plot: Plot) { // Get centred starting location of hologram
         val startLoc = plot.nexus.getClosest(player.location)?.add(0.5, 1.5, 0.5) ?: return // No nexus
         if (startLoc.distanceSquared(player.location) >= plotConfig.nexusConfig.viewDistance) { // Too far away
+            logger.info("Far")
             far(player)
         }
         else {
+            logger.info("Close")
             near(player, plot, startLoc)
         }
     }
@@ -54,6 +58,7 @@ class NexusDisplay(override val plugin: Plop): Addon, State {
         if (active.getIfPresent(player) == false) { // It wasn't active to begin with
             return
         }
+        logger.info("Remove hologram")
 
         active[player] = false // It was active, now it shouldn't be
 
@@ -66,6 +71,7 @@ class NexusDisplay(override val plugin: Plop): Addon, State {
         if (active.getIfPresent(player) == true) { // It was active to begin with
             return
         }
+        logger.info("Send hologram")
 
         active[player] = true // It was inactive, now it should be active as player is close
 

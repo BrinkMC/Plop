@@ -22,6 +22,13 @@ import com.brinkmc.plop.shared.gui.nexus.MenuUpgrade
 import com.brinkmc.plop.shared.gui.preview.HotbarPreview
 import com.brinkmc.plop.shared.gui.selector.SelectionOtherMenu
 import com.brinkmc.plop.shared.gui.selector.SelectionSelfMenu
+import com.brinkmc.plop.shared.gui.shop.client.MenuShopClient
+import com.brinkmc.plop.shared.gui.shop.owner.MenuShopCreation
+import com.brinkmc.plop.shared.gui.shop.owner.MenuShopLogs
+import com.brinkmc.plop.shared.gui.shop.owner.MenuShopOwner
+import com.brinkmc.plop.shared.gui.shop.owner.MenuShopPrice
+import com.brinkmc.plop.shared.gui.shop.owner.MenuShopStock
+import com.brinkmc.plop.shared.gui.shop.owner.MenuShopWare
 import com.brinkmc.plop.shared.gui.visit.MenuPlotList
 import com.brinkmc.plop.shared.hooks.Display
 import com.brinkmc.plop.shared.hooks.Economy
@@ -74,6 +81,7 @@ class Plop : State, SuspendingJavaPlugin() {
 
     // Hooks
     lateinit var hooks: Hooks
+    lateinit var display: Displays
 
     private lateinit var damageListener: DamageListener
     private lateinit var generalListener: GeneralListener
@@ -137,7 +145,10 @@ class Plop : State, SuspendingJavaPlugin() {
         shops = Shops(plugin)
         shops.load()
 
-
+        // Load displays
+        plugin.slF4JLogger.info("Initiating displays")
+        display = Displays(plugin)
+        display.load()
 
         // Enable all menus
         plugin.slF4JLogger.info("Creating menus and hotbars")
@@ -155,7 +166,7 @@ class Plop : State, SuspendingJavaPlugin() {
         shops.kill()
     }
 
-    private fun loadListeners() {
+    private suspend fun loadListeners() {
         InterfacesListeners.install(this)
 
         plugin.slF4JLogger.info("Initiating listeners")
@@ -178,7 +189,10 @@ class Plop : State, SuspendingJavaPlugin() {
             previewListener,
             shopListener,
             totemListener
-        ).forEach { listener -> server.pluginManager.registerSuspendingEvents(listener, this) }
+        ).forEach { listener ->
+            listener.load()
+            server.pluginManager.registerSuspendingEvents(listener, this)
+        }
         plugin.slF4JLogger.info("Finished hooking listeners")
     }
 
@@ -301,6 +315,19 @@ class Plop : State, SuspendingJavaPlugin() {
 
         // Plot Visit
         val plotVisitMenu = MenuPlotList(plugin)
+
+        // Shop menus creation
+        val shopCreationMenu = MenuShopCreation(plugin)
+        val shopWareMenu = MenuShopWare(plugin)
+        val shopStockMenu = MenuShopStock(plugin)
+        val shopPriceMenu = MenuShopPrice(plugin)
+
+        // Shop menus owner
+        val shopLogsMenu = MenuShopLogs(plugin)
+        val shopOwnerMenu = MenuShopOwner(plugin)
+
+        // Shop menus customer
+        val shopClientMenu = MenuShopClient(plugin)
     }
 
     val locationUtils = LocationUtils(plugin)

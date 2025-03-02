@@ -1,11 +1,14 @@
 package com.brinkmc.plop.shared.hooks.listener
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.plot.structure.TotemType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shared.hooks.Locals.world
 import io.lumine.mythiccrucible.events.MythicFurniturePlaceEvent
 import io.lumine.mythiccrucible.events.MythicFurnitureRemoveEvent
+import kotlinx.coroutines.delay
 import org.bukkit.Material
 import org.bukkit.World
 import org.bukkit.entity.Player
@@ -18,13 +21,17 @@ import org.bukkit.event.block.LeavesDecayEvent
 import org.bukkit.event.block.MoistureChangeEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import kotlin.time.Duration.Companion.seconds
 
 class TotemListener(override val plugin: Plop): Addon, State, Listener {
 
     lateinit var plotWorlds: List<World>
 
     override suspend fun load() {
-        plotWorlds = plots.handler.getPlotWorlds()
+        plotWorlds = listOfNotNull(
+            plotConfig.getPlotWorld(PlotType.PERSONAL).world(),
+            plotConfig.getPlotWorld(PlotType.GUILD).world()
+        )
     }
 
     override suspend fun kill() {}
@@ -138,23 +145,21 @@ class TotemListener(override val plugin: Plop): Addon, State, Listener {
             return
         }
 
-        val potentialPlot = location.getCurrentPlot() ?: return
+        asyncScope {
+            val potentialPlot = location.getCurrentPlot() ?: return@asyncScope
 
-        if (!potentialPlot.totem.getTypes().contains(TotemType.FIRE_SPREAD)) {
-            return
-        }
+            if (!potentialPlot.totem.getTypes().contains(TotemType.FIRE_SPREAD)) {
+                return@asyncScope
+            }
 
-        event.isCancelled = true
+            event.isCancelled = true
 
-        if (!potentialPlot.totem.enableLightning) {
-            return
-        }
+            if (!potentialPlot.totem.enableLightning) {
+                return@asyncScope
+            }
 
-        // Summon lightning on totem for effect to signify it worked
-        val totem = potentialPlot.totem.getTotem(TotemType.FIRE_SPREAD)
-
-        syncScope {
-            totem?.location?.world?.strikeLightningEffect(totem.location)
+            // Summon lightning on totem for effect to signify it worked
+            potentialPlot.totem.getTotem(TotemType.FIRE_SPREAD)?.strike()
         }
     }
 
@@ -165,61 +170,99 @@ class TotemListener(override val plugin: Plop): Addon, State, Listener {
             return
         }
 
-        val potentialPlot = location.getCurrentPlot() ?: return
+        asyncScope {
+            val potentialPlot = location.getCurrentPlot() ?: return@asyncScope
 
-        if (!potentialPlot.totem.getTypes().contains(TotemType.ICE_MELT)) {
-            return
-        }
+            if (!potentialPlot.totem.getTypes().contains(TotemType.ICE_MELT)) {
+                return@asyncScope
+            }
 
-        event.isCancelled = true
+            event.isCancelled = true
 
-        if (!potentialPlot.totem.enableLightning) {
-            return
-        }
+            if (!potentialPlot.totem.enableLightning) {
+                return@asyncScope
+            }
 
-        // Summon lightning on totem for effect to signify it worked
-        val totem = potentialPlot.totem.getTotem(TotemType.FIRE_SPREAD)
-
-        syncScope {
-            totem?.location?.world?.strikeLightningEffect(totem.location)
+            potentialPlot.totem.getTotem(TotemType.ICE_MELT)?.strike()
         }
     }
 
     @EventHandler
     suspend fun on(event: LeavesDecayEvent) {
         val location = event.block.location
+
         if (plotWorlds.contains(location.world)) {
             return
         }
 
-        val potentialPlot = location.getCurrentPlot() ?: return
+        asyncScope {
+            val potentialPlot = location.getCurrentPlot() ?: return@asyncScope
 
-        if (!potentialPlot.totem.getTypes().contains(TotemType.LEAF_DECAY)) {
-            return
-        }
+            if (!potentialPlot.totem.getTypes().contains(TotemType.LEAF_DECAY)) {
+                return@asyncScope
+            }
 
-        event.isCancelled = true
+            event.isCancelled = true
 
-        if (!potentialPlot.totem.enableLightning) {
-            return
-        }
+            if (!potentialPlot.totem.enableLightning) {
+                return@asyncScope
+            }
 
-        // Summon lightning on totem for effect to signify it worked
-        val totem = potentialPlot.totem.getTotem(TotemType.FIRE_SPREAD)
-
-        syncScope {
-            totem?.location?.world?.strikeLightningEffect(totem.location)
+            potentialPlot.totem.getTotem(TotemType.LEAF_DECAY)?.strike()
         }
     }
 
     @EventHandler
-    suspend fun on(event: BlockFromToEvent) {
+    suspend fun onWater(event: BlockFromToEvent) {
         val from = event.block.location
         val to = event.toBlock.location
 
         // Detect if it is water flow event
-        if (to.block.type != Material.WATER || to.block.type != Material.LAVA) {
+        if (to.block.type != Material.WATER) {
             return
+        }
+
+        asyncScope {
+            val potentialPlot = to.getCurrentPlot() ?: return@asyncScope
+
+            if (!potentialPlot.totem.getTypes().contains(TotemType.WATER_FLOW)) {
+                return@asyncScope
+            }
+
+            event.isCancelled = true
+
+            if (!potentialPlot.totem.enableLightning) {
+                return@asyncScope
+            }
+
+            potentialPlot.totem.getTotem(TotemType.WATER_FLOW)?.strike()
+        }
+    }
+
+    @EventHandler
+    suspend fun onLava(event: BlockFromToEvent) {
+        val from = event.block.location
+        val to = event.toBlock.location
+
+        // Detect if it is water flow event
+        if (to.block.type != Material.LAVA) {
+            return
+        }
+
+        asyncScope {
+            val potentialPlot = to.getCurrentPlot() ?: return@asyncScope
+
+            if (!potentialPlot.totem.getTypes().contains(TotemType.LAVA_FLOW)) {
+                return@asyncScope
+            }
+
+            event.isCancelled = true
+
+            if (!potentialPlot.totem.enableLightning) {
+                return@asyncScope
+            }
+
+            potentialPlot.totem.getTotem(TotemType.LAVA_FLOW)?.strike()
         }
     }
 }

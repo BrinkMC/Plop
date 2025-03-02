@@ -11,6 +11,7 @@ import com.brinkmc.plop.plot.plot.modifier.PlotTotem
 import com.brinkmc.plop.shared.config.ConfigReader
 import com.brinkmc.plop.shared.config.configs.*
 import com.brinkmc.plop.shared.hooks.Economy
+import com.brinkmc.plop.shared.hooks.Locals.world
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.message.MessageService
 import com.brinkmc.plop.shop.shop.Shop
@@ -171,7 +172,10 @@ internal interface Addon {
     }
 
     fun World.isPlotWorld(): Boolean {
-        return plots.handler.getPlotWorlds().contains(this)
+        return return listOfNotNull(
+            plotConfig.getPlotWorld(PlotType.PERSONAL).world(),
+            plotConfig.getPlotWorld(PlotType.GUILD).world()
+        ).contains(this)
     }
 
     // Location check for player
@@ -201,7 +205,7 @@ internal interface Addon {
     }
 
     suspend fun List<Location>.getClosest(location: Location): Location? {
-        return plugin.locationUtils.getClosest(this, location)
+        return this.minByOrNull { it.distanceSquared(location) }
     }
 
     // Provide an easy way to get formatted MiniMessage messages with custom tags also replaced properly
@@ -211,7 +215,7 @@ internal interface Addon {
         sendMessage(component)
     }
 
-// GUI Extensions
+    // GUI Extensions
 
     fun ItemStack.name(name: String, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): ItemStack {
         itemMeta = itemMeta.also { meta ->
@@ -233,5 +237,18 @@ internal interface Addon {
         itemMeta = meta
         return this
     }
+
+    // Shop
+
+    suspend fun Player.personalShops(): List<Shop> {
+        val plot = personalPlot() ?: return emptyList()
+        return shops.handler.getShops(plot.plotId)
+    }
+
+    suspend fun Guild.guildShops(): List<Shop> {
+        val plot = this.plot() ?: return emptyList()
+        return shops.handler.getShops(plot.plotId)
+    }
+
 }
 

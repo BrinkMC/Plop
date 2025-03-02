@@ -4,40 +4,32 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotOwner
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shop.handler.ShopHandler
+import com.brinkmc.plop.shop.handler.ShopTransactionHandler
 import com.brinkmc.plop.shop.shop.Shop
 import me.glaremasters.guilds.guild.Guild
+import me.glaremasters.guilds.libs.jdbi.v3.core.transaction.TransactionHandler
 import org.bukkit.entity.Player
 import java.util.UUID
 import kotlin.math.log
 
-class Shops(override val plugin: Plop): Addon,State {
+class Shops(override val plugin: Plop): Addon, State {
 
-    val shopList: MutableList<Shop> = mutableListOf()
+    lateinit var handler: ShopHandler
+    lateinit var transHandler: ShopTransactionHandler
 
     override suspend fun load() {
         logger.info("Loading shops...")
+        handler = ShopHandler(plugin)
+        transHandler = ShopTransactionHandler(plugin)
+
+        listOf(
+            handler,
+            transHandler
+        ).forEach { handler -> (handler as State).load() }
     }
 
     override suspend fun kill() {
         TODO("Not yet implemented")
-    }
-
-    suspend fun Player.personalShops(): List<Shop> {
-        // One-liner to return all shops found on a player plot
-        return shopList.filter { shop -> (plots.handler.getPlotFromLocation(shop.location)?.owner as PlotOwner.PlayerOwner).player.uniqueId == this.uniqueId }
-    }
-
-    suspend fun Guild.guildShops(): List<Shop> {
-        // One-liner to return all shops found on a guild plot
-        return shopList.filter { shop -> (plots.handler.getPlotFromLocation(shop.location)?.owner as PlotOwner.GuildOwner).guild?.id == this.id }
-    }
-
-    fun getShop(shopId: UUID): Shop? {
-        return shopList.find { shop -> shop.shopId == shopId }
-    }
-
-    fun addShop(shopId: UUID): Boolean {
-        // REMEMBER TO INVALIDATE CACHE IN SHOP DISPLAY
-        return shopList.any { shop -> shop.shopId == shopId }
     }
 }

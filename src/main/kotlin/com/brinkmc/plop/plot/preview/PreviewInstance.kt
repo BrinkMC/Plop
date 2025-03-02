@@ -30,8 +30,8 @@ class PreviewInstance(
         get() = player.player()
 
     suspend fun teleportToViewPlot() {
+        bukkitPlayer?.player?.teleportAsync(viewPlot.value.toLocation().getSafeDestination() ?: viewPlot.value.toLocation())// Hopefully teleports them to next plot
         syncScope {
-            bukkitPlayer?.player?.teleport(viewPlot.value.toLocation().getSafeDestination() ?: viewPlot.value.toLocation())// Hopefully teleports them to next plot
             bukkitPlayer?.allowFlight = true
             bukkitPlayer?.isFlying = true
             viewPlot.value.free = false
@@ -43,8 +43,8 @@ class PreviewInstance(
         syncScope {
             bukkitPlayer?.allowFlight = false
             bukkitPlayer?.isFlying = false
-            bukkitPlayer?.player?.teleport(previousLocation) // Only if they end preview normally
         }
+        bukkitPlayer?.player?.teleportAsync(previousLocation) // Only if they end preview normally
     }
 
     suspend fun returnInventory() {

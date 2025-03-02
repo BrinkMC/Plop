@@ -7,6 +7,7 @@ import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hooks.Display
 import com.brinkmc.plop.shop.shop.Shop
 import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.sksamuel.aedile.core.asCache
 import de.oliver.fancyholograms.api.data.ItemHologramData
@@ -24,19 +25,20 @@ class ShopDisplay(override val plugin: Plop): Addon, State {
 
     val active = Caffeine.newBuilder().asCache<Player, Boolean>()
     val shopHolograms = Caffeine.newBuilder().asCache<Shop, List<Hologram>>()
-    val renderDelay = 2.ticks
+    val renderDelay = 3.ticks
 
     val hologramManager: Display
         get() = plugin.hooks.display
 
     override suspend fun load() {
-        renderTask()
+        plugin.launch { renderTask() }
     }
 
     override suspend fun kill() { }
 
     private suspend fun renderTask() {
-        while (true) { asyncScope {
+        asyncScope {
+        while (true) {
             for (player in server.onlinePlayers) {
                 plugin.playerTracker.locations.getIfPresent(player)?.let {
                     render(player, it)

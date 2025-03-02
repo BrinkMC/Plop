@@ -37,9 +37,7 @@ class CommandPlotVisit(override val plugin: Plop) : Addon, CmdAddon {
             return
         }
 
-        syncScope {
-            plot?.claim?.home?.let { player.teleport(it) }
-        }
+        plot?.claim?.visit?.let { player.teleportAsync(it) }
         player.sendMiniMessage("plot.teleport-complete")
     }
 }

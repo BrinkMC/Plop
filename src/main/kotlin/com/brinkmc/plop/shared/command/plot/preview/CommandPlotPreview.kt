@@ -29,23 +29,23 @@ internal class CommandPlotPreview(override val plugin: Plop): Addon, CmdAddon {
             return
         }
 
-        if (personalPlot == null && guildPlot == null) {
-            plots.previewHandler.startPreview(player.uniqueId, PlotType.PERSONAL) // Initiate preview personal if left empty
-            return
-        }
+        asyncScope {
+            if (personalPlot == null && guildPlot == null) {
+                plots.previewHandler.startPreview(player.uniqueId, PlotType.PERSONAL) // Initiate preview personal if left empty
+                return@asyncScope
+            }
 
-        if (personalPlot != null && guildPlot == null) {
-            plots.previewHandler.startPreview(player.uniqueId, PlotType.GUILD) // Initiate preview guild
-            return
-        }
+            if (personalPlot != null && guildPlot == null) {
+                plots.previewHandler.startPreview(player.uniqueId, PlotType.GUILD) // Initiate preview guild
+                return@asyncScope
+            }
 
-        if (personalPlot == null) {
-            plots.previewHandler.startPreview(player.uniqueId, PlotType.PERSONAL) // Initiate preview personal
-            return
-        }
+            if (personalPlot == null) {
+                plots.previewHandler.startPreview(player.uniqueId, PlotType.PERSONAL) // Initiate preview personal
+                return@asyncScope
+            }
 
-        player.sendMiniMessage("command.already-claimed-max")
+            player.sendMiniMessage("command.already-claimed-max")
+        }
     }
-
-
 }

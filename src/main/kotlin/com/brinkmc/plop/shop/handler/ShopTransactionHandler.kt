@@ -7,7 +7,7 @@ import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.storage.ShopCache
 import java.util.UUID
 
-class ShopHandler(override val plugin: Plop): Addon, State {
+class ShopTransactionHandler(override val plugin: Plop): Addon, State {
 
     private lateinit var shopCache: ShopCache
 

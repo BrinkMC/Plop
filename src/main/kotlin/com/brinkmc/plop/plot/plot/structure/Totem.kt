@@ -1,6 +1,8 @@
 package com.brinkmc.plop.plot.plot.structure
 
+import kotlinx.coroutines.CoroutineScope
 import org.bukkit.Location
+import org.bukkit.World
 
 enum class TotemType {
     FIRE_SPREAD,
@@ -13,4 +15,8 @@ enum class TotemType {
 data class Totem(
     val totemType: TotemType,
     val location: Location
-)
+) {
+    fun strike() {
+        location.world.strikeLightningEffect(location)
+    }
+}

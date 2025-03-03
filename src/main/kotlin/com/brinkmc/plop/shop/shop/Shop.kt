@@ -27,7 +27,11 @@ data class Shop (
     var shopType: ShopType,
     var ware: ItemStack,
     var stock: Int,
+
+    // Only for buy shops
     var stockLimit: Int,
+
+    // Shop status
     var open: Boolean,
 
     // Modifiable

@@ -132,11 +132,6 @@ class Plop : State, SuspendingJavaPlugin() {
         DB = HikariManager(plugin)
         DB.load()
 
-        // Get instance of hooks
-        plugin.slF4JLogger.info("Hooking into other plugins")
-        hooks = Hooks(plugin)
-        hooks.load()
-
         // Load the two parts of the plugin
         plugin.slF4JLogger.info("Initiating plots")
         plots = Plots(plugin)
@@ -144,6 +139,11 @@ class Plop : State, SuspendingJavaPlugin() {
         plugin.slF4JLogger.info("Initiating shops")
         shops = Shops(plugin)
         shops.load()
+
+        // Get instance of hooks
+        plugin.slF4JLogger.info("Hooking into other plugins")
+        hooks = Hooks(plugin)
+        hooks.load()
 
         // Load displays
         plugin.slF4JLogger.info("Initiating displays")

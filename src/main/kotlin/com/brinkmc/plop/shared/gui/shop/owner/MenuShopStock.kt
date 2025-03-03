@@ -13,15 +13,14 @@ import com.noxcrew.interfaces.view.InterfaceView
 import kotlinx.coroutines.CompletableDeferred
 import org.bukkit.Material
 import org.bukkit.entity.Player
+import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 
 class MenuShopStock(override val plugin: Plop): Addon {
 
-    private val temporaryShop = mutableMapOf<Player, Shop>()
-    private val finalSelection = mutableMapOf<Player, CompletableDeferred<Pair<ShopType, >?>>() // Completable requests
+    private val choiceOne = mutableMapOf<Player, Pair<ShopType, ItemStack>>()
 
-    // Inventory items
-    val SHOP_WARE: ItemStack = ItemStack(Material.BARRIER)
+    private val finalSelection = mutableMapOf<Player, CompletableDeferred<Pair<Int, Int>?>>() // Completable requests
 
     // Less button
     val LESS: ItemStack = ItemStack(Material.REDSTONE_BLOCK)
@@ -33,52 +32,43 @@ class MenuShopStock(override val plugin: Plop): Addon {
         .name("shop.more-stock.name")
         .description("shop.more-stock.desc")
 
+    val INDICATOR_BAD: ItemStack = ItemStack(Material.RED_CONCRETE)
+
     private val inventory = buildChestInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
 
-        rows = 1
+        rows = 3
 
         val stockProperty = interfaceProperty(0)
         var stock by stockProperty
 
+        val stockLimitProperty = interfaceProperty(0)
+        var stockLimit by stockLimitProperty
+
         withTransform(stockProperty) { pane, view ->
             val shop = temporaryShop[view.player] ?: return@withTransform
             stock = shop.stock
-        }
 
-        withTransform { pane, view ->
-
-            val selectionPlot = receiverChoice[view.player]?.personalPlot() ?: return@withTransform
-
-            val individualPersonalClone = PERSONAL_PLOT.clone().setSkull(selectionPlot.owner)
-
-            pane[0, 5] = StaticElement(drawable(individualPersonalClone)) { (player) -> plugin.async {
-                plotTypeChoice[player]?.complete(PlotType.PERSONAL)
-                view.close()
-            } }
-        }
-
-        withTransform { pane, view ->
-            if (pane[0,3] == null && pane[0,5] == null) {
-                view.close()
+            pane[0, 3] = if (stock <= 0) { // No less button, instead indicator bad
+                StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
+            } else {
+                StaticElement(drawable(LESS)) { (player) -> plugin.async {
+                    stock -= 1
+                    temporaryShop[player]?.stock = stock
+                } }
             }
 
-            if (pane[0,3] == null && pane[0,5] != null) {
-                plotTypeChoice[view.player]?.complete(PlotType.PERSONAL)
-                view.close()
-            }
-
-            if (pane[0,3] != null && pane[0,5] == null) {
-                plotTypeChoice[view.player]?.complete(PlotType.GUILD)
-                view.close()
-            }
+            pane[0,5] = if (stock >= view.player.inventory.getAmountOf(temporaryShop[view.player].ware))
         }
 
         addCloseHandler { reasons, handler  ->
-            if (plotTypeChoice[handler.player]?.isCompleted == false) {
-                plotTypeChoice[handler.player]?.complete(null) // Finalise with a null if not completed
+            if (finalSelection[handler.player]?.isCompleted == false) {
+                finalSelection[handler.player]?.complete(null) // Finalise with a null if not completed
             }
+
+            choiceOne.remove(handler.player) // Remove the temporary shop
+            finalSelection.remove(handler.player) // Remove the final selection
 
             if (handler.parent() != null) {
                 handler.parent()?.open()
@@ -86,39 +76,29 @@ class MenuShopStock(override val plugin: Plop): Addon {
         }
     }
 
-    suspend fun requestChoice(player: Player, receiver: Player, plotType: PlotType? = null, parent: InterfaceView? = null): PlotType? {
-        val personalPlot = receiver.personalPlot()
-        val guildPlot = receiver.guildPlot()
-
-        if (plotType != null) { // Handle already specified plot type
-            when (plotType) {
-                PlotType.PERSONAL -> { if (personalPlot == null) {
-                    return null
-                } }
-                PlotType.GUILD -> { if (guildPlot == null) {
-                    return null
-                } }
-            }
-            return plotType
-        }
-
-        if ((personalPlot == null) && (guildPlot == null)) { // If no plots are available, return null
-            return null
-        }
-
-        if ((personalPlot == null) xor (guildPlot == null)) { // If only one plot type is available, return that, no need to open menu
-            return personalPlot?.let { PlotType.PERSONAL } ?: PlotType.GUILD
-        }
-
-        // Store the receiver and request for the plot type
-        receiverChoice[player] = receiver
-        val request = CompletableDeferred<PlotType?>()
-        plotTypeChoice[player] = request
+    suspend fun requestChoice(player: Player, c1: Pair<ShopType, ItemStack>, parent: InterfaceView? = null): Pair<Int, Int>? {
+        choiceOne[player] = c1 // Store previous choices
+        val request = CompletableDeferred<Pair<Int, Int>?>()
+        finalSelection[player] = request
         try {
             inventory.open(player, parent) // Open inventory to player to make a choice
             return request.await()
         } finally {
-            plotTypeChoice.remove(player) // Remove the request because it's been fulfilled already
+            choiceOne.remove(player) // Remove the temporary shop
+            finalSelection.remove(player) // Remove the request because it's been fulfilled already
         }
+    }
+
+    private fun Inventory.getAmountOf(item: ItemStack): Int {
+        var amount = 0
+        for (bigItem in this.contents) {
+            if (bigItem == null) {
+                continue
+            }
+            if (bigItem.isSimilar(item)) {
+                amount += bigItem.amount
+            }
+        }
+        return amount
     }
 }

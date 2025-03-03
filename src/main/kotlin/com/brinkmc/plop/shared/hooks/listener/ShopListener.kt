@@ -27,7 +27,7 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
 
     override suspend fun kill() {}
 
-    val key = NamespacedKey(plugin, "shop")
+    private val key = NamespacedKey(plugin, "shop")
 
     @EventHandler(priority = EventPriority.MONITOR)
     suspend fun destroyShop(event: BlockBreakEvent) {
@@ -37,14 +37,26 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
             return
         }
 
+        // This affects chests oh dear
         val chest = block.state as Chest
 
+        val shopId = chest.persistentDataContainer.get(key, PersistentDataType.STRING)
 
-        val player = event.player
+        if (shopId == null) {
+            // Previous check to see if shop creation is occurring if the chest isn't a shop to begin with
+            val isChoice = plugin.menus.shopCreationMenu.isChoice(chest.location)
 
-        val plot = player.getCurrentPlot() ?: return
+            if (isChoice) { // Do not destroy chest WHILE shop creation is occuring
+                event.isCancelled = true
+                return
+            }
+            return // Return anyway because it's useless to us
+        }
 
+        UUID.fromString(shopId).shop() ?: return
+        // This is a shop with valid data
 
+        event.isCancelled = true // Cancel the event to prevent the chest from breaking
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -63,49 +75,33 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
         val shopId = chest.persistentDataContainer.get(key, PersistentDataType.STRING)
         val shop = shops.handler.getShop(UUID.fromString(shopId))
 
-        val action = event.action
+        val action = event.action == Action.RIGHT_CLICK_BLOCK || event.action == Action.LEFT_CLICK_BLOCK
         val sneak = event.player.isSneaking
         when { // Four possible permutations of interaction
-            action == Action.RIGHT_CLICK_BLOCK && sneak -> {
-                if (shop == null) {
-                    createShop(event, chest)
-                } else {
+            action && sneak && (shop == null) -> { // Trying to initiate?
+                createShop(event, chest)
+            }
+            action && (shop == null) -> { // Shop doesn't exist
+                event.isCancelled = false
+                return
+            }
+            (shop == null) -> { // Not a shop and they're not trying to make one!
+                event.isCancelled = false
+                return
+            }
+            action && sneak -> { // It is a shop but they shouldn't sneak to access
+                return
+            }
+            action -> { // Shop exists and player wants access (they aren't sneaking)
+                if (shop.owner.isPlayer(event.player)) { // It is the owner
                     viewShopOwner(event, shop)
                 }
-            }
-            action == Action.RIGHT_CLICK_BLOCK -> {
-                if (shop == null) { // Allow the chest to be opened, it is just regular chest
-                    event.isCancelled = false
-                    return
-                } else { // View the shop
-                    if (shop.owner.isPlayer(event.player)) { // If the player is the owner
-                        viewShopOwner(event, shop)
-                    }
-                    else { // It is a customer
-                        viewShopCustomer(event, shop)
-                    }
+                else { // It is a customer
+                    viewShopCustomer(event, shop)
                 }
             }
-            // Mirror action for left click
-            action == Action.LEFT_CLICK_BLOCK && sneak -> {
-                if (shop == null) {
-                    createShop(event, chest)
-                } else {
-                    viewShopOwner(event, shop)
-                }
-            }
-            action == Action.LEFT_CLICK_BLOCK -> {
-                if (shop == null) { // Allow the chest to be opened, it is just regular chest
-                    event.isCancelled = false
-                    return
-                } else { // View the shop
-                    if (shop.owner.isPlayer(event.player)) { // If the player is the owner
-                        viewShopOwner(event, shop)
-                    }
-                    else { // It is a customer
-                        viewShopCustomer(event, shop)
-                    }
-                }
+            else -> { // idek what they're up to?
+                return
             }
         }
     }
@@ -128,14 +124,33 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
         }
 
         // Initiate player shop creation
-        val data1: Pair<ShopType, ItemStack> = plugin.menus.shopCreateMenu.request()
+        val shop = plugin.menus.shopCreationMenu.requestChoice(player, event.clickedBlock?.location) ?: return  // No shop was created
+
+        shops.handler.createShop(shop)
     }
 
     fun viewShopCustomer(event: PlayerInteractEvent, shop: Shop) {
+        // Get the player
+        val player = event.player
 
+        // Open the shop customer menu
+        if (!shop.open) {
+            player.sendMiniMessage("shop.closed")
+            return
+        }
+
+        plugin.menus.shopClientMenu.open(player)
     }
 
     fun viewShopOwner(event: PlayerInteractEvent, shop: Shop) {
+        // Get the player
+        val player = event.player
 
+        if (!player.hasPermission("plop.shop.owner")) {
+            return
+        }
+
+        // Open the shop owner menu
+        plugin.menus.shopOwnerMenu.open(player)
     }
 }

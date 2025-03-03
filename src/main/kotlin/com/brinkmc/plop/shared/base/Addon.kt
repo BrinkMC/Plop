@@ -250,5 +250,8 @@ internal interface Addon {
         return shops.handler.getShops(plot.plotId)
     }
 
+    suspend fun UUID.shop(): Shop? {
+        return shops.handler.getShop(this)
+    }
 }
 

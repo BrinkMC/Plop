@@ -28,4 +28,12 @@ class ShopHandler(override val plugin: Plop): Addon, State {
     suspend fun getShop(shopId: UUID): Shop? {
         return shopCache.getShop(shopId)
     }
+
+    suspend fun createShop(shop: Shop) {
+        shopCache.addShop(shop)
+    }
+
+    suspend fun deleteShop(shop: Shop) {
+        shopCache.deleteShop(shop)
+    }
 }

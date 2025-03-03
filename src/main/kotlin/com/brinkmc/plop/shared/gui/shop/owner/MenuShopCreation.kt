@@ -28,7 +28,7 @@ class MenuShopCreation(override val plugin: Plop): Addon {
     private val temporaryShop = mutableMapOf<Player, Location>()
 
     private val temporaryChoice1 = mutableMapOf<Player, Pair<ShopType, ItemStack>?>()
-    private val temporaryChoice2 = mutableMapOf<Player, Pair<Int, Int?>?>()
+    private val temporaryChoice2 = mutableMapOf<Player, Pair<Int, Int>?>()
     private val temporaryChoice3 = mutableMapOf<Player, Float?>()
 
     private val finalSelection = mutableMapOf<Player, CompletableDeferred<Shop?>>() // Completable requests
@@ -48,6 +48,10 @@ class MenuShopCreation(override val plugin: Plop): Addon {
         .name("shop.create.price.name")
         .description("Shop.create.price.desc")
 
+    val PLEASE_FILL: ItemStack = ItemStack(Material.BARRIER)
+        .name("shop.create.fill.name")
+        .description("shop.create.fill.desc")
+
     val INDICATOR_GOOD: ItemStack = ItemStack(Material.GREEN_CONCRETE)
 
     val INDICATOR_BAD: ItemStack = ItemStack(Material.RED_CONCRETE)
@@ -61,45 +65,49 @@ class MenuShopCreation(override val plugin: Plop): Addon {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
 
-        rows = 3
-
-
-        withTransform(stockProperty) { pane, view ->
-            val shop = temporaryShop[view.player] ?: return@withTransform
-            stock = shop.stock
-        }
+        rows = 2
 
         withTransform { pane, view ->
 
             // Stage selection parts of the shop creation
-            pane[1, 3] = StaticElement(drawable(STAGE_ONE)) { (player) -> plugin.async {
+            pane[0, 3] = StaticElement(drawable(STAGE_ONE)) { (player) -> plugin.async {
                 temporaryChoice1[player] = plugin.menus.shopWareMenu.requestChoice(player, view)
             } }
 
-            pane[1, 5] = StaticElement(drawable(STAGE_TWO)) { (player) -> plugin.async {
-                temporaryChoice2[player] = plugin.menus.shopStockMenu.requestChoice(player, view)
-            } }
+            pane[0, 5] = if (temporaryChoice1[view.player] != null) {
+                StaticElement(drawable(STAGE_TWO)) { (player) -> plugin.async {
+                    temporaryChoice2[player] = plugin.menus.shopStockMenu.requestChoice(player, view)
+                } }
+            } else {
+                StaticElement(drawable(PLEASE_FILL))
+                return@withTransform
+            }
 
-            pane[1, 7] = StaticElement(drawable(STAGE_THREE)) { (player) -> plugin.async {
-                temporaryChoice3[player] = plugin.menus.shopPriceMenu.requestChoice(player, view)
-            } }
+            pane[0, 7] = if (temporaryChoice2[view.player] != null) {
+                StaticElement(drawable(STAGE_THREE)) { (player) -> plugin.async {
+                    temporaryChoice3[player] = plugin.menus.shopPriceMenu.requestChoice(player, view)
+                } }
+            } else {
+                StaticElement(drawable(PLEASE_FILL))
+                return@withTransform
+            }
         }
 
         withTransform { pane, view ->
             // Completion checks to determine concrete colours underneath
-            pane[2, 3] = if (temporaryChoice1[view.player] == null) {
+            pane[1, 3] = if (temporaryChoice1[view.player] == null) {
                 StaticElement(drawable(INDICATOR_BAD))
             } else {
                 StaticElement(drawable(INDICATOR_GOOD))
             }
 
-            pane[2, 5] = if (temporaryChoice2[view.player] == null) {
+            pane[1, 5] = if (temporaryChoice2[view.player] == null) {
                 StaticElement(drawable(INDICATOR_BAD))
             } else {
                 StaticElement(drawable(INDICATOR_GOOD))
             }
 
-            pane[2, 7] = if (temporaryChoice3[view.player] == null) {
+            pane[1, 7] = if (temporaryChoice3[view.player] == null) {
                 StaticElement(drawable(INDICATOR_BAD))
             } else {
                 StaticElement(drawable(INDICATOR_GOOD))
@@ -137,10 +145,13 @@ class MenuShopCreation(override val plugin: Plop): Addon {
             }
         }
 
-        addCloseHandler { reasons, handler  ->
-            if (plotTypeChoice[handler.player]?.isCompleted == false) {
-                plotTypeChoice[handler.player]?.complete(null) // Finalise with a null if not completed
+        addCloseHandler { _, handler  ->
+            if (finalSelection[handler.player]?.isCompleted == false) {
+                finalSelection[handler.player]?.complete(null) // Finalise with a null if not completed
             }
+
+            temporaryShop.remove(handler.player) // Remove the temporary shop
+            finalSelection.remove(handler.player) // Remove the final selection
 
             if (handler.parent() != null) {
                 handler.parent()?.open()
@@ -148,39 +159,26 @@ class MenuShopCreation(override val plugin: Plop): Addon {
         }
     }
 
-    suspend fun requestChoice(player: Player, receiver: Player, plotType: PlotType? = null, parent: InterfaceView? = null): PlotType? {
-        val personalPlot = receiver.personalPlot()
-        val guildPlot = receiver.guildPlot()
+    suspend fun requestChoice(player: Player, location: Location?, parent: InterfaceView? = null): Shop? {
 
-        if (plotType != null) { // Handle already specified plot type
-            when (plotType) {
-                PlotType.PERSONAL -> { if (personalPlot == null) {
-                    return null
-                } }
-                PlotType.GUILD -> { if (guildPlot == null) {
-                    return null
-                } }
-            }
-            return plotType
-        }
-
-        if ((personalPlot == null) && (guildPlot == null)) { // If no plots are available, return null
+        if (location == null) { // No location, ergo no shop
             return null
         }
 
-        if ((personalPlot == null) xor (guildPlot == null)) { // If only one plot type is available, return that, no need to open menu
-            return personalPlot?.let { PlotType.PERSONAL } ?: PlotType.GUILD
-        }
+        temporaryShop[player] = location // Set the location of the shop chest
 
-        // Store the receiver and request for the plot type
-        receiverChoice[player] = receiver
-        val request = CompletableDeferred<PlotType?>()
-        plotTypeChoice[player] = request
+        val request = CompletableDeferred<Shop?>()
+        finalSelection[player] = request
         try {
             inventory.open(player, parent) // Open inventory to player to make a choice
             return request.await()
         } finally {
-            plotTypeChoice.remove(player) // Remove the request because it's been fulfilled already
+            temporaryShop.remove(player) // Remove the temporary shop
+            finalSelection.remove(player) // Remove the request because it's been fulfilled already
         }
+    }
+
+    suspend fun isChoice(location: Location): Boolean {
+        return temporaryShop.values.contains(location)
     }
 }

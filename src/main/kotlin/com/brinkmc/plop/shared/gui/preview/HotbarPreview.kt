@@ -31,27 +31,33 @@ class HotbarPreview(override val plugin: Plop): Addon {
     private val cooldownHandle = Cooldown(plugin, 3.seconds)
 
     // Inventory items
-    val BACK_BUTTON: ItemStack = ItemStack(Material.ARROW)
+    val BACK_BUTTON: ItemStack
+        get() = ItemStack(Material.ARROW)
         .name("preview.back-button.name")
         .description("preview.back-button.desc")
 
-    val FORWARD_BUTTON: ItemStack = ItemStack(Material.ARROW)
+    val FORWARD_BUTTON: ItemStack
+        get() = ItemStack(Material.ARROW)
         .name("preview.forward-button.name")
         .description("preview.forward-button.desc")
 
-    val CONFIRM_BUTTON: ItemStack = ItemStack(Material.EMERALD)
+    val CONFIRM_BUTTON: ItemStack
+        get() = ItemStack(Material.EMERALD)
         .name("preview.confirm-button.name")
         .description("preview.confirm-button.desc")
 
-    val TOGGLE_BUTTON_GUILD: ItemStack = ItemStack(Material.PLAYER_HEAD)
+    val TOGGLE_BUTTON_GUILD: ItemStack
+        get() = ItemStack(Material.PLAYER_HEAD)
         .name("preview.toggle-button.guild-name")
         .description("preview.toggle-button.guild-desc")
 
-    val TOGGLE_BUTTON_PERSONAL: ItemStack = ItemStack(Material.PLAYER_HEAD)
+    val TOGGLE_BUTTON_PERSONAL: ItemStack
+        get() = ItemStack(Material.PLAYER_HEAD)
         .name("preview.toggle-button.personal-name")
         .description("preview.toggle-button.personal-desc")
 
-    val CANCEL_BUTTON: ItemStack = ItemStack(Material.REDSTONE)
+    val CANCEL_BUTTON: ItemStack
+        get() = ItemStack(Material.REDSTONE)
         .name("preview.cancel-button.name")
         .description("preview.cancel-button.desc")
 
@@ -89,8 +95,8 @@ class HotbarPreview(override val plugin: Plop): Addon {
             val personalPlot = view.player.personalPlot()
             val guildPlot = view.player.guildPlot()
 
-            val individualPersonal = TOGGLE_BUTTON_PERSONAL.clone().setSkull(guildPlot?.owner) // Set to the skull meta
-            val individualGuild = TOGGLE_BUTTON_GUILD.clone().setSkull(personalPlot?.owner) // Set to the skull meta
+            val individualPersonal = TOGGLE_BUTTON_PERSONAL.setSkull(guildPlot?.owner) // Set to the skull meta
+            val individualGuild = TOGGLE_BUTTON_GUILD.setSkull(personalPlot?.owner) // Set to the skull meta
 
             when (plotType) { // Determine the toggle button orientation
                 PlotType.PERSONAL -> { pane.hotbar[3] = StaticElement(drawable(individualPersonal)) { (player) -> plugin.async {

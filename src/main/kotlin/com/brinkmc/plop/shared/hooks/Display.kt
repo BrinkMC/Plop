@@ -27,31 +27,20 @@ class Display(override val plugin: Plop): Addon, State {
         hologramAPI = FancyHologramsPlugin.get().hologramManager
     }
 
-    override suspend fun kill() { }
+    override suspend fun kill() {}
 
     fun createHologram(hologramData: HologramData): Hologram {
         val hologram = hologramAPI.create(hologramData)
         hologram.data.isPersistent = false // DO NOT SAVE
         hologram.data.visibility = Visibility.MANUAL
-        hologramAPI.addHologram(hologram)
         return hologram
     }
 
-    fun removeHologram(hologram: Hologram) {
-        hologramAPI.removeHologram(hologram)
-    }
-
     fun showHologram(player: Player, hologram: Hologram) {
-        hologram.showHologram(player)
+        hologram.forceShowHologram(player)
     }
 
     fun hideHologram(player: Player, hologram: Hologram) {
-        hologram.hideHologram(player)
+        hologram.forceHideHologram(player)
     }
-
-    fun getHologram(id: String): Hologram? {
-        return hologramAPI.getHologram(id).get()
-    }
-
-
 }

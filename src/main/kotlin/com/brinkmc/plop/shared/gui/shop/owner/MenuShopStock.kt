@@ -23,14 +23,21 @@ class MenuShopStock(override val plugin: Plop): Addon {
     private val finalSelection = mutableMapOf<Player, CompletableDeferred<Pair<Int, Int>?>>() // Completable requests
 
     // Less button
-    val LESS: ItemStack = ItemStack(Material.REDSTONE_BLOCK)
+    val LESS: ItemStack
+        get() = ItemStack(Material.REDSTONE_BLOCK)
         .name("shop.less-stock.name")
         .description("shop.less-stock.desc")
 
     // More button
-    val MORE: ItemStack = ItemStack(Material.EMERALD_BLOCK)
+    val MORE: ItemStack
+        get() = ItemStack(Material.EMERALD_BLOCK)
         .name("shop.more-stock.name")
         .description("shop.more-stock.desc")
+
+    val CONFIRM
+        get() = ItemStack(Material.EMERALD)
+        .name("shop.confirm-stock.name")
+        .description("shop.confirm-stock.desc")
 
     val INDICATOR_BAD: ItemStack = ItemStack(Material.RED_CONCRETE)
 
@@ -46,20 +53,122 @@ class MenuShopStock(override val plugin: Plop): Addon {
         val stockLimitProperty = interfaceProperty(0)
         var stockLimit by stockLimitProperty
 
-        withTransform(stockProperty) { pane, view ->
-            val shop = temporaryShop[view.player] ?: return@withTransform
-            stock = shop.stock
+        withTransform(stockProperty, stockLimitProperty) { pane, view ->
+            val player = view.player
+            val shopChoiceOne = choiceOne[player] ?: return@withTransform
+
+            if (shopChoiceOne.first == ShopType.BUY) { return@withTransform } // This is a sell shop render
 
             pane[0, 3] = if (stock <= 0) { // No less button, instead indicator bad
                 StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
             } else {
-                StaticElement(drawable(LESS)) { (player) -> plugin.async {
+                StaticElement(drawable(
+                    LESS.name("shop.less-one.name")
+                )) { (player) -> plugin.async {
                     stock -= 1
-                    temporaryShop[player]?.stock = stock
                 } }
             }
 
-            pane[0,5] = if (stock >= view.player.inventory.getAmountOf(temporaryShop[view.player].ware))
+            pane[0,5] = if (stock >= view.player.inventory.getAmountOf(shopChoiceOne.second)) {
+                StaticElement(drawable(INDICATOR_BAD.name("shop.too-much.name"))) // Too much stock for amount in inventory currently
+            } else {
+                StaticElement(drawable(
+                    MORE.name("shop.more-one.name")
+                )) { (player) -> plugin.async {
+                    stock += 1
+                } }
+            }
+
+            pane[1, 3] = if (stock <= 10) { // No less button, instead indicator bad
+                StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
+            } else {
+                StaticElement(drawable(
+                    LESS.name("shop.less-ten.name")
+                )) { (player) -> plugin.async {
+                    stock -= 10
+                } }
+            }
+
+            pane[1,5] = if ((stock + 10) >= view.player.inventory.getAmountOf(shopChoiceOne.second)) {
+                StaticElement(drawable(INDICATOR_BAD.name("shop.too-much.name"))) // Too much stock for amount in inventory currently
+            } else {
+                StaticElement(drawable(
+                    MORE.name("shop.more-ten.name")
+                )) { (player) -> plugin.async {
+                    stock += 10
+                } }
+            }
+
+            pane[2, 3] = if (stock <= 100) { // No less button, instead indicator bad
+                StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
+            } else {
+                StaticElement(drawable(
+                    LESS.name("shop.less-hundred.name")
+                )) { (player) -> plugin.async {
+                    stock -= 100
+                } }
+            }
+
+            pane[2,5] = if ((stock + 100) >= view.player.inventory.getAmountOf(shopChoiceOne.second)) {
+                StaticElement(drawable(INDICATOR_BAD.name("shop.too-much.name"))) // Too much stock for amount in inventory currently
+            } else {
+                StaticElement(drawable(
+                    MORE.name("shop.more-hundred.name")
+                )) { (player) -> plugin.async {
+                    stock += 100
+                } }
+            }
+        }
+
+        withTransform(stockProperty, stockLimitProperty) { pane, view ->
+            val player = view.player
+            val shopChoiceOne = choiceOne[player] ?: return@withTransform
+
+            if (shopChoiceOne.first == ShopType.SELL) { return@withTransform } // This is a buy shop render
+
+            pane[0, 3] = if (stockLimit <= 0) { // No less button, instead indicator bad
+                StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
+            } else {
+                StaticElement(drawable(LESS)) { (player) -> plugin.async {
+                    stockLimit -= 1
+                } }
+            }
+
+            pane[0,5] = StaticElement(drawable(MORE)) { (player) -> plugin.async {
+                stockLimit += 1
+            } }
+
+            pane[1, 3] = if (stockLimit <= 10) { // No less button, instead indicator bad
+                StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
+            } else {
+                StaticElement(drawable(LESS)) { (player) -> plugin.async {
+                    stockLimit -= 10
+                } }
+            }
+
+            pane[1,5] = StaticElement(drawable(MORE)) { (player) -> plugin.async {
+                stockLimit += 10
+            } }
+
+            pane[2, 3] = if (stockLimit <= 100) { // No less button, instead indicator bad
+                StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
+            } else {
+                StaticElement(drawable(LESS)) { (player) -> plugin.async {
+                    stockLimit -= 100
+                } }
+            }
+
+            pane[2,5] = StaticElement(drawable(MORE)) { (player) -> plugin.async {
+                stockLimit += 100
+            } }
+        }
+
+        // Confirm button
+        withTransform { pane, view ->
+            pane[1, 8] = StaticElement(drawable(CONFIRM)) { (player) -> plugin.async {
+                finalSelection[player]?.complete(Pair(stock, stockLimit))
+                view.close()
+            } }
         }
 
         addCloseHandler { reasons, handler  ->
@@ -67,8 +176,7 @@ class MenuShopStock(override val plugin: Plop): Addon {
                 finalSelection[handler.player]?.complete(null) // Finalise with a null if not completed
             }
 
-            choiceOne.remove(handler.player) // Remove the temporary shop
-            finalSelection.remove(handler.player) // Remove the final selection
+            resetFull(handler.player)
 
             if (handler.parent() != null) {
                 handler.parent()?.open()
@@ -78,15 +186,25 @@ class MenuShopStock(override val plugin: Plop): Addon {
 
     suspend fun requestChoice(player: Player, c1: Pair<ShopType, ItemStack>, parent: InterfaceView? = null): Pair<Int, Int>? {
         choiceOne[player] = c1 // Store previous choices
+        resetHalf(player)
+
         val request = CompletableDeferred<Pair<Int, Int>?>()
         finalSelection[player] = request
         try {
             inventory.open(player, parent) // Open inventory to player to make a choice
             return request.await()
         } finally {
-            choiceOne.remove(player) // Remove the temporary shop
-            finalSelection.remove(player) // Remove the request because it's been fulfilled already
+            resetFull(player)
         }
+    }
+
+    fun resetHalf(player: Player) {
+        finalSelection.remove(player)
+    }
+
+    fun resetFull(player: Player) {
+        choiceOne.remove(player)
+        finalSelection.remove(player)
     }
 
     private fun Inventory.getAmountOf(item: ItemStack): Int {

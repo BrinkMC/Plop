@@ -151,7 +151,7 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
 
     suspend fun create(plot: Plot) {
         val id = plot.plotId.toString()
-        DB.update("INSERT INTO plots (plot_id, type) VALUES (?, ?)",
+        DB.update("INSERT INTO plots (plot_id, type) VALUES (?,?)",
             id, plot.type.toString())
         DB.update("INSERT INTO plot_claims (plot_id, centre, home, visit) VALUES (?,?,?,?)",
             id, plot.claim.centre.fullString(false),
@@ -162,17 +162,14 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
             id, plot.factory.level)
         DB.update("INSERT INTO plot_shops (plot_id, shop_level) VALUES (?,?)",
             id, plot.shop.level)
-        DB.update("INSERT INTO plot_totem_levels (plot_id, totem_level) VALUES (?,?)",
-            id, plot.totem.level)
+        DB.update("INSERT INTO plot_totem_levels (plot_id, totem_level, enable_lightning) VALUES (?,?, ?)",
+            id, plot.totem.level, plot.totem.enableLightning)
         DB.update("INSERT INTO plot_visits (plot_id, allow_visitors, visit_level, current_visits) VALUES (?,?,?,?)",
             id, plot.visit.visitable, plot.visit.level, plot.visit.currentVisits)
     }
 
     suspend fun save(plot: Plot) {
         val id = plot.plotId.toString()
-        // plots
-        DB.update("INSERT INTO plots (plot_id, type, owner_id) VALUES (?,?) ON DUPLICATE KEY UPDATE type=VALUES(type)",
-            id, plot.type.toString())
         // claims
         DB.update("INSERT INTO plot_claims (plot_id, centre, home, visit) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE centre=VALUES(centre),home=VALUES(home),visit=VALUES(visit)",
             id, plot.claim.centre.fullString(false), plot.claim.home.fullString(), plot.claim.visit.fullString())
@@ -191,11 +188,11 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
         DB.update("INSERT INTO plot_shops (plot_id, shop_level) VALUES (?,?) ON DUPLICATE KEY UPDATE shop_level=VALUES(shop_level)",
             id, plot.shop.level)
         DB.update("DELETE FROM plot_shop_locations WHERE plot_id=?", id)
-        for (shop in plot.shop.shops) {
+        for (shop in plot.shop.getShops()) {
             DB.update("INSERT INTO plot_shop_locations (plot_id, shop_uuid) VALUES (?,?)", id, shop.toString())
         }
         // totems
-        DB.update("INSERT INTO plot_totem_levels (plot_id, totem_level, enable_lightning) VALUES (?,?, ?) ON DUPLICATE KEY UPDATE totem_level=VALUES(totem_level, enable_lightning)",
+        DB.update("INSERT INTO plot_totem_levels (plot_id, totem_level, enable_lightning) VALUES (?,?, ?) ON DUPLICATE KEY UPDATE totem_level=VALUES(totem_level), enable_lightning=VALUES(enable_lightning)",
             id, plot.totem.level, plot.totem.enableLightning)
         DB.update("DELETE FROM plot_totems WHERE plot_id=?", id)
         for (totem in plot.totem.totems) {

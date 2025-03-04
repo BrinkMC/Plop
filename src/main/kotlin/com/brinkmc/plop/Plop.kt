@@ -132,6 +132,11 @@ class Plop : State, SuspendingJavaPlugin() {
         DB = HikariManager(plugin)
         DB.load()
 
+        // Get instance of hooks
+        plugin.slF4JLogger.info("Hooking into other plugins")
+        hooks = Hooks(plugin)
+        hooks.load()
+
         // Load the two parts of the plugin
         plugin.slF4JLogger.info("Initiating plots")
         plots = Plots(plugin)
@@ -140,10 +145,7 @@ class Plop : State, SuspendingJavaPlugin() {
         shops = Shops(plugin)
         shops.load()
 
-        // Get instance of hooks
-        plugin.slF4JLogger.info("Hooking into other plugins")
-        hooks = Hooks(plugin)
-        hooks.load()
+
 
         // Load displays
         plugin.slF4JLogger.info("Initiating displays")
@@ -153,6 +155,7 @@ class Plop : State, SuspendingJavaPlugin() {
         // Enable all menus
         plugin.slF4JLogger.info("Creating menus and hotbars")
         menus = Menus(plugin)
+
 
         // Register listener
         loadListeners()
@@ -252,6 +255,7 @@ class Plop : State, SuspendingJavaPlugin() {
         val nexusDisplay = NexusDisplay(plugin)
 
         override suspend fun load() {
+            plugin.slF4JLogger.info("Loading displays")
             listOf(
                 shopDisplay,
                 nexusDisplay

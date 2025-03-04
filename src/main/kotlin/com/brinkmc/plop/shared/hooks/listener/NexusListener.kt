@@ -25,7 +25,7 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
         val lectern = event.lectern
         val book = event.book
 
-        if (book.displayName() != plots.nexusManager.NEXUS_BOOK.itemMeta.displayName()) {
+        if (book.itemMeta.displayName() != plots.nexusManager.NEXUS_BOOK.itemMeta.displayName()) {
             return
         }
 
@@ -35,6 +35,7 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
 
         val plot = lectern.location.getCurrentPlot()
 
+        logger.info("Adding nexus to plot ${plot?.plotId}")
         // Keep track that the nexus was placed
         plot?.nexus?.add(lectern.block.location)
     }

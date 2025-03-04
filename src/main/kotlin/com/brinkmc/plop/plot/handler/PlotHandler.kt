@@ -27,6 +27,7 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
 
     override suspend fun load() { syncScope {
         plotCache = PlotCache(plugin) // Load the cache + database
+        plotCache.load()
 
         borderAPI = server.servicesManager.getRegistration<WorldBorderApi?>(WorldBorderApi::class.java)?.provider ?: run {
             logger.error("Failed to get WorldBorderAPI")

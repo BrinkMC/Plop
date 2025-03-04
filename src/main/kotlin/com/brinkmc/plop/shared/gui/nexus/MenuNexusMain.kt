@@ -12,13 +12,16 @@ import org.bukkit.inventory.ItemStack
 
 class MenuNexusMain(override val plugin: Plop): Addon {
 
-    val MAIN_OVERVIEW = ItemStack(Material.PLAYER_HEAD)
+    val MAIN_OVERVIEW
+        get() = ItemStack(Material.PLAYER_HEAD)
         .name("nexus.main.overview.name")
 
-    val UPGRADES = ItemStack(Material.SPLASH_POTION)
+    val UPGRADES
+        get() = ItemStack(Material.SPLASH_POTION)
         .name("nexus.main.upgrades.name")
 
-    val TOTEMS = ItemStack(Material.LIGHTNING_ROD)
+    val TOTEMS
+        get() = ItemStack(Material.LIGHTNING_ROD)
         .name("nexus.main.totems.name")
 
     private val inventory = buildChestInterface {
@@ -31,7 +34,7 @@ class MenuNexusMain(override val plugin: Plop): Addon {
             val plot = view.player.getCurrentPlot() ?: return@withTransform
 
             // Main overview button
-            val individualMainOverview = MAIN_OVERVIEW.clone()
+            val individualMainOverview = MAIN_OVERVIEW
                 .setSkull(plot.owner)
                 .description("nexus.main.overview.description",
                     player = view.player,

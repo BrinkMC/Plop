@@ -19,11 +19,13 @@ class SelectionOtherMenu(override val plugin: Plop): Addon {
     private val plotTypeChoice = mutableMapOf<Player, CompletableDeferred<PlotType?>>() // Completable requests
 
     // Inventory items
-    val GUILD_PLOT: ItemStack = ItemStack(Material.PLAYER_HEAD)
+    val GUILD_PLOT: ItemStack
+        get() = ItemStack(Material.PLAYER_HEAD)
         .name("selection-other.toggle-guild.name")
         .description("selection-other.toggle-guild.desc")
 
-    val PERSONAL_PLOT: ItemStack = ItemStack(Material.PLAYER_HEAD)
+    val PERSONAL_PLOT: ItemStack
+        get() = ItemStack(Material.PLAYER_HEAD)
         .name("selection-other.toggle-personal.name")
         .description("selection-other.toggle-personal.desc")
 
@@ -37,7 +39,7 @@ class SelectionOtherMenu(override val plugin: Plop): Addon {
 
             val selectionPlot = receiverChoice[view.player]?.guildPlot() ?: return@withTransform
 
-            val individualGuildClone = GUILD_PLOT.clone().setSkull(selectionPlot.owner)
+            val individualGuildClone = GUILD_PLOT.setSkull(selectionPlot.owner)
 
             pane[0, 3] = StaticElement(drawable(individualGuildClone)) { (player) -> plugin.async {
                 plotTypeChoice[player]?.complete(PlotType.GUILD)
@@ -49,7 +51,7 @@ class SelectionOtherMenu(override val plugin: Plop): Addon {
 
             val selectionPlot = receiverChoice[view.player]?.personalPlot() ?: return@withTransform
 
-            val individualPersonalClone = PERSONAL_PLOT.clone().setSkull(selectionPlot.owner)
+            val individualPersonalClone = PERSONAL_PLOT.setSkull(selectionPlot.owner)
 
             pane[0, 5] = StaticElement(drawable(individualPersonalClone)) { (player) -> plugin.async {
                 plotTypeChoice[player]?.complete(PlotType.PERSONAL)

@@ -5,7 +5,9 @@ import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.yannicklamprecht.worldborder.api.WorldBorderApi
 import com.sksamuel.aedile.core.asCache
+import org.bukkit.WorldBorder
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority

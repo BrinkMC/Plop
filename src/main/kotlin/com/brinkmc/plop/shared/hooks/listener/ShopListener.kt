@@ -73,7 +73,13 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
         val chest = block.state as Chest // Cast as chest so that I can get TileState
 
         val shopId = chest.persistentDataContainer.get(key, PersistentDataType.STRING)
-        val shop = shops.handler.getShop(UUID.fromString(shopId))
+
+        val shop = if (shopId != null) { // Not a shop
+            shops.handler.getShop(UUID.fromString(shopId))
+        }
+        else {
+            null
+        }
 
         val action = event.action == Action.RIGHT_CLICK_BLOCK || event.action == Action.LEFT_CLICK_BLOCK
         val sneak = event.player.isSneaking
@@ -127,9 +133,12 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
         val shop = plugin.menus.shopCreationMenu.requestChoice(player, event.clickedBlock?.location) ?: return  // No shop was created
 
         shops.handler.createShop(shop)
+        plot.shop.addShop(shop.shopId)
+        chest.persistentDataContainer.set(key, PersistentDataType.STRING, shop.shopId.toString())
+        player.sendMiniMessage("shop.created")
     }
 
-    fun viewShopCustomer(event: PlayerInteractEvent, shop: Shop) {
+    suspend fun viewShopCustomer(event: PlayerInteractEvent, shop: Shop) {
         // Get the player
         val player = event.player
 
@@ -142,7 +151,7 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
         plugin.menus.shopClientMenu.open(player)
     }
 
-    fun viewShopOwner(event: PlayerInteractEvent, shop: Shop) {
+    suspend fun viewShopOwner(event: PlayerInteractEvent, shop: Shop) {
         // Get the player
         val player = event.player
 

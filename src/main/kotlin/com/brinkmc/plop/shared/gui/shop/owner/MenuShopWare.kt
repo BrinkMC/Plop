@@ -8,34 +8,39 @@ import com.brinkmc.plop.shop.shop.ShopType
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.buildChestInterface
+import com.noxcrew.interfaces.interfaces.buildCombinedInterface
 import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.InterfaceView
 import kotlinx.coroutines.CompletableDeferred
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
+import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
 class MenuShopWare(override val plugin: Plop): Addon {
 
-    private val temporaryType = mutableMapOf<Player, ShopType>()
-    private val temporaryWare = mutableMapOf<Player, ItemStack>()
+    val inventoryClone = mutableMapOf<Player, Array<ItemStack?>>()
+
     private val finalSelection = mutableMapOf<Player, CompletableDeferred<Pair<ShopType, ItemStack>?>>() // Completable requests
 
     // Inventory items
-    val BUY: ItemStack = ItemStack(Material.GOLD_INGOT)
-        .name("shop.ware.buy.name")
-        .description("shop.ware.buy.desc")
+    val BUY: ItemStack
+        get() = ItemStack(Material.GOLD_INGOT)
+    .name("shop.ware.buy.name")
+    .description("shop.ware.buy.desc")
 
-    val SELL: ItemStack = ItemStack(Material.NETHER_WART)
+    val SELL: ItemStack
+        get() = ItemStack(Material.NETHER_WART)
         .name("shop.ware.sell.name")
         .description("shop.ware.sell.desc")
 
-    val CONFIRM: ItemStack = ItemStack(Material.EMERALD)
+    val CONFIRM: ItemStack
+        get()= ItemStack(Material.EMERALD)
         .name("shop.ware.confirm.name")
         .description("shop.ware.confirm.desc")
 
-    private val inventory = buildChestInterface {
+    private val inventory = buildCombinedInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
 
@@ -51,31 +56,37 @@ class MenuShopWare(override val plugin: Plop): Addon {
             pane[0, 3] = when (shopType) {
                 ShopType.BUY -> StaticElement(drawable(BUY)) { (player) -> plugin.async {
                     // Set the shop type to buy inside the temporary shop to the other one
-                    temporaryType[player] = ShopType.SELL
+                    shopType = ShopType.SELL
                 } }
                 ShopType.SELL -> StaticElement(drawable(SELL)) { (player) -> plugin.async {
-                    temporaryType[player] = ShopType.BUY
+                    shopType = ShopType.BUY
                 } }
             }
 
-            val shopWareCopy = ItemStack(shopWare)
-
-            pane[0, 5] = StaticElement(drawable(shopWare)) { (player) -> plugin.async {
-                temporaryWare[player] = shopWare
-            } }
+            pane[0, 5] = StaticElement(drawable(
+                shopWare.description("shop.ware.selected")
+            ))
 
             pane[0,8] = StaticElement(drawable(CONFIRM)) { (player) -> plugin.async {
-                val type = temporaryType[player] ?: return@async
-                val ware = temporaryWare[player] ?: return@async
-                finalSelection[player]?.complete(Pair(type, ware))
+                finalSelection[player]?.complete(Pair(shopType, shopWare))
                 view.close()
             } }
         }
-        // TODO THIS IS NOT DONE BECAUSE THE LIBRARY ISN'T LIBRARYING
-        addPreprocessor { handler  ->
-            // Only continue if the clicked item is within the player inventory and not container inventory
-            if (handler.slot > 54) {
-                return@addPreprocessor
+
+        // CLONE PLAYER INVENTORY AND GET CLICK EVENT FOR EACH ONE
+        withTransform(shopWareProperty, shopTypeProperty) { pane, view ->
+            val cloned = inventoryClone[view.player] ?: return@withTransform
+
+            for (item in cloned) { // Populate the player inventory with their own items
+                for (i in 1..4) {
+                    for (j in 0..8) {
+                        if (item != null) { // Continue
+                            pane[i, j] = StaticElement(drawable(item.clone())) { (player) -> plugin.async {
+                                shopWare = item
+                            } }
+                        }
+                    }
+                }
             }
         }
 
@@ -84,21 +95,45 @@ class MenuShopWare(override val plugin: Plop): Addon {
                 finalSelection[handler.player]?.complete(null) // Finalise with a null if not completed
             }
 
+            resetHalf(handler.player)
+
             if (handler.parent() != null) {
                 handler.parent()?.open()
             }
+
+            returnInventory(handler.player) ?: return@addCloseHandler
         }
     }
 
     suspend fun requestChoice(player: Player, parent: InterfaceView? = null): Pair<ShopType, ItemStack>? {
+        resetHalf(player)
         // Store the request
         val request = CompletableDeferred<Pair<ShopType, ItemStack>?>()
         finalSelection[player] = request
+        inventoryClone[player] = player.inventory.contents.clone()
         try {
             inventory.open(player, parent) // Open inventory to player to make a choice
             return request.await()
         } finally {
-            finalSelection.remove(player) // Remove the request because it's been fulfilled already
+            resetFull(player)
         }
+    }
+
+    suspend fun isActive(player: Player): Boolean {
+        return finalSelection[player]?.isCompleted == false
+    }
+
+    fun resetHalf(player: Player) {
+        finalSelection.remove(player)
+    }
+
+    fun resetFull(player: Player) {
+        finalSelection.remove(player)
+        returnInventory(player)
+        inventoryClone.remove(player)
+    }
+
+    fun returnInventory(player: Player) {
+        player.inventory.contents = inventoryClone[player] ?: return
     }
 }

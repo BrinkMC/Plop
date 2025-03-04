@@ -8,6 +8,7 @@ import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.storage.database.DatabaseShop
 import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.shynixn.mccoroutine.bukkit.launch
 import com.sksamuel.aedile.core.asCache
 import com.sksamuel.aedile.core.expireAfterAccess
 import kotlinx.coroutines.delay
@@ -25,17 +26,17 @@ class ShopCache(override val plugin: Plop): Addon, State {
         .asCache<UUID, Shop?>()
 
     override suspend fun load() {
-        cacheSave() // Get the task going
+        plugin.async { cacheSave() }// Get the task going
     }
 
     private suspend fun cacheSave() {
         while (true) {
             delay(5.minutes)
-            asyncScope { shopMap.asMap().forEach { (id, shop) ->
+            shopMap.asMap().forEach { (id, shop) ->
                 if (shop != null) {
                     databaseHandler.save(shop)
                 }
-            } }
+            }
         }
     }
 

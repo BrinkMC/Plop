@@ -23,7 +23,7 @@ import org.bukkit.inventory.ItemStack
 
 class ShopDisplay(override val plugin: Plop): Addon, State {
 
-    val active = Caffeine.newBuilder().asCache<Player, Boolean>()
+    val active = Caffeine.newBuilder().asCache<Player, Location>()
     val shopHolograms = Caffeine.newBuilder().asCache<Shop, List<Hologram>>()
     val renderDelay = 3.ticks
 
@@ -31,26 +31,26 @@ class ShopDisplay(override val plugin: Plop): Addon, State {
         get() = plugin.hooks.display
 
     override suspend fun load() {
-        plugin.launch { renderTask() }
+        plugin.async { renderTask() }
     }
 
     override suspend fun kill() { }
 
     private suspend fun renderTask() {
-        asyncScope {
         while (true) {
             for (player in server.onlinePlayers) {
-                plugin.playerTracker.locations.getIfPresent(player)?.let {
-                    render(player, it)
-                }
+                val loc = plugin.playerTracker.locations.get(player) {
+                    player.getCurrentPlot()
+                } ?: continue
+                render(player, loc)
             }
             delay(renderDelay)
-        } }
+        }
     }
 
     private suspend fun render(player: Player, plot: Plot) { // Get centred starting location of hologram
-        val closestShop = plot.shop.shops
-            .mapNotNull { shops.getShop(it) }
+        val closestShop = plot.shop.getShops()
+            .mapNotNull { shops.handler.getShop(it) }
             .minByOrNull { it.location.distanceSquared(player.location) } ?: return // No shop
 
         val startLoc = closestShop.location.add(0.5, 1.5, 0.5) // Location for text part of hologram
@@ -64,11 +64,11 @@ class ShopDisplay(override val plugin: Plop): Addon, State {
     }
 
     private suspend fun far(player: Player, shop: Shop, plot: Plot, startLoc: Location) {
-        if (active.getIfPresent(player) == false) { // It wasn't active to begin with
+        if (active.getIfPresent(player) == startLoc) { // It wasn't active to begin with
             return
         }
 
-        active[player] = false // It was active, now it shouldn't be
+        active[player] = startLoc // It was active, now it shouldn't be
 
         val tags = lang.getTags(player = player, shop = shop, plot = plot) // Get tags and replace
         val substitutedValues = shopConfig.display.map { lang.resolveTags(it, tags) }
@@ -98,11 +98,11 @@ class ShopDisplay(override val plugin: Plop): Addon, State {
     }
 
     private suspend fun near(player: Player, shop: Shop, plot: Plot, startLoc: Location) {
-        if (active.getIfPresent(player) == true) { // It was active to begin with
+        if (active.getIfPresent(player) == startLoc) { // It was active to begin with
             return
         }
 
-        active[player] = true // It was inactive, now it should be active as player is close
+        active[player] = startLoc // It was inactive, now it should be active as player is close
 
         val tags = lang.getTags(player = player, shop = shop, plot = plot) // Get tags and replace
         val substitutedValues = shopConfig.display.map { lang.resolveTags(it, tags) }

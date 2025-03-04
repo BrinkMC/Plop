@@ -5,6 +5,18 @@ import java.util.UUID
 
 data class PlotShop(
     var level: Int,
-    val shops: MutableList<UUID>,
+    private val shops: MutableList<UUID>,
     @Transient internal val  plotType: PlotType
-)
+) {
+    fun addShop(shop: UUID) {
+        shops.add(shop)
+    }
+
+    fun removeShop(shop: UUID) {
+        shops.remove(shop)
+    }
+
+    fun getShops(): List<UUID> {
+        return shops
+    }
+}

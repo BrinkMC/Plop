@@ -12,6 +12,7 @@ class ShopHandler(override val plugin: Plop): Addon, State {
     private lateinit var shopCache: ShopCache
 
     override suspend fun load() {
+        logger.info("Loading Shop cache")
         shopCache = ShopCache(plugin)
 
         shopCache.load()
@@ -22,7 +23,7 @@ class ShopHandler(override val plugin: Plop): Addon, State {
     }
 
     suspend fun getShops(plotId: UUID): List<Shop> { // Get all shops which have plotId of some value
-        return plots.handler.getPlotById(plotId)?.shop?.shops?.mapNotNull { getShop(it) }?.toList() ?: listOf()
+        return plots.handler.getPlotById(plotId)?.shop?.getShops()?.mapNotNull { getShop(it) }?.toList() ?: listOf()
     }
 
     suspend fun getShop(shopId: UUID): Shop? {

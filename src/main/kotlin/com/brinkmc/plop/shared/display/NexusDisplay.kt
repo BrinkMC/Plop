@@ -17,7 +17,7 @@ import org.bukkit.entity.Player
 
 class NexusDisplay(override val plugin: Plop): Addon, State {
 
-    val active = Caffeine.newBuilder().asCache<Player, Boolean>()
+    val active = Caffeine.newBuilder().asCache<Player, Location>()
     val playerHolograms = Caffeine.newBuilder().asCache<Player, Hologram>()
     val renderDelay = 3.ticks
 
@@ -25,55 +25,52 @@ class NexusDisplay(override val plugin: Plop): Addon, State {
         get() = plugin.hooks.display
 
     override suspend fun load() {
-        plugin.launch { renderTask() }
+        plugin.async { renderTask() }
     }
 
     override suspend fun kill() { }
 
     private suspend fun renderTask() {
-        asyncScope {
         while (true) {
             for (player in server.onlinePlayers) {
-                plugin.playerTracker.locations.getIfPresent(player)?.let {
-                    render(player, it)
-                }
+                val loc = plugin.playerTracker.locations.get(player) {
+                    player.getCurrentPlot()
+                } ?: continue
+                render(player, loc)
             }
             delay(renderDelay)
-        } }
+        }
     }
 
     private suspend fun render(player: Player, plot: Plot) { // Get centred starting location of hologram
-        val startLoc = plot.nexus.getClosest(player.location)?.add(0.5, 1.5, 0.5) ?: return // No nexus
+        val startLoc = plot.nexus.getClosest(player.location)?.clone()?.add(0.5, 1.5, 0.5) ?: return // No nexus
         if (startLoc.distanceSquared(player.location) >= plotConfig.nexusConfig.viewDistance) { // Too far away
-            logger.info("Far")
-            far(player)
+            far(player, startLoc)
         }
         else {
-            logger.info("Close")
             near(player, plot, startLoc)
         }
     }
 
-    private suspend fun far(player: Player) {
-        if (active.getIfPresent(player) == false) { // It wasn't active to begin with
+    private suspend fun far(player: Player, startLoc: Location) {
+        if (active.getIfPresent(player) == startLoc) { // It wasn't active to begin with
             return
         }
         logger.info("Remove hologram")
 
-        active[player] = false // It was active, now it shouldn't be
-
+        active[player] = startLoc // It was active, now it shouldn't be
 
         val potentialHologram = playerHolograms.getIfPresent(player) ?: return // Is there a hologram?
         hologramManager.hideHologram(player, potentialHologram) // Hide the hologram
     }
 
     private suspend fun near(player: Player, plot: Plot, location: Location) {
-        if (active.getIfPresent(player) == true) { // It was active to begin with
+        if (active.getIfPresent(player) == location) { // It was active to begin with
             return
         }
         logger.info("Send hologram")
 
-        active[player] = true // It was inactive, now it should be active as player is close
+        active[player] = location // It was inactive, now it should be active as player is close
 
         val tags = lang.getTags(player = player, plot = plot) // Get tags and replace
         val substitutedValues = plotConfig.nexusConfig.display.map { lang.resolveTags(it, tags) }

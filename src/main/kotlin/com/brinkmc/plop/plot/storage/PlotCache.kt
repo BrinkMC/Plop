@@ -36,17 +36,17 @@ class PlotCache(override val plugin: Plop): Addon, State {
         .asCache<UUID, Plot?>()
 
     override suspend fun load() {
-        cacheSave() // Get the task going
+        plugin.async { cacheSave() } // Get the task going
     }
 
     private suspend fun cacheSave() {
         while (true) {
             delay(5.minutes)
-            asyncScope { plotMap.asMap().forEach { (id, plot) ->
+            plotMap.asMap().forEach { (id, plot) ->
                 if (plot != null) {
                     databaseHandler.save(plot)
                 }
-            } }
+            }
         }
     }
 

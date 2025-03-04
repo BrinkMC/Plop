@@ -12,22 +12,28 @@ import org.bukkit.inventory.ItemStack
 
 class MenuUpgrade(override val plugin: Plop): Addon {
 
-    val BACK = ItemStack(Material.REDSTONE)
+    val BACK
+        get() = ItemStack(Material.REDSTONE)
         .name("menu.back")
 
-    val UPGRADE_TOTEM = ItemStack(Material.TURTLE_HELMET)
+    val UPGRADE_TOTEM
+        get() = ItemStack(Material.TURTLE_HELMET)
         .name("nexus.upgrade.totem.name")
 
-    val UPGRADE_SHOP = ItemStack(Material.CHEST)
+    val UPGRADE_SHOP
+        get() = ItemStack(Material.CHEST)
         .name("nexus.upgrade.shop.name")
 
-    val UPGRADE_VISIT = ItemStack(Material.OAK_BOAT)
+    val UPGRADE_VISIT
+        get() = ItemStack(Material.OAK_BOAT)
         .name("nexus.upgrade.visit.name")
 
-    val UPGRADE_FACTORY = ItemStack(Material.FURNACE)
+    val UPGRADE_FACTORY
+        get() = ItemStack(Material.FURNACE)
         .name("nexus.upgrade.factory.name")
 
-    val UPGRADE_PLOT = ItemStack(Material.GRASS_BLOCK)
+    val UPGRADE_PLOT
+        get() = ItemStack(Material.GRASS_BLOCK)
         .name("nexus.upgrade.size.name")
 
     private val inventory = buildChestInterface {

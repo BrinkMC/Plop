@@ -14,12 +14,14 @@ import org.bukkit.inventory.ItemStack
 
 class MenuTotemList(override val plugin: Plop): Addon {
 
-    val BASE_TOTEM = ItemStack(Material.TOTEM_OF_UNDYING)
+    val BASE_TOTEM: ItemStack
+        get() = ItemStack(Material.TOTEM_OF_UNDYING)
 
     val name = "nexus.totem.list.name"
     val desc = "nexus.totem.list.desc"
 
-    val BACK = ItemStack(Material.REDSTONE)
+    val BACK: ItemStack
+        get() = ItemStack(Material.REDSTONE)
         .name("menu.back")
 
     // Only one list
@@ -39,7 +41,7 @@ class MenuTotemList(override val plugin: Plop): Addon {
                     Component.text(totem.totemType.toString().lowercase())
                 )
 
-                BASE_TOTEM.clone()
+                BASE_TOTEM
                     .name("nexus.totem.list.item.name", args = arrayOf(tags))
                     .description("nexus.totem.list.item.desc", args = arrayOf(tags))
             }

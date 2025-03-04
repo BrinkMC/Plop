@@ -20,5 +20,16 @@ class GeneralListener(override val plugin: Plop): Addon, State, Listener {
         playerJoinEvent.player.updateBorder()
     }
 
+    @EventHandler
+    suspend fun on(event: PlayerQuitEvent) {
+        val player = event.player
+
+        if (!plugin.menus.shopWareMenu.isActive(player)) {
+            return
+        }
+
+        // They are in the shop ware menu, save their inventory
+        plugin.menus.shopWareMenu.returnInventory(player)
+    }
 
 }

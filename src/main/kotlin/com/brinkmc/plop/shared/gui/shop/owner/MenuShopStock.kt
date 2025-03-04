@@ -11,6 +11,8 @@ import com.noxcrew.interfaces.interfaces.buildChestInterface
 import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.InterfaceView
 import kotlinx.coroutines.CompletableDeferred
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
@@ -79,7 +81,7 @@ class MenuShopStock(override val plugin: Plop): Addon {
                 } }
             }
 
-            pane[1, 3] = if (stock <= 10) { // No less button, instead indicator bad
+            pane[1, 3] = if (stock <= 9) { // No less button, instead indicator bad
                 StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
             } else {
                 StaticElement(drawable(
@@ -99,7 +101,7 @@ class MenuShopStock(override val plugin: Plop): Addon {
                 } }
             }
 
-            pane[2, 3] = if (stock <= 100) { // No less button, instead indicator bad
+            pane[2, 3] = if (stock <= 99) { // No less button, instead indicator bad
                 StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
             } else {
                 StaticElement(drawable(
@@ -138,7 +140,7 @@ class MenuShopStock(override val plugin: Plop): Addon {
                 stockLimit += 1
             } }
 
-            pane[1, 3] = if (stockLimit <= 10) { // No less button, instead indicator bad
+            pane[1, 3] = if (stockLimit <= 9) { // No less button, instead indicator bad
                 StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
             } else {
                 StaticElement(drawable(LESS)) { (player) -> plugin.async {
@@ -150,7 +152,7 @@ class MenuShopStock(override val plugin: Plop): Addon {
                 stockLimit += 10
             } }
 
-            pane[2, 3] = if (stockLimit <= 100) { // No less button, instead indicator bad
+            pane[2, 3] = if (stockLimit <= 99) { // No less button, instead indicator bad
                 StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
             } else {
                 StaticElement(drawable(LESS)) { (player) -> plugin.async {
@@ -165,10 +167,32 @@ class MenuShopStock(override val plugin: Plop): Addon {
 
         // Confirm button
         withTransform { pane, view ->
+            val shopChoiceOne = choiceOne[view.player] ?: return@withTransform
+
+            when (shopChoiceOne.first) { // Don't confirm if stock is empty
+                ShopType.SELL -> if (stock <= 0) { return@withTransform }
+                ShopType.BUY -> if (stockLimit <= 0) { return@withTransform }
+            }
+
             pane[1, 8] = StaticElement(drawable(CONFIRM)) { (player) -> plugin.async {
                 finalSelection[player]?.complete(Pair(stock, stockLimit))
                 view.close()
             } }
+        }
+
+        withTransform(stockProperty, stockLimitProperty) { pane, view ->
+            val shopChoiceOne = choiceOne[view.player] ?: return@withTransform
+
+            when (shopChoiceOne.first) {
+                ShopType.SELL -> view.title(lang.deserialise(
+                    "shop.menu.stock",
+                    args = arrayOf(Placeholder.component("stock", Component.text(stock)))
+                ))
+                ShopType.BUY -> view.title(lang.deserialise(
+                    "shop.menu.stock",
+                    args = arrayOf(Placeholder.component("stock", Component.text(stockLimit)))
+                ))
+            }
         }
 
         addCloseHandler { reasons, handler  ->
@@ -185,8 +209,8 @@ class MenuShopStock(override val plugin: Plop): Addon {
     }
 
     suspend fun requestChoice(player: Player, c1: Pair<ShopType, ItemStack>, parent: InterfaceView? = null): Pair<Int, Int>? {
+        resetFull(player)
         choiceOne[player] = c1 // Store previous choices
-        resetHalf(player)
 
         val request = CompletableDeferred<Pair<Int, Int>?>()
         finalSelection[player] = request
@@ -196,10 +220,6 @@ class MenuShopStock(override val plugin: Plop): Addon {
         } finally {
             resetFull(player)
         }
-    }
-
-    fun resetHalf(player: Player) {
-        finalSelection.remove(player)
     }
 
     fun resetFull(player: Player) {

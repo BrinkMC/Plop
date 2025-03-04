@@ -53,9 +53,11 @@ class NexusDisplay(override val plugin: Plop): Addon, State {
     }
 
     private suspend fun far(player: Player, startLoc: Location) {
-        if (active.getIfPresent(player) == startLoc) { // It wasn't active to begin with
+        if (!active.contains(player)) { // It was inactive to begin with
             return
         }
+
+        active.invalidate(player)
         logger.info("Remove hologram")
 
         active[player] = startLoc // It was active, now it shouldn't be

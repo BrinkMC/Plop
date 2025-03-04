@@ -10,6 +10,8 @@ import com.noxcrew.interfaces.interfaces.buildChestInterface
 import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.InterfaceView
 import kotlinx.coroutines.CompletableDeferred
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
@@ -67,7 +69,7 @@ class MenuShopPrice(override val plugin: Plop): Addon {
                 price += 1
             } }
 
-            pane[1, 3] = if (price <= 10) { // No less button, instead indicator bad
+            pane[1, 3] = if (price <= 9) { // No less button, instead indicator bad
                 StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
             } else {
                 StaticElement(drawable(
@@ -99,7 +101,10 @@ class MenuShopPrice(override val plugin: Plop): Addon {
                 price += 100
             } }
 
-            view.title(lang.deserialise("Price of $price"))
+            view.title(lang.deserialise(
+                "shop.menu.price",
+                args = arrayOf(Placeholder.component("price", Component.text(price)))
+            ))
         }
 
         withTransform { pane, view ->
@@ -123,9 +128,9 @@ class MenuShopPrice(override val plugin: Plop): Addon {
     }
 
     suspend fun requestChoice(player: Player, c1: Pair<ShopType, ItemStack>, c2: Pair<Int, Int>, parent: InterfaceView? = null): Float? {
+        resetFull(player)
         choiceOne[player] = c1 // Store previous choices
         choiceTwo[player] = c2
-        resetHalf(player)
 
         val request = CompletableDeferred<Float?>()
         finalSelection[player] = request
@@ -135,10 +140,6 @@ class MenuShopPrice(override val plugin: Plop): Addon {
         } finally {
             resetFull(player)
         }
-    }
-
-    fun resetHalf(player: Player) {
-        finalSelection.remove(player)
     }
 
     fun resetFull(player: Player) {

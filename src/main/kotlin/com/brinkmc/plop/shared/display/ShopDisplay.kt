@@ -64,11 +64,12 @@ class ShopDisplay(override val plugin: Plop): Addon, State {
     }
 
     private suspend fun far(player: Player, shop: Shop, plot: Plot, startLoc: Location) {
-        if (active.getIfPresent(player) == startLoc) { // It wasn't active to begin with
+        if (!active.contains(player)) { // It was inactive to begin with
             return
         }
 
-        active[player] = startLoc // It was active, now it shouldn't be
+        active.invalidate(player)
+        logger.info("Remove hologram")
 
         val tags = lang.getTags(player = player, shop = shop, plot = plot) // Get tags and replace
         val substitutedValues = shopConfig.display.map { lang.resolveTags(it, tags) }

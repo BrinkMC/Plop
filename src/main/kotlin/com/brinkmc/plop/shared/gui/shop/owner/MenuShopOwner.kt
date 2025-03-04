@@ -6,6 +6,7 @@ import com.brinkmc.plop.shared.base.Addon
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.buildChestInterface
+import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.ChestInterfaceView
 import com.noxcrew.interfaces.view.InterfaceView
 import com.noxcrew.interfaces.view.PlayerInterfaceView
@@ -19,8 +20,11 @@ class MenuShopOwner(override val plugin: Plop): Addon {
 
         rows = 5
 
-        withTransform { pane, view ->
+        val stockProperty = interfaceProperty(0)
+        var stock by stockProperty
 
+        withTransform(stockProperty) { pane, view ->
+            stock = 0
         }
 
     }

@@ -172,7 +172,7 @@ internal interface Addon {
     }
 
     fun World.isPlotWorld(): Boolean {
-        return return listOfNotNull(
+        return listOfNotNull(
             plotConfig.getPlotWorld(PlotType.PERSONAL).world(),
             plotConfig.getPlotWorld(PlotType.GUILD).world()
         ).contains(this)

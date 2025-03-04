@@ -16,6 +16,7 @@ import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.entity.Item
 import org.bukkit.entity.Player
+import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
 import kotlin.collections.get
@@ -156,12 +157,18 @@ class MenuShopCreation(override val plugin: Plop): Addon {
             }
         }
 
-        addCloseHandler { _, handler  ->
+        addCloseHandler { reason, handler  ->
+            // Check the interface view to see if the player is still in a menu / making a menu?
+            if (handler.isTreeOpened) {
+                return@addCloseHandler
+            }
+
+            // They have actually left the menu
             if (finalSelection[handler.player]?.isCompleted == false) {
                 finalSelection[handler.player]?.complete(null) // Finalise with a null if not completed
             }
 
-            resetHalf(handler.player)
+            resetFull(handler.player) // No more temporary values ready for the next attempt
 
             if (handler.parent() != null) {
                 handler.parent()?.open()
@@ -170,7 +177,7 @@ class MenuShopCreation(override val plugin: Plop): Addon {
     }
 
     suspend fun requestChoice(player: Player, location: Location?, parent: InterfaceView? = null): Shop? {
-        resetHalf(player)
+        resetFull(player) // Reset all temporary values just in case they exist
         if (location == null) { // No location, ergo no shop
             return null
         }
@@ -185,11 +192,6 @@ class MenuShopCreation(override val plugin: Plop): Addon {
         } finally {
             resetFull(player)
         }
-    }
-
-    fun resetHalf(player: Player) { // Reset values so that fresh shop can be made
-        temporaryShop.remove(player)
-        finalSelection.remove(player)
     }
 
     fun resetFull(player: Player) { // Reset all temporary values

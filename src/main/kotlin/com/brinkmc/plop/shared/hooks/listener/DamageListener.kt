@@ -21,7 +21,7 @@ class DamageListener(override val plugin: Plop): Addon, State, Listener {
     @EventHandler
     suspend fun mythicPlayerAttackEvent(event: MythicPlayerAttackEvent) {
         // Prevent use of attacks inside plots unless it is your own
-        val player = Bukkit.getPlayer(event.player.uniqueId) ?: return
+        val player = event.player.uniqueId.player() ?: return
 
         if (!player.world.isPlotWorld()) { // Ignore if not in plot world
             return

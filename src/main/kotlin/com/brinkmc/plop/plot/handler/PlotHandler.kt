@@ -76,7 +76,10 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
     } }
 
     fun updateBorder(player: UUID) { plugin.async {
-        val bukkitPlayer = plugin.server.getPlayer(player) ?: run {
+        // Update player tracker for handy informatio
+        plugin.playerTracker.refresh(player.player() ?: return@async)
+
+        val bukkitPlayer = player.player() ?: run {
             logger.error("Failed to send fake border to player $player")
             return@async
         }

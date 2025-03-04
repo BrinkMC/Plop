@@ -87,11 +87,7 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
             action && sneak && (shop == null) -> { // Trying to initiate?
                 createShop(event, chest)
             }
-            action && (shop == null) -> { // Shop doesn't exist
-                event.isCancelled = false
-                return
-            }
-            (shop == null) -> { // Not a shop and they're not trying to make one!
+            (shop == null) -> { // Shop doesn't exist
                 event.isCancelled = false
                 return
             }
@@ -113,7 +109,7 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
     }
 
     // Only three outcomes, create or view x2 shop
-    suspend fun createShop(event: PlayerInteractEvent, chest: Chest) {
+    private suspend fun createShop(event: PlayerInteractEvent, chest: Chest) {
         // Get the player
         val player = event.player
 
@@ -132,13 +128,15 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
         // Initiate player shop creation
         val shop = plugin.menus.shopCreationMenu.requestChoice(player, event.clickedBlock?.location) ?: return  // No shop was created
 
+        logger.info("Adding shop to plot & handler")
+        plot.shop.addShop(shop.shopId) // Add shop to plot
         shops.handler.createShop(shop)
-        plot.shop.addShop(shop.shopId)
-        chest.persistentDataContainer.set(key, PersistentDataType.STRING, shop.shopId.toString())
+
+        chest.persistentDataContainer.set(key, PersistentDataType.STRING, shop.shopId.toString()) // Set the chest data to shop data
         player.sendMiniMessage("shop.created")
     }
 
-    suspend fun viewShopCustomer(event: PlayerInteractEvent, shop: Shop) {
+    private suspend fun viewShopCustomer(event: PlayerInteractEvent, shop: Shop) {
         // Get the player
         val player = event.player
 
@@ -148,10 +146,12 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
             return
         }
 
+
+        player.sendMiniMessage("shop.client.open")
         plugin.menus.shopClientMenu.open(player)
     }
 
-    suspend fun viewShopOwner(event: PlayerInteractEvent, shop: Shop) {
+    private suspend fun viewShopOwner(event: PlayerInteractEvent, shop: Shop) {
         // Get the player
         val player = event.player
 
@@ -160,6 +160,7 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
         }
 
         // Open the shop owner menu
+        player.sendMiniMessage("shop.owner.open")
         plugin.menus.shopOwnerMenu.open(player)
     }
 }

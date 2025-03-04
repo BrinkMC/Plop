@@ -95,18 +95,18 @@ class MenuShopWare(override val plugin: Plop): Addon {
                 finalSelection[handler.player]?.complete(null) // Finalise with a null if not completed
             }
 
-            resetHalf(handler.player)
+            resetFull(handler.player)
 
             if (handler.parent() != null) {
                 handler.parent()?.open()
             }
 
-            returnInventory(handler.player) ?: return@addCloseHandler
+            returnInventory(handler.player)
         }
     }
 
     suspend fun requestChoice(player: Player, parent: InterfaceView? = null): Pair<ShopType, ItemStack>? {
-        resetHalf(player)
+        resetFull(player)
         // Store the request
         val request = CompletableDeferred<Pair<ShopType, ItemStack>?>()
         finalSelection[player] = request
@@ -121,10 +121,6 @@ class MenuShopWare(override val plugin: Plop): Addon {
 
     suspend fun isActive(player: Player): Boolean {
         return finalSelection[player]?.isCompleted == false
-    }
-
-    fun resetHalf(player: Player) {
-        finalSelection.remove(player)
     }
 
     fun resetFull(player: Player) {

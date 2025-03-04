@@ -54,4 +54,8 @@ class PlayerTracker(override val plugin: Plop): Addon, State, Listener {
         val player = event.player
         locations.invalidate(player)
     }
+
+    suspend fun refresh(player: Player) {
+        locations.invalidate(player)
+    }
 }

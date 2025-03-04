@@ -9,6 +9,7 @@ import io.papermc.paper.event.block.BlockBreakBlockEvent
 import io.papermc.paper.event.player.PlayerInsertLecternBookEvent
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
+import org.bukkit.block.BlockFace
 import org.bukkit.block.Chest
 import org.bukkit.block.Lectern
 import org.bukkit.event.EventHandler
@@ -16,6 +17,7 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemStack
@@ -26,8 +28,6 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
     override suspend fun load() {}
 
     override suspend fun kill() {}
-
-    private val key = NamespacedKey(plugin, "shop")
 
     @EventHandler(priority = EventPriority.MONITOR)
     suspend fun destroyShop(event: BlockBreakEvent) {
@@ -40,7 +40,9 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
         // This affects chests oh dear
         val chest = block.state as Chest
 
-        val shopId = chest.persistentDataContainer.get(key, PersistentDataType.STRING)
+        val shopId = syncScope { // Needs to be thread-safe
+             chest.persistentDataContainer.get(shops.handler.key, PersistentDataType.STRING)
+        }
 
         if (shopId == null) {
             // Previous check to see if shop creation is occurring if the chest isn't a shop to begin with
@@ -50,13 +52,48 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
                 event.isCancelled = true
                 return
             }
-            return // Return anyway because it's useless to us
+
+            return
         }
 
         UUID.fromString(shopId).shop() ?: return
         // This is a shop with valid data
 
         event.isCancelled = true // Cancel the event to prevent the chest from breaking
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    suspend fun preventConjoined(event: BlockPlaceEvent) {
+        val block = event.block
+
+        if (block.type != Material.CHEST) {
+            return
+        }
+
+        val chest = block.state as Chest
+
+        // Check surrounding blocks in all cardinal directions (NOT ABOVE OR BELOW)
+
+        val north = chest.block.getRelative(BlockFace.NORTH)
+        val south = chest.block.getRelative(BlockFace.SOUTH)
+        val east = chest.block.getRelative(BlockFace.EAST)
+        val west = chest.block.getRelative(BlockFace.WEST)
+
+        val nearbyChests = listOf(north, south, east, west).mapNotNull {
+            // Check if the block is a chest
+            it.state as? Chest
+        }
+
+        for (nearby in nearbyChests) {
+            val shopId = syncScope {
+                nearby.persistentDataContainer.get(shops.handler.key, PersistentDataType.STRING)
+            }
+
+            if (shopId != null) {
+                event.isCancelled = true
+                return
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -72,14 +109,7 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
 
         val chest = block.state as Chest // Cast as chest so that I can get TileState
 
-        val shopId = chest.persistentDataContainer.get(key, PersistentDataType.STRING)
-
-        val shop = if (shopId != null) { // Not a shop
-            shops.handler.getShop(UUID.fromString(shopId))
-        }
-        else {
-            null
-        }
+        val shop = chest.toShop()
 
         val action = event.action == Action.RIGHT_CLICK_BLOCK || event.action == Action.LEFT_CLICK_BLOCK
         val sneak = event.player.isSneaking
@@ -129,10 +159,9 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
         val shop = plugin.menus.shopCreationMenu.requestChoice(player, event.clickedBlock?.location) ?: return  // No shop was created
 
         logger.info("Adding shop to plot & handler")
-        plot.shop.addShop(shop.shopId) // Add shop to plot
-        shops.handler.createShop(shop)
+        shops.handler.createShop(plot, shop, chest)
 
-        chest.persistentDataContainer.set(key, PersistentDataType.STRING, shop.shopId.toString()) // Set the chest data to shop data
+
         player.sendMiniMessage("shop.created")
     }
 

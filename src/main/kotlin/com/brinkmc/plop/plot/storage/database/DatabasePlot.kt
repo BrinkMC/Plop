@@ -15,27 +15,32 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.Funcs.fullString
 import com.brinkmc.plop.shared.util.Funcs.toLocation
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.bukkit.Location
 import java.sql.ResultSet
 import java.sql.Timestamp
 import java.util.UUID
+import java.util.concurrent.locks.ReentrantLock
 
 class DatabasePlot(override val plugin: Plop): Addon, State {
+
+    private val mutex = Mutex()
 
     override suspend fun load() {}
 
     override suspend fun kill() {}
 
-    suspend fun load(plotId: UUID): Plot? {
+    suspend fun load(plotId: UUID): Plot? = mutex.withLock {
         val id = plotId
         val plot = loadPlotCore(id) ?: return null
-        plot.claim = loadClaim(id) ?: plot.claim
-        plot.size = loadSize(id) ?: plot.size
-        plot.factory = loadFactory(id, plot.type)
-        plot.shop = loadShop(id, plot.type)
-        plot.totem = loadTotem(id, plot.type)
-        plot.visit = loadVisits(id, plot.type)
-        plot.nexus = loadNexus(id)
+        plot.setClaim(loadClaim(id) ?: plot.claim)
+        plot.setSize(loadSize(id) ?: plot.size)
+        plot.setFactory(loadFactory(id, plot.type))
+        plot.setShop(loadShop(id, plot.type))
+        plot.setTotem(loadTotem(id, plot.type))
+        plot.setVisit(loadVisits(id, plot.type))
+        plot.addNexus(loadNexus(id))
         return plot
     }
 
@@ -45,13 +50,13 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
             Plot(
                 plotId = plotId,
                 type = PlotType.valueOf(rs.getString("type")),
-                nexus = mutableListOf(),
-                claim = PlotClaim(Location(null, 0.0, 0.0, 0.0), Location(null,0.0,0.0,0.0), Location(null,0.0,0.0,0.0)),
-                visit = PlotVisit(true,0,0, mutableListOf(),PlotType.PERSONAL),
-                size = PlotSize(0,PlotType.PERSONAL),
-                factory = PlotFactory(0, mutableListOf(),PlotType.PERSONAL),
-                shop = PlotShop(0, mutableListOf(),PlotType.PERSONAL),
-                totem = PlotTotem(0, mutableListOf(),true,PlotType.PERSONAL)
+                _nexus = mutableListOf(),
+                _claim = PlotClaim(Location(null, 0.0, 0.0, 0.0), Location(null,0.0,0.0,0.0), Location(null,0.0,0.0,0.0)),
+                _visit = PlotVisit(true,0,0, mutableListOf(),PlotType.PERSONAL),
+                _size = PlotSize(0,PlotType.PERSONAL),
+                _factory = PlotFactory(0, mutableListOf(),PlotType.PERSONAL),
+                _shop = PlotShop(0, mutableListOf(),PlotType.PERSONAL),
+                _totem = PlotTotem(0, mutableListOf(),true,PlotType.PERSONAL)
             )
         } else null
     }
@@ -149,7 +154,7 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
         return PlotVisit(visitable, level, current, stamps, plotType)
     }
 
-    suspend fun create(plot: Plot) {
+    suspend fun create(plot: Plot) = mutex.withLock {
         val id = plot.plotId.toString()
         DB.update("INSERT INTO plots (plot_id, type) VALUES (?,?)",
             id, plot.type.toString())
@@ -168,7 +173,9 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
             id, plot.visit.visitable, plot.visit.level, plot.visit.currentVisits)
     }
 
-    suspend fun save(plot: Plot) {
+    suspend fun save(unsafe: Plot) = mutex.withLock {
+        val plot = unsafe.getSnapshot()
+
         val id = plot.plotId.toString()
         // claims
         DB.update("INSERT INTO plot_claims (plot_id, centre, home, visit) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE centre=VALUES(centre),home=VALUES(home),visit=VALUES(visit)",
@@ -215,7 +222,7 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
         }
     }
 
-    suspend fun delete(plot: Plot) {
+    suspend fun delete(plot: Plot) = mutex.withLock {
         val id = plot.plotId.toString()
         DB.update("DELETE FROM plot_visit_timestamps WHERE plot_id=?", id)
         DB.update("DELETE FROM plot_visits WHERE plot_id=?", id)
@@ -231,7 +238,7 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
         DB.update("DELETE FROM plot_nexus WHERE plot_id=?", id)
     }
 
-    suspend fun addVisit(plot: Plot) {
+    suspend fun addVisit(plot: Plot) = mutex.withLock {
         val id = plot.plotId.toString()
         val timestamp = Timestamp(System.currentTimeMillis())
         DB.update("INSERT INTO plot_visit_timestamps (plot_id, visit_timestamp) VALUES(?,?)", id, timestamp)

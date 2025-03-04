@@ -10,6 +10,8 @@ import com.brinkmc.plop.shared.util.Funcs.fullString
 import com.brinkmc.plop.shared.util.Funcs.toLocation
 import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.shop.ShopType
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.bukkit.Location
 import org.bukkit.inventory.ItemStack
 import org.bukkit.util.io.BukkitObjectInputStream
@@ -23,15 +25,17 @@ import kotlin.toString
 
 class DatabaseShop(override val plugin: Plop): Addon, State {
 
+    private val mutex = Mutex()
+
     override suspend fun load() {}
 
     override suspend fun kill() {}
 
-    suspend fun load(shopId: UUID): Shop? {
+    suspend fun load(shopId: UUID): Shop? = mutex.withLock {
         val id = shopId
         val shop = loadShopCore(id) ?: return null
         val location = loadShopLocation(id) ?: return null
-        return shop.copy(location = location)
+        return shop.copy(_location = location)
     }
 
     private suspend fun loadShopCore(shopId: UUID): Shop? {
@@ -41,13 +45,13 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
                 shopId = shopId,
                 plotId = UUID.fromString(rs.getString("plot_id")),
                 plotType = PlotType.valueOf(rs.getString("plot_type")),
-                location = Location(null, 0.0, 0.0, 0.0), // Temporary placeholder, will be replaced
-                shopType = ShopType.valueOf(rs.getString("shop_type")),
-                ware = ItemStack.deserializeBytes(rs.getBytes("ware")),
-                stock = rs.getInt("stock"),
-                stockLimit = rs.getInt("stock_limit"),
-                open = rs.getBoolean("open"),
-                price = rs.getFloat("price")
+                _location = Location(null, 0.0, 0.0, 0.0), // Temporary placeholder, will be replaced
+                _shopType = ShopType.valueOf(rs.getString("shop_type")),
+                _ware = ItemStack.deserializeBytes(rs.getBytes("ware")),
+                _stock = rs.getInt("stock"),
+                _stockLimit = rs.getInt("stock_limit"),
+                _open = rs.getBoolean("open"),
+                _price = rs.getFloat("price")
             )
         } else null
     }
@@ -59,7 +63,8 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
         } else null
     }
 
-    suspend fun loadTransactions(shopId: UUID): List<ShopTransaction> {
+    // Transaction logic
+    suspend fun loadTransactions(shopId: UUID): List<ShopTransaction> = mutex.withLock {
         val transactions = mutableListOf<ShopTransaction>()
         val rs = DB.query("SELECT * FROM shops_log WHERE shop_id=? ORDER BY trans_timestamp DESC", shopId.toString())
 
@@ -77,7 +82,7 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
         return transactions
     }
 
-    suspend fun create(shop: Shop) {
+    suspend fun create(shop: Shop) = mutex.withLock {
         val id = shop.shopId.toString()
         DB.update(
             "INSERT INTO shops (shop_id, plot_id, plot_type, shop_type, ware, stock, stock_limit, open, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -98,7 +103,8 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
         )
     }
 
-    suspend fun save(shop: Shop) {
+    suspend fun save(unsafe: Shop) = mutex.withLock {
+        val shop = unsafe.getSnapshot()
         val id = shop.shopId.toString()
         // Update shops table
         DB.update(
@@ -125,7 +131,7 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
         )
     }
 
-    suspend fun delete(shop: Shop) {
+    suspend fun delete(shop: Shop) = mutex.withLock {
         val id = shop.shopId.toString()
         // Delete from shops_log first (respect foreign key constraints)
         DB.update("DELETE FROM shops_log WHERE shop_id=?", id)
@@ -135,7 +141,7 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
         DB.update("DELETE FROM shops WHERE shop_id=?", id)
     }
 
-    suspend fun recordTransaction(shopId: UUID, playerId: UUID) {
+    suspend fun recordTransaction(shopId: UUID, playerId: UUID) = mutex.withLock {
         DB.update(
             "INSERT INTO shops_log (shop_id, player_id) VALUES (?, ?)",
             shopId.toString(),

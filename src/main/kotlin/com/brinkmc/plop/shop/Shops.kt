@@ -30,6 +30,10 @@ class Shops(override val plugin: Plop): Addon, State {
     }
 
     override suspend fun kill() {
-        TODO("Not yet implemented")
+
+        listOf(
+            handler,
+            transHandler
+        ).forEach { handler -> (handler as State).kill() }
     }
 }

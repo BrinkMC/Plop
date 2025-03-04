@@ -10,21 +10,24 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.sksamuel.aedile.core.asCache
+import com.sksamuel.aedile.core.asLoadingCache
 import de.oliver.fancyholograms.api.data.ItemHologramData
 import de.oliver.fancyholograms.api.data.TextHologramData
 import de.oliver.fancyholograms.api.hologram.Hologram
 import kotlinx.coroutines.delay
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Chest
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
+import org.joml.Vector3f
 
 class ShopDisplay(override val plugin: Plop): Addon, State {
 
-    val active = Caffeine.newBuilder().asCache<Player, Location>()
-    val shopHolograms = Caffeine.newBuilder().asCache<Shop, List<Hologram>>()
+    private val active = Caffeine.newBuilder().asCache<Player, Location?>()
+    val playerHolograms = Caffeine.newBuilder().asCache<Player, Pair<Hologram, Hologram>>()
     val renderDelay = 3.ticks
 
     val hologramManager: Display
@@ -37,11 +40,10 @@ class ShopDisplay(override val plugin: Plop): Addon, State {
     override suspend fun kill() { }
 
     private suspend fun renderTask() {
+        logger.info("Started render task for shops")
         while (true) {
             for (player in server.onlinePlayers) {
-                val loc = plugin.playerTracker.locations.get(player) {
-                    player.getCurrentPlot()
-                } ?: continue
+                val loc = plugin.playerTracker.locations.get(player) ?: continue
                 render(player, loc)
             }
             delay(renderDelay)
@@ -53,7 +55,7 @@ class ShopDisplay(override val plugin: Plop): Addon, State {
             .mapNotNull { shops.handler.getShop(it) }
             .minByOrNull { it.location.distanceSquared(player.location) } ?: return // No shop
 
-        val startLoc = closestShop.location.add(0.5, 1.5, 0.5) // Location for text part of hologram
+        val startLoc = closestShop.location.clone().add(0.5, 1.5, 0.5) // Location for text part of hologram
 
         if (startLoc.distanceSquared(player.location) >= shopConfig.viewDistance) { // Too far away
             far(player, closestShop, plot,  startLoc)
@@ -64,38 +66,32 @@ class ShopDisplay(override val plugin: Plop): Addon, State {
     }
 
     private suspend fun far(player: Player, shop: Shop, plot: Plot, startLoc: Location) {
-        if (!active.contains(player)) { // It was inactive to begin with
+        if (active.getIfPresent(player) == null) { // It was inactive to begin with
             return
         }
 
-        active.invalidate(player)
+        active[player] = null // It should be inactive
         logger.info("Remove hologram")
 
         val tags = lang.getTags(player = player, shop = shop, plot = plot) // Get tags and replace
         val substitutedValues = shopConfig.display.map { lang.resolveTags(it, tags) }
 
-        val holograms = shopHolograms.get(shop) {
-            val textHologramData = TextHologramData("shop-text-${shop.shopId}", startLoc)
-            textHologramData.text = substitutedValues
-            val itemHologramData = ItemHologramData("shop-item-${shop.shopId}", startLoc.subtract(0.0, 0.75, 0.0))
-            itemHologramData.itemStack = shop.ware
-            listOf(
-                hologramManager.createHologram(textHologramData),
-                hologramManager.createHologram(itemHologramData)
-            )
-        }
+        val holograms = playerHolograms.get(player) { setHolograms(shop, startLoc, substitutedValues) }
 
         if (shop.location.block.type != Material.CHEST) {
             return
         }
 
-        val chest = shop.location.block.state as Chest
-
-        chest.close()
-
-        for (hologram in holograms) {
-            hologramManager.hideHologram(player, hologram) // Hide the hologram
+        syncScope {
+            val chest = shop.location.block.state as Chest
+            chest.close()
         }
+
+        val hologramOne = holograms.first
+        val hologramTwo = holograms.second
+
+        hologramManager.hideHologram(player, hologramOne)
+        hologramManager.hideHologram(player, hologramTwo)
     }
 
     private suspend fun near(player: Player, shop: Shop, plot: Plot, startLoc: Location) {
@@ -108,27 +104,39 @@ class ShopDisplay(override val plugin: Plop): Addon, State {
         val tags = lang.getTags(player = player, shop = shop, plot = plot) // Get tags and replace
         val substitutedValues = shopConfig.display.map { lang.resolveTags(it, tags) }
 
-        val holograms = shopHolograms.get(shop) {
-            val textHologramData = TextHologramData("shop-text-${shop.shopId}", startLoc)
-            textHologramData.text = substitutedValues
-            val itemHologramData = ItemHologramData("shop-item-${shop.shopId}", startLoc.subtract(0.0, 0.75, 0.0))
-            itemHologramData.itemStack = shop.ware
-            listOf(
-                hologramManager.createHologram(textHologramData),
-                hologramManager.createHologram(itemHologramData)
-            )
+        playerHolograms[player] = setHolograms(shop, startLoc, substitutedValues) // IT MUST BE A NEW SHOP?
+
+        val holograms = playerHolograms.get(player) {
+            setHolograms(shop, startLoc, substitutedValues)
         }
 
         if (shop.location.block.type != Material.CHEST) {
             return
         }
 
-        val chest = shop.location.block.state as Chest
 
-        chest.open()
-
-        for (hologram in holograms) {
-            hologramManager.showHologram(player, hologram)
+        syncScope {
+            val chest = shop.location.block.state as Chest
+            chest.open()
         }
+        val hologramOne = holograms.first
+        val hologramTwo = holograms.second
+
+        hologramOne.data.setLocation(startLoc)
+        hologramTwo.data.setLocation(startLoc.clone().subtract(0.0, 0.5, 0.0))
+        hologramManager.showHologram(player, hologramOne)
+        hologramManager.showHologram(player, hologramTwo)
+    }
+
+    fun setHolograms(shop: Shop, startLoc: Location, substitutedValues: List<String> ): Pair<Hologram, Hologram> {
+        val textHologramData = TextHologramData("shop-text-${shop.shopId}", startLoc)
+        textHologramData.text = substitutedValues
+        val itemHologramData = ItemHologramData("shop-item-${shop.shopId}", startLoc.clone().subtract(0.0, 0.5, 0.0))
+        itemHologramData.itemStack = shop.ware
+        itemHologramData.scale = Vector3f(0.5f, 0.5f, 0.5f)
+        return Pair(
+            hologramManager.createHologram(textHologramData),
+            hologramManager.createHologram(itemHologramData)
+        )
     }
 }

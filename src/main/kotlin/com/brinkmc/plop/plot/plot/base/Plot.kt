@@ -9,6 +9,8 @@ import com.brinkmc.plop.plot.plot.modifier.PlotVisit
 import com.brinkmc.plop.shared.hooks.Locals.localWorld
 import com.sk89q.worldguard.WorldGuard
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import me.glaremasters.guilds.Guilds
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -26,19 +28,83 @@ enum class PlotType {
 }
 
 data class Plot(
-    val plotId: UUID, // Unique ID for the plot, could correlate to either Player UUID or Guild UUID depending on type below
+    val plotId: UUID,
     val type: PlotType,
-
-    // Plot data
-    var nexus: MutableList<Location>, // Nexus location
-
-    var claim: PlotClaim,
-    var visit: PlotVisit,
-    var size: PlotSize,
-    var factory: PlotFactory,
-    var shop: PlotShop,
-    var totem: PlotTotem
+    private val _nexus: MutableList<Location> = mutableListOf(),
+    private var _claim: PlotClaim,
+    private var _visit: PlotVisit,
+    private var _size: PlotSize,
+    private var _factory: PlotFactory,
+    private var _shop: PlotShop,
+    private var _totem: PlotTotem
 ) {
+    private val mutex = Mutex()
+
+    // Thread-safe getters
+    val nexus: List<Location> get() = _nexus.toList()
+    val claim: PlotClaim get() = _claim
+    val visit: PlotVisit get() = _visit
+    val size: PlotSize get() = _size
+    val factory: PlotFactory get() = _factory
+    val shop: PlotShop get() = _shop
+    val totem: PlotTotem get() = _totem
+
+    // Thread-safe setters
+    suspend fun setClaim(claim: PlotClaim) = mutex.withLock {
+        _claim = claim
+    }
+
+    suspend fun setVisit(visit: PlotVisit) = mutex.withLock {
+        _visit = visit
+    }
+
+    suspend fun setSize(size: PlotSize) = mutex.withLock {
+        _size = size
+    }
+
+    suspend fun setFactory(factory: PlotFactory) = mutex.withLock {
+        _factory = factory
+    }
+
+    suspend fun setShop(shop: PlotShop) = mutex.withLock {
+        _shop = shop
+    }
+
+    suspend fun setTotem(totem: PlotTotem) = mutex.withLock {
+        _totem = totem
+    }
+
+    // Thread-safe nexus operations
+    suspend fun addNexus(location: Location) = mutex.withLock {
+        _nexus.add(location)
+    }
+
+    suspend fun addNexus(location: List<Location>) = mutex.withLock {
+        _nexus.addAll(location)
+    }
+
+    suspend fun removeNexus(location: Location) = mutex.withLock {
+        _nexus.remove(location)
+    }
+
+    suspend fun clearNexus() = mutex.withLock {
+        _nexus.clear()
+    }
+
+    // Thread-safe snapshot
+    suspend fun getSnapshot(): Plot = mutex.withLock {
+        copy(
+            _nexus = ArrayList(_nexus),
+            _claim = _claim.copy(),
+            _visit = _visit.copy(historicalVisits = ArrayList(_visit.historicalVisits)),
+            _size = _size.copy(),
+            _factory = _factory.copy(factories = ArrayList(_factory.factories)),
+            _shop = _shop.copy(shops = ArrayList(_shop.getShops())),
+            _totem = _totem.copy(totems = ArrayList(_totem.totems))
+        )
+    }
+
+    // Get the owner of the plot
     val owner: PlotOwner by lazy {
         if (type == PlotType.GUILD) {
             val guild = Guilds.getApi().getGuild(plotId) // Try to find guild

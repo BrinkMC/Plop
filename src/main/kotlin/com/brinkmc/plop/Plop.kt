@@ -23,12 +23,12 @@ import com.brinkmc.plop.shared.gui.preview.HotbarPreview
 import com.brinkmc.plop.shared.gui.selector.SelectionOtherMenu
 import com.brinkmc.plop.shared.gui.selector.SelectionSelfMenu
 import com.brinkmc.plop.shared.gui.shop.client.MenuShopClient
-import com.brinkmc.plop.shared.gui.shop.owner.MenuShopCreation
+import com.brinkmc.plop.shared.gui.shop.creation.MenuShopCreation
 import com.brinkmc.plop.shared.gui.shop.owner.MenuShopLogs
 import com.brinkmc.plop.shared.gui.shop.owner.MenuShopOwner
-import com.brinkmc.plop.shared.gui.shop.owner.MenuShopPrice
-import com.brinkmc.plop.shared.gui.shop.owner.MenuShopStock
-import com.brinkmc.plop.shared.gui.shop.owner.MenuShopWare
+import com.brinkmc.plop.shared.gui.shop.creation.MenuShopPrice
+import com.brinkmc.plop.shared.gui.shop.creation.MenuShopStock
+import com.brinkmc.plop.shared.gui.shop.creation.MenuShopWare
 import com.brinkmc.plop.shared.gui.visit.MenuPlotList
 import com.brinkmc.plop.shared.hooks.Display
 import com.brinkmc.plop.shared.hooks.Economy
@@ -255,7 +255,6 @@ class Plop : State, SuspendingJavaPlugin() {
         val nexusDisplay = NexusDisplay(plugin)
 
         override suspend fun load() {
-            plugin.slF4JLogger.info("Loading displays")
             listOf(
                 shopDisplay,
                 nexusDisplay

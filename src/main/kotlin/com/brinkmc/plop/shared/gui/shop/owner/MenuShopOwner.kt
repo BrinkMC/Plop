@@ -10,21 +10,40 @@ import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.ChestInterfaceView
 import com.noxcrew.interfaces.view.InterfaceView
 import com.noxcrew.interfaces.view.PlayerInterfaceView
+import org.bukkit.Location
+import org.bukkit.Material
+import org.bukkit.block.Chest
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 
 class MenuShopOwner(override val plugin: Plop): Addon {
+
+    private val temporaryShop = mutableMapOf<Player, Location>()
+
+    val TRANSACTION_LOG: ItemStack
+        get() = ItemStack(Material.PAPER)
+            .name("shop.log.name")
+            .description("Shop.log.desc")
+
+
 
     private val inventory = buildChestInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
 
-        rows = 5
+        rows = 6
 
         val stockProperty = interfaceProperty(0)
         var stock by stockProperty
 
         withTransform(stockProperty) { pane, view ->
-            stock = 0
+            val temp = temporaryShop[view.player] ?: return@withTransform
+            val chest = temp as? Chest ?: return@withTransform
+            val shop = chest.toShop() ?: return@withTransform
+
+            pane[3, 3] = StaticElement(drawable())
+
+            pane[3, 5]
         }
 
     }

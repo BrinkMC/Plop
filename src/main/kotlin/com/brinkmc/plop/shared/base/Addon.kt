@@ -18,6 +18,7 @@ import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.Shops
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
+import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.github.shynixn.mccoroutine.bukkit.scope
 import io.lumine.mythic.api.adapters.AbstractLocation
@@ -32,9 +33,11 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.apache.http.util.Args
 import org.bukkit.*
+import org.bukkit.block.Chest
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
+import org.bukkit.persistence.PersistentDataType
 import org.slf4j.Logger
 import java.util.UUID
 import kotlin.coroutines.CoroutineContext
@@ -44,13 +47,11 @@ internal interface Addon {
     val plugin: Plop
 
     fun SuspendingJavaPlugin.sync(context: CoroutineContext = minecraftDispatcher, start: CoroutineStart = CoroutineStart.DEFAULT, block: suspend CoroutineScope.() -> Unit): Job {
-        if (!scope.isActive) { return Job() }
-        return scope.launch(context, start, block)
+        return this.launch(context, start, block)
     }
 
     fun SuspendingJavaPlugin.async(context: CoroutineContext = asyncDispatcher, start: CoroutineStart = CoroutineStart.DEFAULT, block: suspend CoroutineScope.() -> Unit): Job {
-        if (!scope.isActive) { return Job() }
-        return scope.launch(context, start, block)
+        return this.launch(context, start, block)
     }
 
     suspend fun <T> syncScope(block: suspend CoroutineScope.() -> T): T = withContext(plugin.minecraftDispatcher, block)
@@ -181,9 +182,7 @@ internal interface Addon {
     // Location check for player
 
     suspend fun Player.getCurrentPlot(): Plot? {
-        return plugin.playerTracker.locations.get(this) {
-            plots.handler.getPlotFromLocation(location)
-        }
+        return plugin.playerTracker.locations.get(this)
     }
 
     suspend fun Location.getCurrentPlot(): Plot? {
@@ -199,6 +198,14 @@ internal interface Addon {
     }
 
     // Locations
+
+    suspend fun Chest.toShop(): Shop? {
+        val shopId = syncScope {
+            this@toShop.persistentDataContainer.get(shops.handler.key, PersistentDataType.STRING)
+        }
+        if (shopId == null) return null
+        return shops.handler.getShop(UUID.fromString(shopId))
+    }
 
     suspend fun Location.getSafeDestination(): Location? {
         return plugin.locationUtils.getSafe(this)

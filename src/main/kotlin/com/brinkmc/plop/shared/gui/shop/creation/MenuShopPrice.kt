@@ -1,11 +1,10 @@
-package com.brinkmc.plop.shared.gui.shop.owner
+package com.brinkmc.plop.shared.gui.shop.creation
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shop.shop.ShopType
-import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
+import com.noxcrew.interfaces.drawable.Drawable
 import com.noxcrew.interfaces.element.StaticElement
-import com.noxcrew.interfaces.interfaces.ChestInterface
 import com.noxcrew.interfaces.interfaces.buildChestInterface
 import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.InterfaceView
@@ -14,7 +13,6 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Material
 import org.bukkit.entity.Player
-import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 
 class MenuShopPrice(override val plugin: Plop): Addon {
@@ -36,6 +34,11 @@ class MenuShopPrice(override val plugin: Plop): Addon {
         .name("shop.more-stock.name")
         .description("shop.more-stock.desc")
 
+    val BACK
+        get() = ItemStack(Material.REDSTONE)
+            .name("shop.back-stock.name")
+            .description("shop.back-stock.desc")
+
     val CONFIRM
         get() = ItemStack(Material.EMERALD)
         .name("shop.confirm-stock.name")
@@ -53,68 +56,103 @@ class MenuShopPrice(override val plugin: Plop): Addon {
         var price by priceProperty
 
         withTransform(priceProperty) { pane, view ->
+
             pane[0, 3] = if (price <= 0) { // No less button, instead indicator bad
-                StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
+                StaticElement(Drawable.Companion.drawable(INDICATOR_BAD.name("shop.zero.name")))
             } else {
-                StaticElement(drawable(
-                    LESS.name("shop.price.less-one.name")
-                )) { (player) -> plugin.async {
-                    price -= 1
-                } }
+                StaticElement(
+                    Drawable.Companion.drawable(
+                        LESS.name("shop.price.less-one.name")
+                    )
+                ) { (player) ->
+                    plugin.async {
+                        price -= 1
+                    }
+                }
             }
 
-            pane[0,5] = StaticElement(drawable(
-                MORE.name("shop.price.more-one.name")
-            )) { (player) -> plugin.async {
-                price += 1
-            } }
+            pane[0, 5] = StaticElement(
+                Drawable.Companion.drawable(
+                    MORE.name("shop.price.more-one.name")
+                )
+            ) { (player) ->
+                plugin.async {
+                    price += 1
+                }
+            }
 
             pane[1, 3] = if (price <= 9) { // No less button, instead indicator bad
-                StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
+                StaticElement(Drawable.Companion.drawable(INDICATOR_BAD.name("shop.zero.name")))
             } else {
-                StaticElement(drawable(
-                    LESS.name("shop.price.less-ten.name")
-                )) { (player) -> plugin.async {
-                    price -= 10
-                } }
+                StaticElement(
+                    Drawable.Companion.drawable(
+                        LESS.name("shop.price.less-ten.name")
+                    )
+                ) { (player) ->
+                    plugin.async {
+                        price -= 10
+                    }
+                }
             }
 
-            pane[1,5] = StaticElement(drawable(
-                MORE.name("shop.price.more-ten.name")
-            )) { (player) -> plugin.async {
-                price += 10
-            } }
-
-            pane[2, 3] = if (price <= 100) { // No less button, instead indicator bad
-                StaticElement(drawable(INDICATOR_BAD.name("shop.zero.name")))
-            } else {
-                StaticElement(drawable(
-                    LESS.name("shop.price.less-hundred.name")
-                )) { (player) -> plugin.async {
-                    price -= 100
-                } }
+            pane[1, 5] = StaticElement(
+                Drawable.Companion.drawable(
+                    MORE.name("shop.price.more-ten.name")
+                )
+            ) { (player) ->
+                plugin.async {
+                    price += 10
+                }
             }
 
-            pane[2,5] = StaticElement(drawable(
-                MORE.name("shop.price.more-hundred.name")
-            )) { (player) -> plugin.async {
-                price += 100
-            } }
+            pane[2, 3] = if (price <= 99) { // No less button, instead indicator bad
+                StaticElement(Drawable.Companion.drawable(INDICATOR_BAD.name("shop.zero.name")))
+            } else {
+                StaticElement(
+                    Drawable.Companion.drawable(
+                        LESS.name("shop.price.less-hundred.name")
+                    )
+                ) { (player) ->
+                    plugin.async {
+                        price -= 100
+                    }
+                }
+            }
 
-            view.title(lang.deserialise(
-                "shop.menu.price",
-                args = arrayOf(Placeholder.component("price", Component.text(price)))
-            ))
+            pane[2, 5] = StaticElement(
+                Drawable.Companion.drawable(
+                    MORE.name("shop.price.more-hundred.name")
+                )
+            ) { (player) ->
+                plugin.async {
+                    price += 100
+                }
+            }
+
+            view.title(
+                lang.deserialise(
+                    "shop.menu.price",
+                    args = arrayOf(Placeholder.component("price", Component.text(price)))
+                )
+            )
         }
 
         withTransform { pane, view ->
-            pane[1,8] = StaticElement(drawable(CONFIRM)) { (player) -> plugin.async {
-                finalSelection[player]?.complete(price)
-                view.close()
-            } }
+            pane[1, 0] = StaticElement(Drawable.Companion.drawable(BACK)) { (player) ->
+                plugin.async {
+                    view.back()
+                }
+            }
+
+            pane[1, 8] = StaticElement(Drawable.Companion.drawable(CONFIRM)) { (player) ->
+                plugin.async {
+                    finalSelection[player]?.complete(price)
+                    view.close()
+                }
+            }
         }
 
-        addCloseHandler { reasons, handler  ->
+        addCloseHandler { reasons, handler ->
             if (finalSelection[handler.player]?.isCompleted == false) {
                 finalSelection[handler.player]?.complete(null) // Finalise with a null if not completed
             }

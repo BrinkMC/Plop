@@ -17,7 +17,7 @@ import org.bukkit.entity.Player
 
 class NexusDisplay(override val plugin: Plop): Addon, State {
 
-    val active = Caffeine.newBuilder().asCache<Player, Location>()
+    private val active = Caffeine.newBuilder().asCache<Player, Location?>()
     val playerHolograms = Caffeine.newBuilder().asCache<Player, Hologram>()
     val renderDelay = 3.ticks
 
@@ -31,11 +31,10 @@ class NexusDisplay(override val plugin: Plop): Addon, State {
     override suspend fun kill() { }
 
     private suspend fun renderTask() {
+        logger.info("Started render task")
         while (true) {
             for (player in server.onlinePlayers) {
-                val loc = plugin.playerTracker.locations.get(player) {
-                    player.getCurrentPlot()
-                } ?: continue
+                val loc = plugin.playerTracker.locations.get(player) ?: continue
                 render(player, loc)
             }
             delay(renderDelay)
@@ -53,14 +52,12 @@ class NexusDisplay(override val plugin: Plop): Addon, State {
     }
 
     private suspend fun far(player: Player, startLoc: Location) {
-        if (!active.contains(player)) { // It was inactive to begin with
+        if (active.getIfPresent(player) == null) { // It was inactive to begin with
             return
         }
 
-        active.invalidate(player)
+        active[player] = null // It should be inactive
         logger.info("Remove hologram")
-
-        active[player] = startLoc // It was active, now it shouldn't be
 
         val potentialHologram = playerHolograms.getIfPresent(player) ?: return // Is there a hologram?
         hologramManager.hideHologram(player, potentialHologram) // Hide the hologram

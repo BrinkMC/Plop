@@ -37,7 +37,7 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
 
         logger.info("Adding nexus to plot ${plot?.plotId}")
         // Keep track that the nexus was placed
-        plot?.nexus?.add(lectern.block.location)
+        plot?.addNexus(lectern.block.location)
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -65,7 +65,7 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
         val plot = player.getCurrentPlot() ?: return
 
         // Keep track that the nexus was destroyed
-        plot.nexus.remove(lectern.block.location)
+        plot.removeNexus(lectern.block.location)
     }
 
     @EventHandler
@@ -141,7 +141,7 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
                 // Drop book on ground
                 block.world.dropItemNaturally(block.location, plots.nexusManager.NEXUS_BOOK)
             }
-            plot.nexus.remove(lectern.block.location)
+            plot.removeNexus(lectern.block.location)
             return
         }
 

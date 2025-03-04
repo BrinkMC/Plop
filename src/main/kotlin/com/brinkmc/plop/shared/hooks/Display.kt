@@ -33,6 +33,7 @@ class Display(override val plugin: Plop): Addon, State {
         val hologram = hologramAPI.create(hologramData)
         hologram.data.isPersistent = false // DO NOT SAVE
         hologram.data.visibility = Visibility.MANUAL
+        hologramAPI.addHologram(hologram) // Add hologram to manager
         return hologram
     }
 

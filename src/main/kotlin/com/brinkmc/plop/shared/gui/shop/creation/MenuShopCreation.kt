@@ -1,27 +1,20 @@
-package com.brinkmc.plop.shared.gui.shop.owner
+package com.brinkmc.plop.shared.gui.shop.creation
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.shop.ShopType
-import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
+import com.noxcrew.interfaces.drawable.Drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.buildChestInterface
 import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.InterfaceView
-import io.lumine.shadow.Static
 import kotlinx.coroutines.CompletableDeferred
 import org.bukkit.Location
 import org.bukkit.Material
-import org.bukkit.entity.Item
 import org.bukkit.entity.Player
-import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
-import kotlin.collections.get
-import kotlin.collections.set
-
 
 // Overarching menu for creating a shop
 class MenuShopCreation(override val plugin: Plop): Addon {
@@ -75,59 +68,68 @@ class MenuShopCreation(override val plugin: Plop): Addon {
 
         rows = 2
 
+        val doneProperty = interfaceProperty(false)
+        var done by doneProperty
+
         withTransform { pane, view ->
 
             // Stage selection parts of the shop creation
-            pane[0, 2] = StaticElement(drawable(STAGE_ONE)) { (player) -> plugin.async {
-                temporaryChoice1[player] = plugin.menus.shopWareMenu.requestChoice(player, view)
-                view.redrawComplete()
-            } }
+            pane[0, 2] = StaticElement(Drawable.Companion.drawable(STAGE_ONE)) { (player) ->
+                plugin.async {
+                    temporaryChoice1[player] = plugin.menus.shopWareMenu.requestChoice(player, view)
+                    view.redrawComplete()
+                }
+            }
 
             val choice1 = temporaryChoice1[view.player]
             pane[0, 4] = if (choice1 != null) {
-                StaticElement(drawable(STAGE_TWO)) { (player) -> plugin.async {
-                    temporaryChoice2[player] = plugin.menus.shopStockMenu.requestChoice(player, choice1, view)
-                    view.redrawComplete()
-                } }
+                StaticElement(Drawable.Companion.drawable(STAGE_TWO)) { (player) ->
+                    plugin.async {
+                        temporaryChoice2[player] = plugin.menus.shopStockMenu.requestChoice(player, choice1, view)
+                        view.redrawComplete()
+                    }
+                }
             } else {
-                StaticElement(drawable(PLEASE_FILL))
-                return@withTransform
+                StaticElement(Drawable.Companion.drawable(PLEASE_FILL))
             }
 
             val choice2 = temporaryChoice2[view.player]
-            pane[0, 6] = if (choice2 != null) {
-                StaticElement(drawable(STAGE_THREE)) { (player) -> plugin.async {
-                    temporaryChoice3[player] = plugin.menus.shopPriceMenu.requestChoice(player, choice1, choice2, view)
-                    view.redrawComplete()
-                } }
+            pane[0, 6] = if (choice2 != null && choice1 != null) {
+                StaticElement(Drawable.Companion.drawable(STAGE_THREE)) { (player) ->
+                    plugin.async {
+                        temporaryChoice3[player] =
+                            plugin.menus.shopPriceMenu.requestChoice(player, choice1, choice2, view)
+                        view.redrawComplete()
+                        done = true
+                    }
+                }
             } else {
-                StaticElement(drawable(PLEASE_FILL))
-                return@withTransform
+                StaticElement(Drawable.Companion.drawable(PLEASE_FILL))
             }
         }
 
         withTransform { pane, view ->
             // Completion checks to determine concrete colours underneath
             pane[1, 2] = if (temporaryChoice1[view.player] == null) {
-                StaticElement(drawable(INDICATOR_BAD))
+                StaticElement(Drawable.Companion.drawable(INDICATOR_BAD))
             } else {
-                StaticElement(drawable(INDICATOR_GOOD))
+                StaticElement(Drawable.Companion.drawable(INDICATOR_GOOD))
             }
 
             pane[1, 4] = if (temporaryChoice2[view.player] == null) {
-                StaticElement(drawable(INDICATOR_BAD))
+                StaticElement(Drawable.Companion.drawable(INDICATOR_BAD))
             } else {
-                StaticElement(drawable(INDICATOR_GOOD))
+                StaticElement(Drawable.Companion.drawable(INDICATOR_GOOD))
             }
 
             pane[1, 6] = if (temporaryChoice3[view.player] == null) {
-                StaticElement(drawable(INDICATOR_BAD))
+                StaticElement(Drawable.Companion.drawable(INDICATOR_BAD))
             } else {
-                StaticElement(drawable(INDICATOR_GOOD))
+                StaticElement(Drawable.Companion.drawable(INDICATOR_GOOD))
             }
         }
 
-        withTransform { pane, view ->
+        withTransform(doneProperty) { pane, view ->
             // Prove that all 3 stages are done then
             val c1 = temporaryChoice1[view.player]
             val c2 = temporaryChoice2[view.player]
@@ -137,27 +139,32 @@ class MenuShopCreation(override val plugin: Plop): Addon {
                 val plot = view.player.getCurrentPlot() ?: return@withTransform
                 val location = temporaryShop[view.player] ?: return@withTransform
 
-                pane[2, 8] = StaticElement(drawable(CONFIRM)) { (player) -> plugin.async {
-                    val shop = Shop( // Create the shop using information given
-                        shopId = UUID.randomUUID(),
-                        plotId = plot.plotId,
-                        plotType = plot.type,
-                        location = location,
-                        shopType = c1.first,
-                        ware = c1.second,
-                        stock = c2.first,
-                        stockLimit = c2.second,
-                        open = true,
-                        price = c3
-                    )
-                    temporaryShop.remove(player) // Remove the temporary shop, no need any more
-                    finalSelection[player]?.complete(shop)
-                    view.close()
-                } }
+                pane[1, 8] = StaticElement(Drawable.Companion.drawable(CONFIRM)) { (player) ->
+                    plugin.async {
+                        val shop = Shop( // Create the shop using information given
+                            shopId = UUID.randomUUID(),
+                            plotId = plot.plotId,
+                            plotType = plot.type,
+                            _location = location,
+                            _shopType = c1.first,
+                            _ware = c1.second,
+                            _stock = c2.first,
+                            _stockLimit = c2.second,
+                            _open = true,
+                            _price = c3
+                        )
+                        // Extract resources from player inventory
+                        if (c1.first == ShopType.SELL) {
+                            removeFromInventory(player, c1.second, c2.first)
+                        }
+                        finalSelection[player]?.complete(shop)
+                        view.close()
+                    }
+                }
             }
         }
 
-        addCloseHandler { reason, handler  ->
+        addCloseHandler { reason, handler ->
             // Check the interface view to see if the player is still in a menu / making a menu?
             if (handler.isTreeOpened) {
                 return@addCloseHandler
@@ -169,10 +176,6 @@ class MenuShopCreation(override val plugin: Plop): Addon {
             }
 
             resetFull(handler.player) // No more temporary values ready for the next attempt
-
-            if (handler.parent() != null) {
-                handler.parent()?.open()
-            }
         }
     }
 
@@ -204,5 +207,25 @@ class MenuShopCreation(override val plugin: Plop): Addon {
 
     suspend fun isChoice(location: Location): Boolean {
         return temporaryShop.values.contains(location)
+    }
+
+    fun removeFromInventory(player: Player, itemStack: ItemStack, number: Int) {
+        var amount = number
+        for (i in 0..player.inventory.contents.size) {
+            val bigItem = player.inventory.contents[i]
+            if (bigItem == null) {
+                continue
+            }
+            if (bigItem.isSimilar(itemStack)) {
+                if (amount < bigItem.amount) {
+                    bigItem.amount -= amount
+                    return
+                } else {
+                    amount -= bigItem.amount
+                    player.inventory.remove(bigItem)
+                }
+
+            }
+        }
     }
 }

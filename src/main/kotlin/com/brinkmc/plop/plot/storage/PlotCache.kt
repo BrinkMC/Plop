@@ -9,6 +9,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.sksamuel.aedile.core.asCache
 import com.sksamuel.aedile.core.Cache
+import com.sksamuel.aedile.core.asLoadingCache
 import com.sksamuel.aedile.core.expireAfterAccess
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -33,7 +34,11 @@ class PlotCache(override val plugin: Plop): Addon, State {
 
     private val plotMap = Caffeine.newBuilder()
         .expireAfterAccess(30.minutes)
-        .asCache<UUID, Plot?>()
+        .asLoadingCache<UUID, Plot?> {
+            asyncScope {
+                databaseHandler.load(it)
+            }
+        }
 
     override suspend fun load() {
         plugin.async { cacheSave() } // Get the task going
@@ -51,11 +56,7 @@ class PlotCache(override val plugin: Plop): Addon, State {
     }
 
     suspend fun getPlot(plotId: UUID): Plot? {
-        return plotMap.get(plotId) {
-            asyncScope {
-                databaseHandler.load(plotId)
-            }
-        }
+        return plotMap.get(plotId)
     }
 
     suspend fun addPlot(plot: Plot) {
@@ -76,10 +77,10 @@ class PlotCache(override val plugin: Plop): Addon, State {
     }
 
     override suspend fun kill() {
-        asyncScope { plotMap.asMap().forEach { (id, plot) ->
+        plotMap.asMap().forEach { (id, plot) ->
             if (plot != null) {
                 databaseHandler.save(plot)
             }
-        } }
+        }
     }
 }

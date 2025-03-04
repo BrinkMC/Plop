@@ -7,6 +7,7 @@ import com.brinkmc.plop.shared.base.State
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.yannicklamprecht.worldborder.api.WorldBorderApi
 import com.sksamuel.aedile.core.asCache
+import com.sksamuel.aedile.core.asLoadingCache
 import org.bukkit.WorldBorder
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -19,22 +20,14 @@ import org.bukkit.event.player.PlayerTeleportEvent
 
 class PlayerTracker(override val plugin: Plop): Addon, State, Listener {
 
-    val locations = Caffeine.newBuilder().asCache<Player, Plot?>()
-
-    override suspend fun load() { // Populate at beginning
-        server.onlinePlayers.forEach {
-            locations.put(it, it.getCurrentPlot())
-        }
+    val locations = Caffeine.newBuilder().asLoadingCache<Player, Plot?> {
+        plots.handler.getPlotFromLocation(it.location)
     }
+
+    override suspend fun load() { }
 
     override suspend fun kill() {
         locations.invalidateAll()
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    suspend fun add(event: PlayerJoinEvent) {
-        val player = event.player
-        locations.put(player, player.getCurrentPlot())
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

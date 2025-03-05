@@ -7,8 +7,11 @@ import kotlinx.coroutines.sync.withLock
 import me.glaremasters.guilds.Guilds
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.block.Chest
 import org.bukkit.entity.Item
+import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
+import java.sql.Timestamp
 import java.util.UUID
 
 enum class ShopType { // Types of shop
@@ -21,67 +24,76 @@ data class Shop(
     val plotId: UUID,
     val plotType: PlotType,
     private var _location: Location,
-    private var _shopType: ShopType,
-    private var _ware: ItemStack,
-    private var _stock: Int,
-    private var _stockLimit: Int,
+    private var _item: ItemStack,
+    private var _quantity: Int,
+    private var _sellPrice: Float,
+    private var _buyPrice: Float,
+    private var _buyLimit: Int,
     private var _open: Boolean,
-    private var _price: Float
+    private var _transaction: MutableList<ShopTransaction>
 ) {
     private val mutex = Mutex()
 
     // Thread-safe getters
     val location: Location get() = _location
-    val shopType: ShopType get() = _shopType
-    val ware: ItemStack get() = _ware.clone()
-    val stock: Int get() = _stock
-    val stockLimit: Int get() = _stockLimit
+    val item: ItemStack get() = _item.clone()
+    val quantity: Int get() = _quantity
+    val sellPrice: Float get() = _sellPrice
+    val buyPrice: Float get() = _buyPrice
+    val buyLimit: Int get() = _buyLimit
     val open: Boolean get() = _open
-    val price: Float get() = _price
+    val transactions: List<ShopTransaction> get() = _transaction.toList()
+
+    // Get bukkit chest
+    val chest: Chest
+        get() {
+            val block = _location.block
+            return block as Chest
+        }
 
     // Thread-safe setters
     suspend fun setLocation(location: Location) = mutex.withLock {
         _location = location
     }
 
-    suspend fun setShopType(type: ShopType) = mutex.withLock {
-        _shopType = type
+    suspend fun setItem(item: ItemStack) = mutex.withLock {
+        _item = item
     }
 
-    suspend fun setWare(ware: ItemStack) = mutex.withLock {
-        _ware = ware.clone()
+    suspend fun setQuantity(quantity: Int) = mutex.withLock {
+        _quantity = quantity
     }
 
-    suspend fun setStock(stock: Int) = mutex.withLock {
-        _stock = stock
+    suspend fun setSellPrice(price: Float) = mutex.withLock {
+        _sellPrice = price
     }
 
-    suspend fun setStockLimit(limit: Int) = mutex.withLock {
-        _stockLimit = limit
+    suspend fun setBuyPrice(price: Float) = mutex.withLock {
+        _buyPrice = price
+    }
+
+    suspend fun setBuyLimit(limit: Int) = mutex.withLock {
+        _buyLimit = limit
     }
 
     suspend fun setOpen(open: Boolean) = mutex.withLock {
         _open = open
     }
 
-    suspend fun setPrice(price: Float) = mutex.withLock {
-        _price = price
-    }
-
     // Thread-safe operations
-    suspend fun addStock(amount: Int) = mutex.withLock {
-        _stock += amount
+    suspend fun addQuantity(amount: Int) = mutex.withLock {
+        _quantity += amount
     }
 
-    suspend fun removeStock(amount: Int) = mutex.withLock {
-        _stock -= amount
+    suspend fun removeQuantity(amount: Int) = mutex.withLock {
+        _quantity -= amount
     }
 
     // Thread-safe snapshot
     suspend fun getSnapshot(): Shop = mutex.withLock {
         copy(
             _location = _location.clone(),
-            _ware = _ware.clone()
+            _item = _item.clone()
         )
     }
 
@@ -98,4 +110,31 @@ data class Shop(
             PlotOwner.PlayerOwner(Bukkit.getOfflinePlayer(plotId))
         }
     }
+
+    fun isSell(): Boolean {
+        return sellPrice != -1.0f
+    }
+
+    fun isBuy(): Boolean {
+        return buyPrice != -1.0f
+    }
+
+    suspend fun unsetSell() = mutex.withLock {
+        _sellPrice = -1.0f
+    }
+
+    suspend fun unsetBuy() = mutex.withLock {
+        _buyPrice = -1.0f
+        _buyLimit = -1
+    }
+
+    suspend fun addTransaction(playerId: UUID) = mutex.withLock {
+        _transaction.add(ShopTransaction(playerId, Timestamp(System.currentTimeMillis())))
+    }
+
 }
+
+data class ShopTransaction(
+    val playerId: UUID,
+    val timestamp: Timestamp
+)

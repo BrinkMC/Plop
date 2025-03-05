@@ -35,6 +35,7 @@ import org.apache.http.util.Args
 import org.bukkit.*
 import org.bukkit.block.Chest
 import org.bukkit.entity.Player
+import org.bukkit.event.inventory.ClickType
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 import org.bukkit.persistence.PersistentDataType
@@ -262,3 +263,6 @@ internal interface Addon {
     }
 }
 
+fun ClickType.isDrop(): Boolean {
+    return this == ClickType.DROP || this == ClickType.CONTROL_DROP
+}

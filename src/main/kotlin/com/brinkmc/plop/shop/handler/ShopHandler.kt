@@ -2,12 +2,16 @@ package com.brinkmc.plop.shop.handler
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.Plot
+import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.storage.ShopCache
+import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.block.Chest
+import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import java.util.UUID
 
@@ -49,4 +53,22 @@ class ShopHandler(override val plugin: Plop): Addon, State {
     suspend fun deleteShop(shop: Shop) {
         shopCache.deleteShop(shop)
     }
+
+    fun emptyShop(plotId: UUID, plotType: PlotType): Shop {
+        return Shop( // Full of temporary values
+            shopId = UUID.randomUUID(),
+            plotId = plotId,
+            plotType = plotType,
+            _location = Location(null, 0.0, 0.0, 0.0),
+            _item = ItemStack(Material.AIR),
+            _quantity = 0,
+            _sellPrice = -1.0f,
+            _buyPrice = -1.0f,
+            _buyLimit = -1,
+            _open = false,
+            _transaction = mutableListOf()
+        )
+    }
+
+
 }

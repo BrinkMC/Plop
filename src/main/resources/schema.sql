@@ -96,12 +96,12 @@ CREATE TABLE IF NOT EXISTS `shops` (
     `shop_id` VARCHAR(36) NOT NULL,
     `plot_id` VARCHAR(36) NOT NULL,
     `plot_type` ENUM('PERSONAL','GUILD') NOT NULL,
-    `shop_type` ENUM('BUY','SELL') NOT NULL,
-    `ware` BLOB NOT NULL,
-    `stock` INT NOT NULL,
-    `stock_limit` INT NOT NULL DEFAULT 64,
+    `item` BLOB NOT NULL,
+    `quantity` INT NOT NULL,
+    `buy_price` FLOAT NOT NULL,
+    `sell_price` FLOAT NOT NULL,
+    `buy_limit` INT NOT NULL,
     `open` BOOLEAN NOT NULL DEFAULT TRUE,
-    `price` FLOAT NOT NULL,
     PRIMARY KEY (`shop_id`),
     FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
     );

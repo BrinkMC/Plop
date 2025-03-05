@@ -9,6 +9,7 @@ import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.Funcs.fullString
 import com.brinkmc.plop.shared.util.Funcs.toLocation
 import com.brinkmc.plop.shop.shop.Shop
+import com.brinkmc.plop.shop.shop.ShopTransaction
 import com.brinkmc.plop.shop.shop.ShopType
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -45,18 +46,19 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
                 shopId = shopId,
                 plotId = UUID.fromString(rs.getString("plot_id")),
                 plotType = PlotType.valueOf(rs.getString("plot_type")),
-                _location = Location(null, 0.0, 0.0, 0.0), // Temporary placeholder, will be replaced
-                _shopType = ShopType.valueOf(rs.getString("shop_type")),
-                _ware = ItemStack.deserializeBytes(rs.getBytes("ware")),
-                _stock = rs.getInt("stock"),
-                _stockLimit = rs.getInt("stock_limit"),
+                _location = Location(null, 0.0, 0.0, 0.0), // Temporary placeholder
+                _item = ItemStack.deserializeBytes(rs.getBytes("item")),
+                _quantity = rs.getInt("quantity"),
+                _sellPrice = rs.getFloat("sell_price"),
+                _buyPrice = rs.getFloat("buy_price"),
+                _buyLimit = rs.getInt("buy_limit"),
                 _open = rs.getBoolean("open"),
-                _price = rs.getFloat("price")
+                _transaction = mutableListOf()
             )
         } else null
     }
 
-    private suspend fun loadShopLocation(shopId: UUID): org.bukkit.Location? {
+    private suspend fun loadShopLocation(shopId: UUID): Location? {
         val rs = DB.query("SELECT * FROM shop_locations WHERE shop_id=?", shopId.toString()) ?: return null
         return if (rs.next()) {
             rs.getString("shop_location").toLocation()
@@ -72,7 +74,6 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
             transactions.add(
                 ShopTransaction(
                     transId = rs.getInt("trans_id"),
-                    shopId = UUID.fromString(rs.getString("shop_id")),
                     playerId = UUID.fromString(rs.getString("player_id")),
                     timestamp = rs.getTimestamp("trans_timestamp")
                 )
@@ -85,16 +86,16 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
     suspend fun create(shop: Shop) = mutex.withLock {
         val id = shop.shopId.toString()
         DB.update(
-            "INSERT INTO shops (shop_id, plot_id, plot_type, shop_type, ware, stock, stock_limit, open, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO shops (shop_id, plot_id, plot_type, item, quantity, sell_price, buy_price, buy_limit, open) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             id,
             shop.plotId.toString(),
             shop.plotType.toString(),
-            shop.shopType.toString(),
-            shop.ware.serializeAsBytes(),
-            shop.stock,
-            shop.stockLimit,
-            shop.open,
-            shop.price
+            shop.item.serializeAsBytes(),
+            shop.quantity,
+            shop.sellPrice,
+            shop.buyPrice,
+            shop.buyLimit,
+            shop.open
         )
         DB.update(
             "INSERT INTO shop_locations (shop_id, shop_location) VALUES (?, ?)",
@@ -108,18 +109,19 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
         val id = shop.shopId.toString()
         // Update shops table
         DB.update(
-            "INSERT INTO shops (shop_id, plot_id, plot_type, shop_type, ware, stock, stock_limit, open, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
-                    "ON DUPLICATE KEY UPDATE plot_id = VALUES(plot_id), plot_type = VALUES(plot_type), shop_type = VALUES(shop_type), " +
-                    "ware = VALUES(ware), stock = VALUES(stock), stock_limit = VALUES(stock_limit), open = VALUES(open), price = VALUES(price)",
+            "INSERT INTO shops (shop_id, plot_id, plot_type, shop_type, item, quantity, sell_price, buy_price, buy_limit, open) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                    "ON DUPLICATE KEY UPDATE plot_id = VALUES(plot_id), plot_type = VALUES(plot_type), " +
+                    "item = VALUES(item), quantity = VALUES(quantity), sell_price = VALUES(sell_price), " +
+                    "buy_price = VALUES(buy_price), buy_limit = VALUES(buy_limit), open = VALUES(open)",
             id,
             shop.plotId.toString(),
             shop.plotType.toString(),
-            shop.shopType.toString(),
-            shop.ware.serializeAsBytes(),
-            shop.stock,
-            shop.stockLimit,
-            shop.open,
-            shop.price
+            shop.item.serializeAsBytes(),
+            shop.quantity,
+            shop.sellPrice,
+            shop.buyPrice,
+            shop.buyLimit,
+            shop.open
         )
 
         // Update shop_locations table
@@ -162,9 +164,3 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
     }
 }
 
-data class ShopTransaction(
-    val transId: Int,
-    val shopId: UUID,
-    val playerId: UUID,
-    val timestamp: Timestamp
-)

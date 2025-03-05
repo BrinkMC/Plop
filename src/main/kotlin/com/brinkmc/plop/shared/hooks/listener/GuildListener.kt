@@ -23,11 +23,7 @@ class GuildListener(override val plugin: Plop): Addon, State, Listener {
 
     @EventHandler
     suspend fun onGuildRemove(guildRemoveEvent: GuildRemoveEvent) {
-        val plot = guildRemoveEvent.guild.plot()
-
-        if (plot == null) {
-            return
-        }
+        val plot = guildRemoveEvent.guild.plot() ?: return
 
         plots.handler.deletePlot(plot)
     }

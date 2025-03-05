@@ -33,12 +33,10 @@ class MenuShopCreation(override val plugin: Plop): Addon {
         .name("shop.create.choose.name")
         .description("Shop.create.choose.desc")
 
-
     val STAGE_TWO: ItemStack
         get() = ItemStack(Material.BARREL)
         .name("shop.create.stock.name")
         .description("Shop.create.stock.desc")
-
 
     val STAGE_THREE: ItemStack
         get() = ItemStack(Material.GOLD_NUGGET)

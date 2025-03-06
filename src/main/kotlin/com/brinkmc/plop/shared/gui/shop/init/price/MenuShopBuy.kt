@@ -14,6 +14,7 @@ import com.noxcrew.interfaces.view.InterfaceView
 import kotlinx.coroutines.CompletableDeferred
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Material
 import org.bukkit.block.Chest
 import org.bukkit.entity.Player
@@ -22,70 +23,84 @@ import java.util.UUID
 
 class MenuShopBuy(override val plugin: Plop): Addon {
 
-    private val completion = mutableMapOf<Player, CompletableDeferred<Shop?>>()
+    // Base items initialized only once
+    private object BaseItems {
+        val BACK = ItemStack(Material.REDSTONE)
+        val CONFIRM = ItemStack(Material.EMERALD)
+        val MORE = ItemStack(Material.GOLD_INGOT)
+        val LESS = ItemStack(Material.GOLD_NUGGET)
+        val BAD = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
+    }
 
-    val BACK: ItemStack
-        get() = ItemStack(Material.REDSTONE)
-            .name("shop.back-stock.name")
-            .description("shop.back-stock.desc")
-
-    val CONFIRM: ItemStack
-        get() = ItemStack(Material.EMERALD)
-            .name("shop.confirm-stock.name")
-            .description("shop.confirm-stock.desc")
-
-    val MORE: ItemStack
-        get() = ItemStack(Material.GOLD_INGOT)
-            .name("shop.more-amount.name")
-            .description("shop.more-amount.desc")
-
-    val LESS: ItemStack
-        get() = ItemStack(Material.GOLD_NUGGET)
-            .name("shop.less-amount.name")
-            .description("shop.less-amount.desc")
-
-    val BAD: ItemStack
-        get() = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
-            .name("shop.bad-amount.name")
-            .description("shop.bad-amount.desc")
+    // Helper function to get named and described items
+    private fun getItem(baseItem: ItemStack, nameKey: String? = null, descKey: String? = null, vararg args: TagResolver): ItemStack {
+        var item = baseItem.clone()
+        if (nameKey != null) {
+            item = item.name(nameKey, args = args)
+        }
+        if (descKey != null) {
+            item = item.description(descKey, args = args)
+        }
+        return item
+    }
 
     private fun inventory(player: Player, inputShop: Shop) = buildCombinedInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
-
         rows = 5
 
         val shopProperty = interfaceProperty(inputShop)
-        var shop by shopProperty
+        val unitMultiplierProperty = interfaceProperty(1)
 
-        var unitMultiplierProperty = interfaceProperty(1)
-        var unitMultiplier by unitMultiplierProperty
+        // Setup different sections of the interface
+        setupConfirmButton(shopProperty, unitMultiplierProperty)
+        setupIncreaseButton(shopProperty, unitMultiplierProperty)
+        setupDecreaseButton(shopProperty, unitMultiplierProperty)
+        setupBackButton(shopProperty)
 
-        // Confirm
+        // Close handler logic
+        addCloseHandler { _, handler ->
+            if (handler.parent() != null) {
+                handler.parent()?.open()
+            }
+        }
+    }
+
+    private fun com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder.setupConfirmButton(
+        shopProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Shop>,
+        unitMultiplierProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Int>
+    ) {
         withTransform(shopProperty, unitMultiplierProperty) { pane, view ->
+            val shop by shopProperty
+
             pane[1, 4] = if (shop.buyPrice <= 0.0f) {
                 StaticElement(drawable(
-                    BAD
+                    getItem(BaseItems.BAD, "shop.bad-amount.name", "shop.bad-amount.desc")
                 ))
             } else {
                 StaticElement(drawable(
-                    CONFIRM
+                    getItem(BaseItems.CONFIRM, "shop.confirm-stock.name", "shop.confirm-stock.desc")
                 )) { (player) ->
                     plugin.async {
-                        completion[player]?.complete(shop)
                         view.close()
                     }
                 }
             }
         }
+    }
 
-        // Increase
+    private fun com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder.setupIncreaseButton(
+        shopProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Shop>,
+        unitMultiplierProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Int>
+    ) {
         withTransform(shopProperty, unitMultiplierProperty) { pane, view ->
+            var shop by shopProperty
+            var unitMultiplier by unitMultiplierProperty
 
             val multiplierPlaceholder = Placeholder.component("multiplier", Component.text(unitMultiplier))
 
             pane[1, 6] = StaticElement(drawable(
-                MORE.name("shop.more-amount.name", args = arrayOf(multiplierPlaceholder)).description("shop.more-amount.desc", args = arrayOf(multiplierPlaceholder))
+                getItem(BaseItems.MORE, "shop.more-amount.name", "shop.more-amount.desc", multiplierPlaceholder)
             )) { (player, view, click) ->
                 plugin.async {
                     if (click.isDrop()) {
@@ -97,12 +112,19 @@ class MenuShopBuy(override val plugin: Plop): Addon {
                 }
             }
         }
+    }
 
-        // Less button
-        withTransform(shopProperty) { pane, view ->
+    private fun com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder.setupDecreaseButton(
+        shopProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Shop>,
+        unitMultiplierProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Int>
+    ) {
+        withTransform(shopProperty, unitMultiplierProperty) { pane, view ->
+            var shop by shopProperty
+            var unitMultiplier by unitMultiplierProperty
+
             pane[1, 2] = if (0 < shop.buyPrice) {
                 StaticElement(drawable(
-                    LESS
+                    getItem(BaseItems.LESS, "shop.less-amount.name", "shop.less-amount.desc")
                 )) { (player, view, click) ->
                     plugin.async {
                         if (click.isDrop()) {
@@ -116,40 +138,27 @@ class MenuShopBuy(override val plugin: Plop): Addon {
                 }
             } else {
                 StaticElement(drawable(
-                    BAD.name("shop.bad-amount.toolittle.name").description("shop.bad-amount.toolittle.desc")
-                )) // Do nothing
+                    getItem(BaseItems.BAD, "shop.bad-amount.toolittle.name", "shop.bad-amount.toolittle.desc")
+                ))
             }
         }
+    }
 
-        // Back button
+    private fun com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder.setupBackButton(
+        shopProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Shop>
+    ) {
         withTransform(shopProperty) { pane, view ->
             pane[4, 4] = StaticElement(drawable(
-                BACK
+                getItem(BaseItems.BACK, "shop.back-stock.name", "shop.back-stock.desc")
             )) { (player) ->
                 plugin.async {
                     view.close()
                 }
             }
         }
-
-        addCloseHandler { reasons, handler ->
-            if (completion[handler.player]?.isCompleted == false) {
-                completion[handler.player]?.complete(null) // Finalise with a null if not completed
-            }
-
-            if (handler.parent() != null) {
-                handler.parent()?.open()
-            }
-
-            completion.remove(handler.player)
-        }
     }
 
-    suspend fun open(player: Player, shop: Shop, parentView: InterfaceView? = null): Shop? {
-        val request = CompletableDeferred<Shop?>()
-        completion[player] = request
-
-        inventory(player, shop.getSnapshot()).open(player, parentView)
-        return request.await()
+    suspend fun open(player: Player, shop: Shop, parentView: InterfaceView? = null): InterfaceView {
+        return inventory(player, shop).open(player, parentView)
     }
 }

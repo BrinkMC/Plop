@@ -36,6 +36,7 @@ import org.bukkit.*
 import org.bukkit.block.Chest
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.ClickType
+import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 import org.bukkit.persistence.PersistentDataType
@@ -261,6 +262,14 @@ internal interface Addon {
     suspend fun UUID.shop(): Shop? {
         return shops.handler.getShop(this)
     }
+
+    // Shop inventory utils
+
+    // Get the amount of an item in an inventory, however divide by the item's amount
+    fun Inventory.getAmountOf(item: ItemStack): Int {
+        return contents.filterNotNull().filter { it.isSimilar(item) }.sumOf{ it.amount }.div(item.amount)
+    }
+
 }
 
 fun ClickType.isDrop(): Boolean {

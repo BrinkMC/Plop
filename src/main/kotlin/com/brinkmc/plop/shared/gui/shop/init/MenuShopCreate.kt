@@ -14,6 +14,7 @@ import io.lumine.shadow.Static
 import kotlinx.coroutines.CompletableDeferred
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Chest
 import org.bukkit.entity.Player
@@ -25,6 +26,7 @@ import java.util.UUID
 class MenuShopCreate(override val plugin: Plop): Addon {
 
     private val completion = mutableMapOf<Player, CompletableDeferred<Shop?>>() // Completable requests
+    private val reserved = mutableMapOf<Location, Boolean>()
 
     // Base items initialized only once
     private object BaseItems {
@@ -56,7 +58,7 @@ class MenuShopCreate(override val plugin: Plop): Addon {
         BUY_LIMIT_COMPLETE,  // Stage 2: Buy limit set (You MUST HAVE BUY PRICE to do Stage 5)
         BUY_COMPLETE,        // Stage 3: Buy price set
         SELL_COMPLETE,       // Stage 4: Sell price set Stage 3 & 4 are equivalent
-        STOCK_COMPLETE       // Stage 5: Stock configured
+        STOCK_COMPLETE       // Stage 5: Stock configured NOT NECESSARY FOR BUY SHOP DO NOT NEED STOCK
     }
 
 
@@ -72,6 +74,31 @@ class MenuShopCreate(override val plugin: Plop): Addon {
         val stageProperty = interfaceProperty(ShopStage.ITEM_SELECTION)
         var stage by stageProperty
 
+
+        withTransform(stageProperty) { pane, view ->
+            // Determine what stage it is at
+            when {
+                shop.item.type == Material.AIR -> {
+                    stage = ShopStage.ITEM_SELECTION
+                }
+                shop.buyPrice == -1.0f && shop.sellPrice == -1.0f -> {
+                    stage = ShopStage.PRICE_PENDING
+                }
+                shop.buyLimit > 0 -> {
+                    stage = ShopStage.BUY_LIMIT_COMPLETE
+                }
+                shop.buyPrice >= 0.0f -> {
+                    stage = ShopStage.BUY_COMPLETE
+                }
+                shop.sellPrice >= 0.0f -> {
+                    stage = ShopStage.SELL_COMPLETE
+                }
+                shop.quantity > 0 -> {
+                    stage = ShopStage.STOCK_COMPLETE
+                }
+            }
+        }
+
         // Setup UI elements with modified item creation
         setupItemSelection(shopProperty, stageProperty)
         setupBuyOptions(shopProperty, stageProperty)
@@ -83,33 +110,30 @@ class MenuShopCreate(override val plugin: Plop): Addon {
         addCloseHandler { _, handler ->
             if (!handler.isTreeOpened && completion[handler.player]?.isCompleted == false) {
                 completion[handler.player]?.complete(null)
+                reserved.remove(shop.location)
             }
             completion.remove(handler.player)
         }
     }
 
     private fun ChestInterfaceBuilder.setupItemSelection(shopProperty: InterfaceProperty<Shop>, stageProperty: InterfaceProperty<ShopStage>) {
+        var stage by stageProperty
+        var shop by shopProperty
         withTransform(shopProperty, stageProperty) { pane, view ->
             pane[0, 4] = StaticElement(drawable(
                 getItem(BaseItems.ITEM_CHOOSE, "shop.create.choose.name", "shop.create.choose.desc")
             )) { (player) ->
                 plugin.async {
-                    var stage by stageProperty
-                    var shop by shopProperty
-
-                    stage = ShopStage.ITEM_SELECTION
-                    shop = plugin.menus.shopInitItemMenu.open(player, shop, view) ?: return@async
-                    stage = ShopStage.PRICE_PENDING
+                    plugin.menus.shopInitItemMenu.open(player, shop, view)
                 }
             }
         }
     }
 
     private fun ChestInterfaceBuilder.setupBuyOptions(shopProperty: InterfaceProperty<Shop>, stageProperty: InterfaceProperty<ShopStage>) {
+        var shop by shopProperty
+        var stage by stageProperty
         withTransform(shopProperty, stageProperty) { pane, view ->
-            var shop by shopProperty
-            var stage by stageProperty
-
             pane[2, 3] = when {
                 stage == ShopStage.ITEM_SELECTION -> {
                     StaticElement(drawable(
@@ -131,18 +155,10 @@ class MenuShopCreate(override val plugin: Plop): Addon {
                     )) { (player, view, click) ->
                         plugin.async {
                             if (click.isRightClick) {
-                                stage = if (stage == ShopStage.PRICE_PENDING)
-                                    ShopStage.PRICE_PENDING else ShopStage.BUY_COMPLETE
-
-                                shop = plugin.menus.shopInitBuyLimitMenu.open(player, shop, view) ?: return@async
-
-                                stage = if (stage == ShopStage.PRICE_PENDING)
-                                    ShopStage.BUY_LIMIT_COMPLETE else ShopStage.BUY_COMPLETE
+                                plugin.menus.shopInitBuyLimitMenu.open(player, shop, view)
                             }
                             else if (click.isLeftClick) {
-                                stage = ShopStage.PRICE_PENDING
-                                shop = plugin.menus.shopInitBuyMenu.open(player, shop, view) ?: return@async
-                                stage = ShopStage.BUY_COMPLETE
+                                plugin.menus.shopInitBuyMenu.open(player, shop, view)
                             }
                         }
                     }
@@ -152,10 +168,9 @@ class MenuShopCreate(override val plugin: Plop): Addon {
     }
 
     private fun ChestInterfaceBuilder.setupSellOptions(shopProperty: InterfaceProperty<Shop>, stageProperty: InterfaceProperty<ShopStage>) {
+        var shop by shopProperty
+        var stage by stageProperty
         withTransform(shopProperty, stageProperty) { pane, view ->
-            var shop by shopProperty
-            var stage by stageProperty
-
             pane[2, 5] = when {
                 stage == ShopStage.ITEM_SELECTION -> {
                     StaticElement(drawable(
@@ -177,9 +192,7 @@ class MenuShopCreate(override val plugin: Plop): Addon {
                         getItem(BaseItems.SELL, "shop.create.sell.name", "shop.create.sell.desc")
                     )) { (player, view, click) ->
                         plugin.async {
-                            stage = ShopStage.PRICE_PENDING
-                            shop = plugin.menus.shopInitSellMenu.open(player, shop, view) ?: return@async
-                            stage = ShopStage.SELL_COMPLETE
+                            plugin.menus.shopInitSellMenu.open(player, shop, view)
                         }
                     }
                 }
@@ -188,9 +201,9 @@ class MenuShopCreate(override val plugin: Plop): Addon {
     }
 
     private fun ChestInterfaceBuilder.setupStockOptions(shopProperty: InterfaceProperty<Shop>, stageProperty: InterfaceProperty<ShopStage>) {
+        val stage by stageProperty
+        var shop by shopProperty
         withTransform(shopProperty, stageProperty) { pane, view ->
-            val stage by stageProperty
-
             pane[4, 4] = when (stage) {
                 ShopStage.ITEM_SELECTION -> {
                     StaticElement(drawable(
@@ -207,14 +220,7 @@ class MenuShopCreate(override val plugin: Plop): Addon {
                         getItem(BaseItems.STOCK, "shop.create.stock.name", "shop.create.stock.desc")
                     )) { (player) ->
                         plugin.async {
-                            var stage by stageProperty
-                            var shop by shopProperty
-
-                            stage = if (stage == ShopStage.BUY_COMPLETE || stage == ShopStage.SELL_COMPLETE)
-                                stage else ShopStage.PRICE_PENDING
-
-                            shop = plugin.menus.shopInitStockMenu.open(player, shop, view) ?: return@async
-                            stage = ShopStage.STOCK_COMPLETE
+                            plugin.menus.shopInitStockMenu.open(player, shop, view)
                         }
                     }
                 }
@@ -223,10 +229,9 @@ class MenuShopCreate(override val plugin: Plop): Addon {
     }
 
     private fun ChestInterfaceBuilder.setupConfirmation(shopProperty: InterfaceProperty<Shop>, stageProperty: InterfaceProperty<ShopStage>, player: Player) {
+        val stage by stageProperty
+        val shop by shopProperty
         withTransform(shopProperty, stageProperty) { pane, view ->
-            val stage by stageProperty
-            val shop by shopProperty
-
             pane[2, 7] = when (stage) {
                 ShopStage.ITEM_SELECTION -> {
                     StaticElement(drawable(
@@ -244,6 +249,7 @@ class MenuShopCreate(override val plugin: Plop): Addon {
                     )) { (player) ->
                         plugin.async {
                             completion[player]?.complete(shop)
+                            reserved.remove(shop.location)
                             view.close()
                         }
                     }
@@ -254,15 +260,29 @@ class MenuShopCreate(override val plugin: Plop): Addon {
 
 
     suspend fun open(player: Player, chest: Chest, plotId: UUID, plotType: PlotType): Shop? {
-        val shop = shops.handler.emptyShop(plotId, plotType)
-        shop.setLocation(chest.location)
+
+        val shopFlow = plugin.shops.creationHandler.getOrCreateShop(player, chest, plotId, plotType)
+
+        val shop = shopFlow.value
 
         val request = CompletableDeferred<Shop?>()
         completion[player] = request
 
-        inventory(player, shop.getSnapshot()).open(player)
+        val view = inventory(player, shop).open(player)
+
+        plugin.shops.creationHandler.subscribe(player) { updateShop ->
+            view.redrawComplete()
+        }
+
         return request.await()
+
     }
 
+    fun isChoice(player: Player): Boolean {
+        return completion[player]?.isActive == true
+    }
 
+    fun isReserved(location: Location): Boolean {
+        return reserved[location] == true
+    }
 }

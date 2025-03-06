@@ -2,6 +2,7 @@ package com.brinkmc.plop.shop.shop
 
 import com.brinkmc.plop.plot.plot.base.PlotOwner
 import com.brinkmc.plop.plot.plot.base.PlotType
+import com.brinkmc.plop.shared.hooks.Economy
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import me.glaremasters.guilds.Guilds
@@ -9,6 +10,7 @@ import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.block.Chest
 import org.bukkit.entity.Item
+import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import java.sql.Timestamp
@@ -128,7 +130,24 @@ data class Shop(
         _buyLimit = -1
     }
 
-    suspend fun addTransaction(playerId: UUID, amount: Int, type: ShopType) = mutex.withLock {
+    suspend fun doTransaction(player: Player, amount: Int, type: ShopType, economy: Economy) = mutex.withLock {
+        when (type) {
+            ShopType.BUY -> {
+                setQuantity(quantity - amount)
+                setBuyLimit(buyLimit - amount)
+                owner.depositBalance(economy, (amount * buyPrice).toDouble())
+                economy.withdraw(player, (amount * buyPrice).toDouble())
+            }
+            ShopType.SELL -> {
+                setQuantity(quantity + amount)
+                owner.withdrawBalance(economy, (amount * sellPrice).toDouble())
+                economy.deposit(player, (amount * sellPrice).toDouble())
+            }
+        }
+        addTransaction(player.uniqueId, amount, type)
+    }
+
+    private suspend fun addTransaction(playerId: UUID, amount: Int, type: ShopType) = mutex.withLock {
         _transaction.add(ShopTransaction(playerId, amount, type, Timestamp(System.currentTimeMillis())))
     }
 

@@ -6,13 +6,16 @@ import com.brinkmc.plop.shop.shop.Shop
 import com.noxcrew.interfaces.drawable.Drawable
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
+import com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder
 import com.noxcrew.interfaces.interfaces.buildChestInterface
 import com.noxcrew.interfaces.interfaces.buildCombinedInterface
+import com.noxcrew.interfaces.properties.InterfaceProperty
 import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.InterfaceView
 import kotlinx.coroutines.CompletableDeferred
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -22,128 +25,149 @@ import kotlin.text.set
 
 class MenuShopItem(override val plugin: Plop): Addon {
 
-    private val completion = mutableMapOf<Player, CompletableDeferred<Shop?>>()
+    // Store player inventory clones to restore when menu closes
     val inventoryClone = mutableMapOf<Player, Array<ItemStack?>>()
 
-    val BACK: ItemStack
-        get() = ItemStack(Material.REDSTONE)
-            .name("shop.back-stock.name")
-            .description("shop.back-stock.desc")
+    // Base items initialized only once
+    private object BaseItems {
+        val BACK = ItemStack(Material.REDSTONE)
+        val CONFIRM = ItemStack(Material.EMERALD)
+        val MORE = ItemStack(Material.GREEN_STAINED_GLASS_PANE)
+        val LESS = ItemStack(Material.RED_STAINED_GLASS_PANE)
+        val BAD = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
+    }
 
-    val CONFIRM: ItemStack
-        get() = ItemStack(Material.EMERALD)
-            .name("shop.confirm-stock.name")
-            .description("shop.confirm-stock.desc")
-
-    val MORE: ItemStack
-        get() = ItemStack(Material.GREEN_STAINED_GLASS_PANE)
-        .name("shop.more-amount.name")
-        .description("shop.more-amount.desc")
-
-    val LESS: ItemStack
-        get() = ItemStack(Material.RED_STAINED_GLASS_PANE)
-        .name("shop.less-amount.name")
-        .description("shop.less-amount.desc")
-
-    val BAD: ItemStack
-        get() = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
-        .name("shop.bad-amount.name")
-        .description("shop.bad-amount.desc")
+    // Helper function to get named and described items
+    private fun getItem(baseItem: ItemStack, nameKey: String? = null, descKey: String? = null, vararg args: TagResolver): ItemStack {
+        var item = baseItem.clone()
+        if (nameKey != null) {
+            item = item.name(nameKey, args = args)
+        }
+        if (descKey != null) {
+            item = item.description(descKey, args = args)
+        }
+        return item
+    }
 
     private fun inventory(player: Player, inputShop: Shop, clone: Array<ItemStack?>) = buildCombinedInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
-
         rows = 5
 
         val shopProperty = interfaceProperty(inputShop)
-        var shop by shopProperty
 
-        var tempItem = shop.item.clone()
-        var maxAmount = tempItem.amount
+        // Setup shared state
+        val tempItemProperty = interfaceProperty(inputShop.item.clone())
+        val maxAmountProperty = interfaceProperty(inputShop.item.clone().amount)
 
-        // Centre piece item
-        withTransform(shopProperty) { pane, view ->
-            pane[2, 4] = StaticElement(drawable(
-                tempItem
-            ))
+        // Setup different sections of the interface
+        setupCenterItem(tempItemProperty)
+        setupMoreButton(tempItemProperty, maxAmountProperty)
+        setupLessButton(tempItemProperty)
+        setupConfirmButton(shopProperty, tempItemProperty)
+        setupBackButton()
+        setupPlayerInventory(clone, tempItemProperty, maxAmountProperty)
+        setupCloseHandler(player)
+    }
+
+    private fun CombinedInterfaceBuilder.setupCenterItem(tempItemProperty: InterfaceProperty<ItemStack>) {
+        withTransform(tempItemProperty) { pane, view ->
+            val tempItem by tempItemProperty
+            pane[2, 4] = StaticElement(drawable(tempItem))
         }
+    }
 
-        // More button
-        withTransform(shopProperty) { pane, view ->
+    private fun CombinedInterfaceBuilder.setupMoreButton(
+        tempItemProperty: InterfaceProperty<ItemStack>,
+        maxAmountProperty: InterfaceProperty<Int>
+    ) {
+        var tempItem by tempItemProperty
+        var maxAmount by maxAmountProperty
+        withTransform(tempItemProperty, maxAmountProperty) { pane, view ->
             pane[2, 6] = if (tempItem.amount < maxAmount) {
                 StaticElement(drawable(
-                    MORE
-                )) { (player) ->
-                    plugin.async {
-                        tempItem.amount += 1
-                        view.redrawComplete()
-                    }
-                }
+                    getItem(BaseItems.MORE, "shop.more-amount.name", "shop.more-amount.desc")
+                )) { (player) -> plugin.async {
+                    val updatedItem = tempItem.clone()
+                    updatedItem.amount += 1
+                    tempItem = updatedItem
+                    view.redrawComplete()
+                }}
             } else {
                 StaticElement(drawable(
-                    BAD.name("shop.bad-amount.toomuch.name").description("shop.bad-amount.toomuch.desc")
-                )) // Do nothing
+                    getItem(BaseItems.BAD, "shop.bad-amount.toomuch.name", "shop.bad-amount.toomuch.desc")
+                ))
             }
         }
+    }
 
-        // Less button
-        withTransform(shopProperty) { pane, view ->
+    private fun CombinedInterfaceBuilder.setupLessButton(tempItemProperty: InterfaceProperty<ItemStack>) {
+        var tempItem by tempItemProperty
+        withTransform(tempItemProperty) { pane, view ->
             pane[2, 2] = if (0 < tempItem.amount) {
                 StaticElement(drawable(
-                    LESS
-                )) { (player) ->
-                    plugin.async {
-                        tempItem.amount -= 1
-                        view.redrawComplete()
-                    }
-                }
+                    getItem(BaseItems.LESS, "shop.less-amount.name", "shop.less-amount.desc")
+                )) { (player) -> plugin.async {
+                    val updatedItem = tempItem.clone()
+                    updatedItem.amount -= 1
+                    tempItem = updatedItem
+                    view.redrawComplete()
+                }}
             } else {
                 StaticElement(drawable(
-                    BAD.name("shop.bad-amount.toolittle.name").description("shop.bad-amount.toolittle.desc")
-                )) // Do nothing
+                    getItem(BaseItems.BAD, "shop.bad-amount.toolittle.name", "shop.bad-amount.toolittle.desc")
+                ))
             }
         }
+    }
 
+    private fun CombinedInterfaceBuilder.setupConfirmButton(
+        shopProperty: InterfaceProperty<Shop>,
+        tempItemProperty: InterfaceProperty<ItemStack>
+    ) {
+        withTransform(tempItemProperty) { pane, view ->
+            val tempItem by tempItemProperty
+            var shop by shopProperty
 
-        // Confirm button
-        withTransform(shopProperty) { pane, view ->
             pane[2, 8] = if (tempItem.type == Material.AIR) {
                 StaticElement(drawable(
-                    BAD.name("shop.bad-amount.noitem.name").description("shop.bad-amount.noitem.desc")
-                )) // Do nothing
+                    getItem(BaseItems.BAD, "shop.bad-amount.noitem.name", "shop.bad-amount.noitem.desc")
+                ))
             } else {
                 StaticElement(drawable(
-                    CONFIRM
-                )) { (player) ->
-                    plugin.async {
-                        shop.setItem(tempItem.clone())
-                        completion[player]?.complete(shop)
-                        view.close()
-                    }
-                }
-            }
-        }
-
-        // Back button
-        withTransform(shopProperty) { pane, view ->
-            pane[2, 0] = StaticElement(drawable(
-                BACK
-            )) { (player) ->
-                plugin.async {
+                    getItem(BaseItems.CONFIRM, "shop.confirm-stock.name", "shop.confirm-stock.desc")
+                )) { (player) -> plugin.async {
+                    shop.setItem(tempItem.clone())
                     view.close()
-                }
+                }}
             }
         }
+    }
 
-        // Populate with player inventory / main item selection
-        withTransform(shopProperty) { pane, view ->
+    private fun CombinedInterfaceBuilder.setupBackButton() {
+        withTransform { pane, view ->
+            pane[2, 0] = StaticElement(drawable(
+                getItem(BaseItems.BACK, "shop.back-stock.name", "shop.back-stock.desc")
+            )) { (player) -> plugin.async {
+                view.close()
+            }}
+        }
+    }
+
+    private fun CombinedInterfaceBuilder.setupPlayerInventory(
+        clone: Array<ItemStack?>,
+        tempItemProperty: InterfaceProperty<ItemStack>,
+        maxAmountProperty: InterfaceProperty<Int>
+    ) {
+        var tempItem by tempItemProperty
+        var maxAmount by maxAmountProperty
+        withTransform { pane, view ->
             // Map inventory contents to the correct grid position
             for (index in clone.indices) {
                 val item = clone[index] ?: continue
 
                 // Calculate position in the grid
-                val row = (index / 9) + 5  // +1 because row 0-4 has shop controls
+                val row = (index / 9) + 5  // +5 rows for shop controls
                 val col = index % 9
 
                 // Skip armor slots and offhand (indices 36-40)
@@ -152,45 +176,36 @@ class MenuShopItem(override val plugin: Plop): Addon {
                 // Ensure we don't go beyond our grid size
                 if (row >= 9) continue
 
-                pane[row, col] = StaticElement(drawable(item)) { (player) ->
-                    plugin.async {
-                        tempItem = item.clone() // Clone only when setting shopWare
-                        maxAmount = item.amount
-                        view.redrawComplete()
-                    }
-                }
+                pane[row, col] = StaticElement(drawable(item)) { (player) -> plugin.async {
+                    tempItem = item.clone()
+                    maxAmount = item.amount
+                    view.redrawComplete()
+                }}
             }
         }
+    }
 
-        addCloseHandler { reasons, handler ->
-            if (completion[handler.player]?.isCompleted == false) {
-                completion[handler.player]?.complete(null) // Finalise with a null if not completed
-            }
-
+    private fun CombinedInterfaceBuilder.setupCloseHandler(player: Player) {
+        addCloseHandler { _, handler ->
             returnInventory(player)
-
-
 
             if (handler.parent() != null) {
                 handler.parent()?.open()
             }
-
-            completion.remove(handler.player)
         }
     }
 
-    suspend fun open(player: Player, shop: Shop, parentView: InterfaceView? = null): Shop? {
-        val request = CompletableDeferred<Shop?>()
-
+    suspend fun open(player: Player, shop: Shop, parentView: InterfaceView? = null): InterfaceView {
+        // Store the player's inventory to restore later
         inventoryClone[player] = player.inventory.contents.clone()
 
-        completion[player] = request
-
-        inventory(player, shop.getSnapshot(), player.inventory.contents.clone()).open(player, parentView)
-        return request.await()
+        return inventory(player, shop, player.inventory.contents.clone()).open(player, parentView)
     }
 
-    fun returnInventory(player: Player) {
-        player.inventory.contents = inventoryClone[player]
+    internal fun returnInventory(player: Player) {
+        inventoryClone[player]?.let {
+            player.inventory.contents = it
+            inventoryClone.remove(player)
+        }
     }
 }

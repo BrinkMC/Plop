@@ -21,7 +21,8 @@ class ShopTags(override val plugin: Plop, val miniMessage: MiniMessage) : Addon 
             sellingTag(shop),
             buyingTag(shop),
             quantityTag(shop),
-            priceTag(shop)
+            buyPriceTag(shop),
+            sellPriceTag(shop)
         )
 
     }
@@ -36,28 +37,35 @@ class ShopTags(override val plugin: Plop, val miniMessage: MiniMessage) : Addon 
     private fun sellingTag(shop: Shop): TagResolver {
         return Placeholder.component(
             "shop_selling",
-            shop.ware.displayName()
+            shop.item.displayName()
         )
     }
 
     private fun buyingTag(shop: Shop): TagResolver {
         return Placeholder.component(
             "shop_buying",
-            shop.ware.displayName()
+            shop.item.displayName()
         )
     }
 
     private fun quantityTag(shop: Shop): TagResolver {
         return Placeholder.component(
             "shop_quantity",
-            Component.text(shop.stock)
+            Component.text(shop.quantity)
         )
     }
 
-    private fun priceTag(shop: Shop): TagResolver {
+    private fun buyPriceTag(shop: Shop): TagResolver {
         return Placeholder.component(
-            "shop_price",
-            Component.text(shop.price)
+            "shop_buyprice",
+            Component.text(shop.buyPrice)
+        )
+    }
+
+    private fun sellPriceTag(shop: Shop): TagResolver {
+        return Placeholder.component(
+            "shop_sellprice",
+            Component.text(shop.sellPrice)
         )
     }
 }

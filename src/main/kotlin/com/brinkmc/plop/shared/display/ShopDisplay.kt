@@ -132,7 +132,7 @@ class ShopDisplay(override val plugin: Plop): Addon, State {
         val textHologramData = TextHologramData("shop-text-${shop.shopId}", startLoc)
         textHologramData.text = substitutedValues
         val itemHologramData = ItemHologramData("shop-item-${shop.shopId}", startLoc.clone().subtract(0.0, 0.5, 0.0))
-        itemHologramData.itemStack = shop.ware
+        itemHologramData.itemStack = shop.item
         itemHologramData.scale = Vector3f(0.5f, 0.5f, 0.5f)
         return Pair(
             hologramManager.createHologram(textHologramData),

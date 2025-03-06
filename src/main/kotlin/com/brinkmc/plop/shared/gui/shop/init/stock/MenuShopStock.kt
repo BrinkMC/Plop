@@ -7,9 +7,9 @@ import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder
 import com.noxcrew.interfaces.interfaces.buildCombinedInterface
+import com.noxcrew.interfaces.properties.InterfaceProperty
 import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.InterfaceView
-import kotlinx.coroutines.CompletableDeferred
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -17,8 +17,7 @@ import org.bukkit.inventory.ItemStack
 
 class MenuShopStock(override val plugin: Plop): Addon {
 
-    private val completion = mutableMapOf<Player, CompletableDeferred<Shop?>>()
-    private val inventoryClone = mutableMapOf<Player, Array<ItemStack?>>()
+    val inventoryClone = mutableMapOf<Player, Array<ItemStack?>>()
 
     // Base items initialized only once
     private object BaseItems {
@@ -38,7 +37,7 @@ class MenuShopStock(override val plugin: Plop): Addon {
         return item
     }
 
-    private fun inventory(player: Player, inputShop: Shop, clone: Array<ItemStack?>) = buildCombinedInterface {
+    private fun inventory(player: Player, inputShop: Shop) = buildCombinedInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
         rows = 5
@@ -49,15 +48,10 @@ class MenuShopStock(override val plugin: Plop): Addon {
         // Setup different sections of the interface
         setupBackButton(shopProperty)
         setupShopItemsDisplay(shopProperty)
-        setupPlayerInventory(shopProperty, clone)
+        setupPlayerInventory(shopProperty)
 
         // Close handler logic
         addCloseHandler { _, handler ->
-            // Handle completion if not already completed
-            if (completion[handler.player]?.isCompleted == false) {
-                completion[handler.player]?.complete(shop)
-            }
-
             // Return inventory to player
             returnInventory(player)
 
@@ -65,13 +59,10 @@ class MenuShopStock(override val plugin: Plop): Addon {
             if (handler.parent() != null) {
                 handler.parent()?.open()
             }
-
-            // Clean up
-            completion.remove(handler.player)
         }
     }
 
-    private fun CombinedInterfaceBuilder.setupBackButton(shopProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Shop>) {
+    private fun CombinedInterfaceBuilder.setupBackButton(shopProperty: InterfaceProperty<Shop>) {
         withTransform(shopProperty) { pane, view ->
             pane[4, 4] = StaticElement(drawable(
                 getItem(BaseItems.BACK, "menu.back")
@@ -83,7 +74,7 @@ class MenuShopStock(override val plugin: Plop): Addon {
         }
     }
 
-    private fun CombinedInterfaceBuilder.setupShopItemsDisplay(shopProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Shop>) {
+    private fun CombinedInterfaceBuilder.setupShopItemsDisplay(shopProperty: InterfaceProperty<Shop>) {
         withTransform(shopProperty) { pane, view ->
             val shop by shopProperty
             var remainingQuantity = shop.quantity
@@ -122,7 +113,7 @@ class MenuShopStock(override val plugin: Plop): Addon {
 
                             // Transfer item to player inventory
                             inventoryClone[player]?.set(index, itemStack)
-                            shop.setQuantity(shop.quantity - itemStack.amount)
+                            shop.setQuantity(shop.quantity - (itemStack.amount/shop.item.amount))
                             view.redrawComplete()
                         }
                     }
@@ -137,11 +128,11 @@ class MenuShopStock(override val plugin: Plop): Addon {
     }
 
     private fun CombinedInterfaceBuilder.setupPlayerInventory(
-        shopProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Shop>,
-        clone: Array<ItemStack?>
+        shopProperty: InterfaceProperty<Shop>
     ) {
         withTransform(shopProperty) { pane, view ->
             val shop by shopProperty
+            val clone = inventoryClone[view.player] ?: return@withTransform
 
             // Map inventory contents to the grid
             for (index in clone.indices) {
@@ -161,7 +152,7 @@ class MenuShopStock(override val plugin: Plop): Addon {
                             inventoryClone[player]?.set(index, null)
 
                             // Update shop quantity
-                            shop.setQuantity(shop.quantity + item.amount)
+                            shop.setQuantity(shop.quantity + (item.amount/shop.item.amount))
 
                             // Redraw the interface
                             view.redrawComplete()
@@ -172,20 +163,15 @@ class MenuShopStock(override val plugin: Plop): Addon {
         }
     }
 
-    suspend fun open(player: Player, shop: Shop, parentView: InterfaceView? = null): Shop? {
-        // Create completable for async result
-        val request = CompletableDeferred<Shop?>()
-        completion[player] = request
-
+    suspend fun open(player: Player, shop: Shop, parentView: InterfaceView? = null): InterfaceView {
         // Clone player inventory
         inventoryClone[player] = player.inventory.contents.clone()
 
         // Open the interface and wait for completion
-        inventory(player, shop.getSnapshot(), player.inventory.contents.clone()).open(player, parentView)
-        return request.await()
+        return inventory(player, shop).open(player, parentView)
     }
 
-    private fun returnInventory(player: Player) {
+    internal fun returnInventory(player: Player) {
         inventoryClone[player]?.let {
             player.inventory.contents = it
         }

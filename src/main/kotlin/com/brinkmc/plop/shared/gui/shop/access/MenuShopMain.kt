@@ -78,9 +78,13 @@ class MenuShopMain(override val plugin: Plop): Addon {
                     SETTINGS
                 )) { (player) ->
                 plugin.async {
-                    plugin.menus.shopOwnerMenu.open(player, shop)
+                    plugin.menus.shopSettingsMenu.open(player, shop)
                 }
             }
         }
+    }
+
+    suspend fun open(player: Player, shop: Shop) {
+        inventory(player, shop).open(player)
     }
 }

@@ -46,7 +46,7 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
 
         if (shopId == null) {
             // Previous check to see if shop creation is occurring if the chest isn't a shop to begin with
-            val isChoice = plugin.menus.shopCreationMenu.isChoice(chest.location)
+            val isChoice = plugin.menus.shopInitCreateMenu.isReserved(chest.location)
 
             if (isChoice) { // Do not destroy chest WHILE shop creation is occuring
                 event.isCancelled = true
@@ -156,8 +156,9 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
         }
 
         // Initiate player shop creation
-        val shop = plugin.menus.shopCreationMenu.requestChoice(player, event.clickedBlock?.location) ?: return  // No shop was created
+        val shop = plugin.menus.shopInitCreateMenu.open(player, chest, plot.plotId, plot.type) ?: return  // No shop was created
 
+        shops.creationHandler.finaliseShop(player)
         logger.info("Adding shop to plot & handler")
         shops.handler.createShop(plot, shop, chest)
 
@@ -177,7 +178,7 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
 
 
         player.sendMiniMessage("shop.client.open")
-        plugin.menus.shopClientMenu.open(player)
+        plugin.menus.shopMainMenu.open(player, shop)
     }
 
     private suspend fun viewShopOwner(event: PlayerInteractEvent, shop: Shop) {
@@ -190,6 +191,6 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
 
         // Open the shop owner menu
         player.sendMiniMessage("shop.owner.open")
-        plugin.menus.shopOwnerMenu.open(player)
+        plugin.menus.shopMainMenu.open(player, shop)
     }
 }

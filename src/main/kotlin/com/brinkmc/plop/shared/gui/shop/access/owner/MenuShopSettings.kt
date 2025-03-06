@@ -42,7 +42,14 @@ class MenuShopSettings(override val plugin: Plop): Addon {
         get() = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
 
     private fun inventory(player: Player, shop: Shop) = buildChestInterface {
+        // Internal settings menu for shop, only to owners
+        onlyCancelItemInteraction = false
+        prioritiseBlockInteractions = false
+        rows = 5
 
+
+
+        withTransform()
     }
 
     suspend fun open(player: Player, shop: Shop, parent: InterfaceView? = null) {

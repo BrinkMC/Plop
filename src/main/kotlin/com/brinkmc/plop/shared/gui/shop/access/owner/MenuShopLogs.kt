@@ -6,6 +6,7 @@ import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.shop.ShopType
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
+import com.noxcrew.interfaces.interfaces.ChestInterface
 import com.noxcrew.interfaces.interfaces.buildChestInterface
 import com.noxcrew.interfaces.properties.InterfaceProperty
 import com.noxcrew.interfaces.properties.interfaceProperty
@@ -28,14 +29,14 @@ class MenuShopLogs(override val plugin: Plop): Addon {
         get() = ItemStack(Material.REDSTONE)
             .name("menu.back")
 
-    private fun inventory(player: Player, shop: Shop) = buildChestInterface {
+    private fun inventory(player: Player, inputShop: Shop): ChestInterface = buildChestInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
 
         rows = 5
 
         withTransform { pane, view ->
-            val shopLogs = shop.transactions.reversed() // Get the order of transactions latest first
+            val shopLogs = inputShop.transactions.reversed() // Get the order of transactions latest first
             // Draw every slot in the "chest" with items till full
             for (log in shopLogs) {
                 for (i in 0..3) {
@@ -43,25 +44,32 @@ class MenuShopLogs(override val plugin: Plop): Addon {
                         val placeholders = arrayOf(
                             // Calculate time since log.timestamp
                             Placeholder.component("date", Component.text(System.currentTimeMillis() - log.timestamp.time ) ), // Current date - log.timestamp
-                            Placeholder.component("shop.log.amount", log.amount.toString()),
-                            Placeholder.component("shop.log.price", log.price.toString())
+                            Placeholder.component("amount", Component.text(log.amount.toString()))
                         )
 
                         pane[i, j] = StaticElement(drawable(
                             LOG.name("shop.log.name")
-                                .description("shop.log.desc",)
-                        )) { (player) -> plugin.async {
-                            // Do something with the log
-                        }
+                                .description("shop.log.desc", args = placeholders)
                         ))
                     }
                 }
             }
         }
+
+        withTransform { pane, view ->
+            pane[4, 4] = StaticElement(drawable(
+                BACK
+            )) { (player) ->
+                plugin.async {
+                    view.close()
+                }
+            }
+        }
     }
 
-    suspend fun open(player: Player, shop: Shop, parent: InterfaceView? = null): ChestInterfaceView {
-        return inventory(player, shop).open(player, parent)
+    suspend fun open(player: Player, inputShop: Shop, parent: InterfaceView? = null): ChestInterfaceView {
+        val inv = inventory(player = player, inputShop = inputShop)
+        return inv.open(player, parent)
     }
 
 }

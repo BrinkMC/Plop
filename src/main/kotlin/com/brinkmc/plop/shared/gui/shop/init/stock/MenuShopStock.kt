@@ -5,10 +5,12 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shop.shop.Shop
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
+import com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder
 import com.noxcrew.interfaces.interfaces.buildCombinedInterface
 import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.InterfaceView
 import kotlinx.coroutines.CompletableDeferred
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -16,129 +18,176 @@ import org.bukkit.inventory.ItemStack
 class MenuShopStock(override val plugin: Plop): Addon {
 
     private val completion = mutableMapOf<Player, CompletableDeferred<Shop?>>()
-    val inventoryClone = mutableMapOf<Player, Array<ItemStack?>>()
+    private val inventoryClone = mutableMapOf<Player, Array<ItemStack?>>()
 
-    val BAD: ItemStack
-        get() = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
-            .name("shop.bad-amount.name")
-            .description("shop.bad-amount.desc")
+    // Base items initialized only once
+    private object BaseItems {
+        val BACK = ItemStack(Material.REDSTONE)
+        val NEED_RESTOCK = ItemStack(Material.REDSTONE_BLOCK)
+    }
 
-    val BACK: ItemStack
-    get() = ItemStack(Material.REDSTONE)
-        .name("shop.back-stock.name")
-        .description("shop.back-stock.desc")
-
-    val NEED_RESTOCK: ItemStack
-    get() = ItemStack(Material.REDSTONE_BLOCK)
-        .name("shop.need-restock.name")
-        .description("shop.need-restock.desc")
+    // Helper function to get named and described items
+    private fun getItem(baseItem: ItemStack, nameKey: String? = null, descKey: String? = null, vararg args: TagResolver): ItemStack {
+        var item = baseItem.clone()
+        if (nameKey != null) {
+            item = item.name(nameKey, args = args)
+        }
+        if (descKey != null) {
+            item = item.description(descKey, args = args)
+        }
+        return item
+    }
 
     private fun inventory(player: Player, inputShop: Shop, clone: Array<ItemStack?>) = buildCombinedInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
-
         rows = 5
 
         val shopProperty = interfaceProperty(inputShop)
         var shop by shopProperty
 
-        // Back button
+        // Setup different sections of the interface
+        setupBackButton(shopProperty)
+        setupShopItemsDisplay(shopProperty)
+        setupPlayerInventory(shopProperty, clone)
+
+        // Close handler logic
+        addCloseHandler { _, handler ->
+            // Handle completion if not already completed
+            if (completion[handler.player]?.isCompleted == false) {
+                completion[handler.player]?.complete(shop)
+            }
+
+            // Return inventory to player
+            returnInventory(player)
+
+            // Open parent interface if exists
+            if (handler.parent() != null) {
+                handler.parent()?.open()
+            }
+
+            // Clean up
+            completion.remove(handler.player)
+        }
+    }
+
+    private fun CombinedInterfaceBuilder.setupBackButton(shopProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Shop>) {
         withTransform(shopProperty) { pane, view ->
             pane[4, 4] = StaticElement(drawable(
-                BACK
+                getItem(BaseItems.BACK, "menu.back")
             )) { (player) ->
                 plugin.async {
                     view.close()
                 }
             }
         }
+    }
 
+    private fun CombinedInterfaceBuilder.setupShopItemsDisplay(shopProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Shop>) {
         withTransform(shopProperty) { pane, view ->
-            var tempQuantity = shop.quantity
-            // Draw every slot in the "chest" with items till full
-            while (tempQuantity > 0) {
-                for (i in 0..3) {
-                    for (j in 0..8) {
-                        val amount = if (tempQuantity >= shop.item.maxStackSize) shop.item.maxStackSize else tempQuantity
-                        if (amount == 0) break
-                        val item = shop.item.clone().apply { this.amount = amount }
+            val shop by shopProperty
+            var remainingQuantity = shop.quantity
 
-                        pane[i, j] = StaticElement(drawable(item)) { (player, view) ->
-                            plugin.async { // Add this item to the player inventory
-                                val index = inventoryClone[player]?.indexOf(null) ?: run {
-                                    player.sendMiniMessage("shop.inv-full")
-                                    return@async
-                                }
-                                inventoryClone[player]?.set(index, item)
-                                shop.setQuantity(shop.quantity - item.amount)
-                                view.redrawComplete()
-                            }
-                        }
-                        pane[i, j] = StaticElement(drawable(
-                            BAD
-                        )) { (player) -> plugin.async {
-                            // Do nothing
-                        } }
+            // Handle empty to begin with
+            if (remainingQuantity == 0) {
+                pane[2, 4] = StaticElement(drawable(
+                    getItem(BaseItems.NEED_RESTOCK, "shop.need-restock")
+                ))
+                return@withTransform
+            }
+
+            // Display stacks in the shop area (rows 0-3)
+            for (i in 0..3) {
+                for (j in 0..8) {
+                    if (remainingQuantity <= 0) {
+                        // No more items to display
+                        break
                     }
+
+                    // Calculate stack size for this slot
+                    val stackSize = minOf(remainingQuantity, shop.item.maxStackSize)
+                    remainingQuantity -= stackSize
+
+                    // Create item stack with appropriate amount
+                    val itemStack = shop.item.clone().apply { amount = stackSize }
+
+                    pane[i, j] = StaticElement(drawable(itemStack)) { (player) ->
+                        plugin.async {
+                            // Find empty slot in player inventory
+                            val index = inventoryClone[player]?.indexOfFirst { it == null } ?: -1
+                            if (index == -1) {
+                                player.sendMiniMessage("shop.inv-full")
+                                return@async
+                            }
+
+                            // Transfer item to player inventory
+                            inventoryClone[player]?.set(index, itemStack)
+                            shop.setQuantity(shop.quantity - itemStack.amount)
+                            view.redrawComplete()
+                        }
+                    }
+                }
+
+                if (remainingQuantity <= 0) {
+                    // No more items to display
+                    break
                 }
             }
         }
+    }
 
-
-        // Populate with player inventory / main item selection
+    private fun CombinedInterfaceBuilder.setupPlayerInventory(
+        shopProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Shop>,
+        clone: Array<ItemStack?>
+    ) {
         withTransform(shopProperty) { pane, view ->
-            // Map inventory contents to the correct grid position
+            val shop by shopProperty
+
+            // Map inventory contents to the grid
             for (index in clone.indices) {
+                // Skip empty slots and armor/offhand slots
                 val item = clone[index] ?: continue
-
-                // Calculate position in the grid
-                val row = (index / 9) + 5  // +1 because row 0-4 has shop controls
-                val col = index % 9
-
-                // Skip armor slots and offhand (indices 36-40)
                 if (index >= 36) continue
 
-                // Ensure we don't go beyond our grid size
-                if (row >= 9) continue
+                // Calculate position in the interface
+                val row = (index / 9) + 5
+                val col = index % 9
 
-                pane[row, col] = StaticElement(drawable(item)) { (player, view) ->
-                    plugin.async { // Delete this item from the player inventory
-                        pane[row, col] = StaticElement(drawable(Material.AIR)) // Set this slot to air
-                        inventoryClone[player]?.set(index, null)
-                        shop.setQuantity(shop.quantity + item.amount)
-                        view.redrawComplete()
+                pane[row, col] = StaticElement(drawable(item)) { (player) ->
+                    plugin.async {
+                        // Only transfer if item is similar to shop item
+                        if (item.isSimilar(shop.item)) {
+                            // Update player inventory
+                            inventoryClone[player]?.set(index, null)
+
+                            // Update shop quantity
+                            shop.setQuantity(shop.quantity + item.amount)
+
+                            // Redraw the interface
+                            view.redrawComplete()
+                        }
                     }
                 }
             }
-        }
-
-        addCloseHandler { reasons, handler ->
-            if (completion[handler.player]?.isCompleted == false) {
-                completion[handler.player]?.complete(null) // Finalise with a null if not completed
-            }
-
-            returnInventory(player)
-
-            if (handler.parent() != null) {
-                handler.parent()?.open()
-            }
-
-            completion.remove(handler.player)
         }
     }
 
     suspend fun open(player: Player, shop: Shop, parentView: InterfaceView? = null): Shop? {
+        // Create completable for async result
         val request = CompletableDeferred<Shop?>()
-
-        inventoryClone[player] = player.inventory.contents.clone()
-
         completion[player] = request
 
+        // Clone player inventory
+        inventoryClone[player] = player.inventory.contents.clone()
+
+        // Open the interface and wait for completion
         inventory(player, shop.getSnapshot(), player.inventory.contents.clone()).open(player, parentView)
         return request.await()
     }
 
-    fun returnInventory(player: Player) {
-        player.inventory.contents = inventoryClone[player]
+    private fun returnInventory(player: Player) {
+        inventoryClone[player]?.let {
+            player.inventory.contents = it
+        }
     }
 }

@@ -128,13 +128,15 @@ data class Shop(
         _buyLimit = -1
     }
 
-    suspend fun addTransaction(playerId: UUID) = mutex.withLock {
-        _transaction.add(ShopTransaction(playerId, Timestamp(System.currentTimeMillis())))
+    suspend fun addTransaction(playerId: UUID, amount: Int, type: ShopType) = mutex.withLock {
+        _transaction.add(ShopTransaction(playerId, amount, type, Timestamp(System.currentTimeMillis())))
     }
 
 }
 
 data class ShopTransaction(
     val playerId: UUID,
+    val amount: Int,
+    val type: ShopType,
     val timestamp: Timestamp
 )

@@ -36,7 +36,8 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
         val id = shopId
         val shop = loadShopCore(id) ?: return null
         val location = loadShopLocation(id) ?: return null
-        return shop.copy(_location = location)
+        val transaction = loadTransactions(id).toMutableList()
+        return shop.copy(_location = location, _transaction = transaction)
     }
 
     private suspend fun loadShopCore(shopId: UUID): Shop? {
@@ -73,8 +74,9 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
         while (rs?.next() == true) {
             transactions.add(
                 ShopTransaction(
-                    transId = rs.getInt("trans_id"),
                     playerId = UUID.fromString(rs.getString("player_id")),
+                    amount = rs.getInt("amount"),
+                    type = ShopType.valueOf(rs.getString("type")),
                     timestamp = rs.getTimestamp("trans_timestamp")
                 )
             )
@@ -143,11 +145,13 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
         DB.update("DELETE FROM shops WHERE shop_id=?", id)
     }
 
-    suspend fun recordTransaction(shopId: UUID, playerId: UUID) = mutex.withLock {
+    suspend fun recordTransaction(shopId: UUID, transaction: ShopTransaction) = mutex.withLock {
         DB.update(
-            "INSERT INTO shops_log (shop_id, player_id) VALUES (?, ?)",
+            "INSERT INTO shops_log (shop_id, player_id, amount, type) VALUES (?, ?, ?, ?)",
             shopId.toString(),
-            playerId.toString()
+            transaction.playerId.toString(),
+            transaction.amount,
+            transaction.type.toString()
         )
     }
 

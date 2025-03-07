@@ -46,7 +46,10 @@ class ShopHandler(override val plugin: Plop): Addon, State {
             chest.persistentDataContainer.set(key, PersistentDataType.STRING, shop.shopId.toString()) // Set the chest data to shop data
             chest.update()
         }
-        shopCache.addShop(shop)
+        asyncScope {
+            shopCache.addShop(shop)
+        }
+
     }
 
     suspend fun deleteShop(shop: Shop) {
@@ -64,7 +67,7 @@ class ShopHandler(override val plugin: Plop): Addon, State {
             _sellPrice = -1.0f,
             _buyPrice = -1.0f,
             _buyLimit = -1,
-            _open = false,
+            _open = true,
             _transaction = mutableListOf()
         )
     }

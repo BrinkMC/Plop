@@ -59,7 +59,7 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
     }
 
     // Transaction logic
-    suspend fun loadTransactions(shopId: UUID): List<ShopTransaction> = mutex.withLock {
+    suspend fun loadTransactions(shopId: UUID): List<ShopTransaction> {
         val transactions = mutableListOf<ShopTransaction>()
         val rs = DB.query("SELECT * FROM shops_log WHERE shop_id=? ORDER BY trans_timestamp DESC", shopId.toString())
 
@@ -99,7 +99,7 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
         val id = shop.shopId.toString()
         // Update shops table
         DB.update(
-            "INSERT INTO shops (shop_id, plot_id, shop_location, plot_type, shop_type, item, quantity, sell_price, buy_price, buy_limit, open) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+            "INSERT INTO shops (shop_id, plot_id, shop_location, plot_type, item, quantity, sell_price, buy_price, buy_limit, open) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                     "ON DUPLICATE KEY UPDATE plot_id = VALUES(plot_id), plot_type = VALUES(plot_type), " +
                     "item = VALUES(item), quantity = VALUES(quantity), sell_price = VALUES(sell_price), " +
                     "buy_price = VALUES(buy_price), buy_limit = VALUES(buy_limit), open = VALUES(open)",
@@ -134,13 +134,13 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
         )
     }
 
-    suspend fun getShopsByPlotId(plotId: UUID): List<Shop> {
-        val shops = mutableListOf<Shop>()
+    suspend fun getShopsByPlotId(plotId: UUID): List<UUID> = mutex.withLock {
+        val shops = mutableListOf<UUID>()
         val rs = DB.query("SELECT shop_id FROM shops WHERE plot_id=?", plotId.toString())
 
         while (rs?.next() == true) {
             val shopId = UUID.fromString(rs.getString("shop_id"))
-            load(shopId)?.let { shops.add(it) }
+            shops.add(shopId)
         }
 
         return shops

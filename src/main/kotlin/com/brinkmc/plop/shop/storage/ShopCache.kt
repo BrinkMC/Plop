@@ -28,11 +28,11 @@ class ShopCache(override val plugin: Plop): Addon, State {
             asyncScope {
                 databaseHandler.load(it)
             }
-        }
+        } // SHOP ID -> SHOP
 
     private val shopListMap = Caffeine.newBuilder()
         .expireAfterAccess(30.minutes)
-        .asLoadingCache<UUID, List<Shop>> {
+        .asLoadingCache<UUID, List<UUID>> { // PLOT ID -> SHOP IDS
             asyncScope {
                 databaseHandler.getShopsByPlotId(it)
             }
@@ -54,7 +54,7 @@ class ShopCache(override val plugin: Plop): Addon, State {
     }
 
     suspend fun getShops(plotId: UUID): List<Shop>? {
-        return shopListMap.get(plotId)
+        return shopListMap.get(plotId).mapNotNull { getShop(it) }
     }
 
     suspend fun getShop(shopId: UUID): Shop? {
@@ -63,16 +63,19 @@ class ShopCache(override val plugin: Plop): Addon, State {
 
     suspend fun addShop(shop: Shop) {
         asyncScope {
-            databaseHandler.create(shop) // Adds the plot to the database
             shopMap.invalidate(shop.shopId) // In case it was there before
-            shopListMap.invalidate(shop.shopId)
+            shopListMap.invalidate(shop.plotId)
+            databaseHandler.create(shop) // Adds the plot to the database
+            shopMap.get(shop.shopId) {
+                shop
+            } // Adds the plot to the cache
         }
     }
 
     suspend fun deleteShop(shop: Shop) {
         asyncScope {
             shopMap.invalidate(shop.shopId) // Deletes the plot from the cache
-            shopListMap.invalidate(shop.shopId)
+            shopListMap.invalidate(shop.plotId)
             databaseHandler.delete(shop) // Deletes the plot from the database
         }
     }

@@ -93,6 +93,7 @@ class ShopCreationHandler(override val plugin: Plop): Addon, State {
         // Register the shop
         plugin.logger.info("Adding shop to plot & handler")
         plugin.shops.handler.createShop(plot, shop, chest)
+        plugin.logger.info("Added shop to database")
 
 
         // Clean up the session

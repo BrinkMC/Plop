@@ -62,6 +62,7 @@ class SelectionSelfMenu(override val plugin: Plop): Addon {
 
             if (handler.parent() != null) {
                 handler.parent()?.open()
+                handler.parent()?.redrawComplete()
             }
         }
     }

@@ -6,6 +6,7 @@ import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.base.PlotOwner
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.plot.modifier.PlotFactory
+import com.brinkmc.plop.plot.plot.modifier.PlotShop
 import com.brinkmc.plop.plot.plot.modifier.PlotSize
 import com.brinkmc.plop.plot.plot.modifier.PlotTotem
 import com.brinkmc.plop.shared.config.ConfigReader
@@ -209,6 +210,12 @@ internal interface Addon {
         return shops.handler.getShop(UUID.fromString(shopId))
     }
 
+    suspend fun Shop.chest(): Chest {
+        return syncScope {
+            return@syncScope location.block.state as Chest
+        }
+    }
+
     suspend fun Location.getSafeDestination(): Location? {
         return plugin.locationUtils.getSafe(this)
     }
@@ -261,6 +268,10 @@ internal interface Addon {
 
     suspend fun UUID.shop(): Shop? {
         return shops.handler.getShop(this)
+    }
+
+    suspend fun Plot.getShops(): List<Shop> {
+        return shops.handler.getShops(this.plotId)
     }
 
     // Shop inventory utils

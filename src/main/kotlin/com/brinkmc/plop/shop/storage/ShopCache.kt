@@ -63,12 +63,9 @@ class ShopCache(override val plugin: Plop): Addon, State {
 
     suspend fun addShop(shop: Shop) {
         asyncScope {
+            databaseHandler.create(shop) // Adds the plot to the database
             shopMap.invalidate(shop.shopId) // In case it was there before
             shopListMap.invalidate(shop.shopId)
-            databaseHandler.create(shop) // Adds the plot to the database
-            shopMap.get(shop.shopId) {
-                shop
-            } // Adds the plot to the cache
         }
     }
 

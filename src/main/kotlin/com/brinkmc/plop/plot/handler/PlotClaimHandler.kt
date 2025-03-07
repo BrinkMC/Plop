@@ -50,7 +50,7 @@ class PlotClaimHandler(override val plugin: Plop): Addon, State {
             PlotVisit(true, 0, 0, mutableListOf(), plotType),
             PlotSize(0, plotType),
             PlotFactory(0, mutableListOf(), plotType),
-            PlotShop(0, mutableListOf(), plotType),
+            PlotShop(0, plotType),
             PlotTotem(0, mutableListOf(),true, plotType) // No totems for a brand-new plot
         )
 

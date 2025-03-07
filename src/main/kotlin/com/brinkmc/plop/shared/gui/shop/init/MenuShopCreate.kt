@@ -10,6 +10,7 @@ import com.noxcrew.interfaces.interfaces.ChestInterfaceBuilder
 import com.noxcrew.interfaces.interfaces.buildChestInterface
 import com.noxcrew.interfaces.properties.InterfaceProperty
 import com.noxcrew.interfaces.properties.interfaceProperty
+import com.noxcrew.interfaces.view.InterfaceView
 import io.lumine.shadow.Static
 import kotlinx.coroutines.CompletableDeferred
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
@@ -25,8 +26,8 @@ import java.util.UUID
 
 class MenuShopCreate(override val plugin: Plop): Addon {
 
-    private val completion = mutableMapOf<Player, CompletableDeferred<Shop?>>() // Completable requests
-    private val reserved = mutableMapOf<Location, Boolean>()
+
+
 
     // Base items initialized only once
     private object BaseItems {
@@ -75,27 +76,26 @@ class MenuShopCreate(override val plugin: Plop): Addon {
         val stageProperty = interfaceProperty(ShopStage.ITEM_SELECTION)
         var stage by stageProperty
 
-
         withTransform(stageProperty) { pane, view ->
             // Determine what stage it is at
             when {
+                shop.quantity > 0 -> {
+                    stage = ShopStage.STOCK_COMPLETE
+                }
+                shop.buyPrice > 0.0f -> {
+                    stage = ShopStage.BUY_COMPLETE
+                }
+                shop.sellPrice > 0.0f -> {
+                    stage = ShopStage.SELL_COMPLETE
+                }
+                shop.buyLimit > 0 -> {
+                    stage = ShopStage.BUY_LIMIT_COMPLETE
+                }
                 shop.item.type == Material.AIR -> {
                     stage = ShopStage.ITEM_SELECTION
                 }
                 shop.buyPrice == -1.0f && shop.sellPrice == -1.0f -> {
                     stage = ShopStage.PRICE_PENDING
-                }
-                shop.buyLimit > 0 -> {
-                    stage = ShopStage.BUY_LIMIT_COMPLETE
-                }
-                shop.buyPrice >= 0.0f -> {
-                    stage = ShopStage.BUY_COMPLETE
-                }
-                shop.sellPrice >= 0.0f -> {
-                    stage = ShopStage.SELL_COMPLETE
-                }
-                shop.quantity > 0 -> {
-                    stage = ShopStage.STOCK_COMPLETE
                 }
             }
         }
@@ -110,11 +110,11 @@ class MenuShopCreate(override val plugin: Plop): Addon {
 
         // Close handler remains unchanged
         addCloseHandler { _, handler ->
-            if (!handler.isTreeOpened && completion[handler.player]?.isCompleted == false) {
-                completion[handler.player]?.complete(null)
-                reserved.remove(shop.location)
+            if (handler.isTreeOpened) { // Child so ignore
+                return@addCloseHandler
             }
-            completion.remove(handler.player)
+
+            plugin.shops.creationHandler.cancelShopCreation(player)
         }
     }
 
@@ -283,9 +283,8 @@ class MenuShopCreate(override val plugin: Plop): Addon {
                         getItem(BaseItems.CONFIRM, "shop.create.confirm.name", "shop.create.confirm.desc")
                     )) { (player) ->
                         plugin.async {
-                            completion[player]?.complete(shop)
-                            reserved.remove(shop.location)
                             view.close()
+                            shops.creationHandler.finaliseShop(player, shop)
                         }
                     }
                 }
@@ -294,30 +293,9 @@ class MenuShopCreate(override val plugin: Plop): Addon {
     }
 
 
-    suspend fun open(player: Player, chest: Chest, plotId: UUID, plotType: PlotType): Shop? {
-
-        val shopFlow = plugin.shops.creationHandler.getOrCreateShop(player, chest, plotId, plotType)
-
-        val shop = shopFlow.value
-
-        val request = CompletableDeferred<Shop?>()
-        completion[player] = request
-
-        val view = inventory(player, shop).open(player)
-
-        plugin.shops.creationHandler.subscribe(player) { updateShop ->
-            view.redrawComplete()
-        }
-
-        return request.await()
-
+    suspend fun open(player: Player, shop: Shop): InterfaceView? {
+        return inventory(player, shop).open(player)
     }
 
-    fun isChoice(player: Player): Boolean {
-        return completion[player]?.isActive == true
-    }
 
-    fun isReserved(location: Location): Boolean {
-        return reserved[location] == true
-    }
 }

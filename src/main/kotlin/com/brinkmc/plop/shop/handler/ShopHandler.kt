@@ -34,7 +34,7 @@ class ShopHandler(override val plugin: Plop): Addon, State {
     }
 
     suspend fun getShops(plotId: UUID): List<Shop> { // Get all shops which have plotId of some value
-        return plots.handler.getPlotById(plotId)?.shop?.getShops()?.mapNotNull { getShop(it) }?.toList() ?: listOf()
+        return shopCache.getShops(plotId)?.toList() ?: listOf()
     }
 
     suspend fun getShop(shopId: UUID): Shop? {
@@ -46,7 +46,6 @@ class ShopHandler(override val plugin: Plop): Addon, State {
             chest.persistentDataContainer.set(key, PersistentDataType.STRING, shop.shopId.toString()) // Set the chest data to shop data
             chest.update()
         }
-        plot.shop.addShop(shop.shopId)
         shopCache.addShop(shop)
     }
 

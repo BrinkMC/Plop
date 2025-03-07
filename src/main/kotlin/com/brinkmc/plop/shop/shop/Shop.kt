@@ -46,13 +46,6 @@ data class Shop(
     val open: Boolean get() = _open
     val transactions: List<ShopTransaction> get() = _transaction.toList()
 
-    // Get bukkit chest
-    val chest: Chest
-        get() {
-            val block = _location.block
-            return block as Chest
-        }
-
     // Thread-safe setters
     suspend fun setLocation(location: Location) = mutex.withLock {
         _location = location
@@ -133,13 +126,13 @@ data class Shop(
     suspend fun doTransaction(player: Player, amount: Int, type: ShopType, economy: Economy) = mutex.withLock {
         when (type) {
             ShopType.BUY -> {
-                setQuantity(quantity - amount)
+                setQuantity(quantity - amount*item.amount)
                 setBuyLimit(buyLimit - amount)
                 owner.depositBalance(economy, (amount * buyPrice).toDouble())
                 economy.withdraw(player, (amount * buyPrice).toDouble())
             }
             ShopType.SELL -> {
-                setQuantity(quantity + amount)
+                setQuantity(quantity + amount*item.amount)
                 owner.withdrawBalance(economy, (amount * sellPrice).toDouble())
                 economy.deposit(player, (amount * sellPrice).toDouble())
             }

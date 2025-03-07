@@ -35,9 +35,8 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
     suspend fun load(shopId: UUID): Shop? = mutex.withLock {
         val id = shopId
         val shop = loadShopCore(id) ?: return null
-        val location = loadShopLocation(id) ?: return null
         val transaction = loadTransactions(id).toMutableList()
-        return shop.copy(_location = location, _transaction = transaction)
+        return shop.copy(_transaction = transaction)
     }
 
     private suspend fun loadShopCore(shopId: UUID): Shop? {
@@ -47,7 +46,7 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
                 shopId = shopId,
                 plotId = UUID.fromString(rs.getString("plot_id")),
                 plotType = PlotType.valueOf(rs.getString("plot_type")),
-                _location = Location(null, 0.0, 0.0, 0.0), // Temporary placeholder
+                _location = rs.getString("shop_location").toLocation() ?: Location(null, 0.0, 0.0, 0.0), // Temporary placeholder
                 _item = ItemStack.deserializeBytes(rs.getBytes("item")),
                 _quantity = rs.getInt("quantity"),
                 _sellPrice = rs.getFloat("sell_price"),
@@ -56,13 +55,6 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
                 _open = rs.getBoolean("open"),
                 _transaction = mutableListOf()
             )
-        } else null
-    }
-
-    private suspend fun loadShopLocation(shopId: UUID): Location? {
-        val rs = DB.query("SELECT * FROM shop_locations WHERE shop_id=?", shopId.toString()) ?: return null
-        return if (rs.next()) {
-            rs.getString("shop_location").toLocation()
         } else null
     }
 
@@ -88,9 +80,10 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
     suspend fun create(shop: Shop) = mutex.withLock {
         val id = shop.shopId.toString()
         DB.update(
-            "INSERT INTO shops (shop_id, plot_id, plot_type, item, quantity, sell_price, buy_price, buy_limit, open) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO shops (shop_id, plot_id, shop_location, plot_type, item, quantity, sell_price, buy_price, buy_limit, open) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             id,
             shop.plotId.toString(),
+            shop.location.fullString(),
             shop.plotType.toString(),
             shop.item.serializeAsBytes(),
             shop.quantity,
@@ -98,11 +91,6 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
             shop.buyPrice,
             shop.buyLimit,
             shop.open
-        )
-        DB.update(
-            "INSERT INTO shop_locations (shop_id, shop_location) VALUES (?, ?)",
-            id,
-            shop.location.fullString()
         )
     }
 
@@ -111,12 +99,13 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
         val id = shop.shopId.toString()
         // Update shops table
         DB.update(
-            "INSERT INTO shops (shop_id, plot_id, plot_type, shop_type, item, quantity, sell_price, buy_price, buy_limit, open) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+            "INSERT INTO shops (shop_id, plot_id, shop_location, plot_type, shop_type, item, quantity, sell_price, buy_price, buy_limit, open) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                     "ON DUPLICATE KEY UPDATE plot_id = VALUES(plot_id), plot_type = VALUES(plot_type), " +
                     "item = VALUES(item), quantity = VALUES(quantity), sell_price = VALUES(sell_price), " +
                     "buy_price = VALUES(buy_price), buy_limit = VALUES(buy_limit), open = VALUES(open)",
             id,
             shop.plotId.toString(),
+            shop.location.fullString(),
             shop.plotType.toString(),
             shop.item.serializeAsBytes(),
             shop.quantity,
@@ -125,22 +114,12 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
             shop.buyLimit,
             shop.open
         )
-
-        // Update shop_locations table
-        DB.update(
-            "INSERT INTO shop_locations (shop_id, shop_location) VALUES (?, ?) " +
-                    "ON DUPLICATE KEY UPDATE shop_location = VALUES(shop_location)",
-            id,
-            shop.location.fullString()
-        )
     }
 
     suspend fun delete(shop: Shop) = mutex.withLock {
         val id = shop.shopId.toString()
         // Delete from shops_log first (respect foreign key constraints)
         DB.update("DELETE FROM shops_log WHERE shop_id=?", id)
-        // Delete from shop_locations
-        DB.update("DELETE FROM shop_locations WHERE shop_id=?", id)
         // Finally delete from shops table
         DB.update("DELETE FROM shops WHERE shop_id=?", id)
     }

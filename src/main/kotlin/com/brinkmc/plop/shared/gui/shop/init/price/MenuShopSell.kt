@@ -58,6 +58,7 @@ class MenuShopSell(override val plugin: Plop): Addon {
         addCloseHandler { reasons, handler ->
             if (handler.parent() != null) {
                 handler.parent()?.open()
+                handler.parent()?.redrawComplete()
             }
         }
     }

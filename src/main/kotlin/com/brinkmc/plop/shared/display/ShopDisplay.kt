@@ -51,8 +51,7 @@ class ShopDisplay(override val plugin: Plop): Addon, State {
     }
 
     private suspend fun render(player: Player, plot: Plot) { // Get centred starting location of hologram
-        val closestShop = plot.shop.getShops()
-            .mapNotNull { shops.handler.getShop(it) }
+        val closestShop = plot.getShops()
             .minByOrNull { it.location.distanceSquared(player.location) } ?: return // No shop
 
         val startLoc = closestShop.location.clone().add(0.5, 1.5, 0.5) // Location for text part of hologram

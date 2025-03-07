@@ -42,14 +42,6 @@ CREATE TABLE IF NOT EXISTS `plot_shops` (
     FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
     );
 
-CREATE TABLE IF NOT EXISTS `plot_shop_locations` (
-    `shop_loc_id` INT AUTO_INCREMENT NOT NULL,
-    `plot_id` VARCHAR(36) NOT NULL,
-    `shop_uuid` VARCHAR(36) NOT NULL,
-    PRIMARY KEY (`shop_loc_id`),
-    FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
-    );
-
 CREATE TABLE IF NOT EXISTS `plot_totem_levels` (
     `plot_id` VARCHAR(36) NOT NULL,
     `totem_level` INT NOT NULL,
@@ -95,6 +87,7 @@ CREATE TABLE IF NOT EXISTS `plot_visit_timestamps` (
 CREATE TABLE IF NOT EXISTS `shops` (
     `shop_id` VARCHAR(36) NOT NULL,
     `plot_id` VARCHAR(36) NOT NULL,
+    `shop_location` TEXT NOT NULL,
     `plot_type` ENUM('PERSONAL','GUILD') NOT NULL,
     `item` BLOB NOT NULL,
     `quantity` INT NOT NULL,
@@ -104,13 +97,6 @@ CREATE TABLE IF NOT EXISTS `shops` (
     `open` BOOLEAN NOT NULL DEFAULT TRUE,
     PRIMARY KEY (`shop_id`),
     FOREIGN KEY (`plot_id`) REFERENCES `plots`(`plot_id`)
-    );
-
-CREATE TABLE IF NOT EXISTS `shop_locations` (
-    `shop_id` VARCHAR(36) NOT NULL,
-    `shop_location` TEXT NOT NULL,
-    PRIMARY KEY (`shop_id`),
-    FOREIGN KEY (`shop_id`) REFERENCES `shops`(`shop_id`)
     );
 
 CREATE TABLE IF NOT EXISTS `shops_log` (

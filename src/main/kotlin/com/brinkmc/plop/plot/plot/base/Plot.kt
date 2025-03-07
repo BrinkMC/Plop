@@ -99,7 +99,7 @@ data class Plot(
             _visit = _visit.copy(historicalVisits = ArrayList(_visit.historicalVisits)),
             _size = _size.copy(),
             _factory = _factory.copy(factories = ArrayList(_factory.factories)),
-            _shop = _shop.copy(shops = ArrayList(_shop.getShops())),
+            _shop = _shop.copy(),
             _totem = _totem.copy(totems = ArrayList(_totem.totems))
         )
     }

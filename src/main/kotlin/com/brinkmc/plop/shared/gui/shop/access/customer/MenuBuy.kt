@@ -70,6 +70,7 @@ class MenuBuy(override val plugin: Plop): Addon {
         addCloseHandler { _, handler ->
             if (handler.parent() != null) {
                 handler.parent()?.open()
+                handler.parent()?.redrawComplete()
             }
         }
     }
@@ -102,7 +103,7 @@ class MenuBuy(override val plugin: Plop): Addon {
                         getItem(BaseItems.BAD, "shop.bad-amount.shop-limit.name", "shop.bad-amount.shop-limit.desc")
                     ))
                 }
-                amount > view.player.inventory.getAmountOf(shop.item) -> {
+                amount > view.player.inventory.getAmountOf(shop.item)/shop.item.amount -> {
                     StaticElement(drawable(
                         getItem(BaseItems.BAD, "shop.bad-amount.client-bad.name", "shop.bad-amount.client-bad.desc")
                     ))

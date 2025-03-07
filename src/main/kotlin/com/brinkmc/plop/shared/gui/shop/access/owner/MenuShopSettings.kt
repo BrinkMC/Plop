@@ -14,35 +14,19 @@ import org.bukkit.inventory.ItemStack
 
 class MenuShopSettings(override val plugin: Plop): Addon {
 
-    val HANDLE_BUY: ItemStack
-        get() = ItemStack(Material.HOPPER)
 
-    val HANDLE_SELL: ItemStack
-        get() = ItemStack(Material.GOLD_INGOT)
-
-    val CLICK_ENABLE: ItemStack
-        get() = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
-
-    val STOCK: ItemStack
-        get() = ItemStack(Material.BARREL)
-
-    val TRANSACTION_LOG: ItemStack
-        get() = ItemStack(Material.PAPER)
-
-    val CLOSE_SHOP: ItemStack
-        get() = ItemStack(Material.IRON_DOOR)
-
-    val OPEN_SHOP
-        get() = ItemStack(Material.OAK_DOOR)
-
-    val DELETE_SHOP
-        get() = ItemStack(Material.BARRIER)
-
-    val BACK: ItemStack
-        get() = ItemStack(Material.REDSTONE)
-
-    val BAD: ItemStack
-        get() = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
+    object BaseItems {
+        val HANDLE_BUY = ItemStack(Material.HOPPER)
+        val HANDLE_SELL = ItemStack(Material.GOLD_INGOT)
+        val CLICK_ENABLE = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
+        val STOCK = ItemStack(Material.BARREL)
+        val TRANSACTION_LOG = ItemStack(Material.PAPER)
+        val CLOSE_SHOP = ItemStack(Material.IRON_DOOR)
+        val OPEN_SHOP = ItemStack(Material.OAK_DOOR)
+        val DELETE_SHOP = ItemStack(Material.BARRIER)
+        val BACK = ItemStack(Material.REDSTONE)
+        val BAD = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
+    }
 
     private fun inventory(player: Player, shop: Shop) = buildChestInterface {
         // Internal settings menu for shop, only to owners

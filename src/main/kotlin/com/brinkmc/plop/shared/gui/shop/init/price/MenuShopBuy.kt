@@ -7,6 +7,7 @@ import com.brinkmc.plop.shared.base.isDrop
 import com.brinkmc.plop.shop.shop.Shop
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
+import com.noxcrew.interfaces.interfaces.ChestInterfaceBuilder
 import com.noxcrew.interfaces.interfaces.buildChestInterface
 import com.noxcrew.interfaces.interfaces.buildCombinedInterface
 import com.noxcrew.interfaces.properties.interfaceProperty
@@ -44,7 +45,7 @@ class MenuShopBuy(override val plugin: Plop): Addon {
         return item
     }
 
-    private fun inventory(player: Player, inputShop: Shop) = buildCombinedInterface {
+    private fun inventory(player: Player, inputShop: Shop) = buildChestInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
         rows = 5
@@ -66,7 +67,7 @@ class MenuShopBuy(override val plugin: Plop): Addon {
         }
     }
 
-    private fun com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder.setupConfirmButton(
+    private fun ChestInterfaceBuilder.setupConfirmButton(
         shopProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Shop>,
         unitMultiplierProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Int>
     ) {
@@ -89,7 +90,7 @@ class MenuShopBuy(override val plugin: Plop): Addon {
         }
     }
 
-    private fun com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder.setupIncreaseButton(
+    private fun ChestInterfaceBuilder.setupIncreaseButton(
         shopProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Shop>,
         unitMultiplierProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Int>
     ) {
@@ -114,7 +115,7 @@ class MenuShopBuy(override val plugin: Plop): Addon {
         }
     }
 
-    private fun com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder.setupDecreaseButton(
+    private fun ChestInterfaceBuilder.setupDecreaseButton(
         shopProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Shop>,
         unitMultiplierProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Int>
     ) {
@@ -144,7 +145,7 @@ class MenuShopBuy(override val plugin: Plop): Addon {
         }
     }
 
-    private fun com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder.setupBackButton(
+    private fun ChestInterfaceBuilder.setupBackButton(
         shopProperty: com.noxcrew.interfaces.properties.InterfaceProperty<Shop>
     ) {
         withTransform(shopProperty) { pane, view ->

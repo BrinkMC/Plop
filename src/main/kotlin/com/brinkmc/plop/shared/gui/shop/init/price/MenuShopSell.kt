@@ -6,10 +6,7 @@ import com.brinkmc.plop.shared.base.isDrop
 import com.brinkmc.plop.shop.shop.Shop
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
-import com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder
-import com.noxcrew.interfaces.interfaces.Interface
-import com.noxcrew.interfaces.interfaces.buildChestInterface
-import com.noxcrew.interfaces.interfaces.buildCombinedInterface
+import com.noxcrew.interfaces.interfaces.*
 import com.noxcrew.interfaces.properties.InterfaceProperty
 import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.InterfaceView
@@ -65,7 +62,7 @@ class MenuShopSell(override val plugin: Plop): Addon {
         }
     }
 
-    private fun CombinedInterfaceBuilder.setupMoreButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
+    private fun ChestInterfaceBuilder.setupMoreButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
         // Increase
         var unitMultiplier by unitMultiplierProperty
         var shop by shopProperty
@@ -88,7 +85,7 @@ class MenuShopSell(override val plugin: Plop): Addon {
         }
     }
 
-    private fun CombinedInterfaceBuilder.setupLessButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
+    private fun ChestInterfaceBuilder.setupLessButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
         // Less button
         var unitMultiplier by unitMultiplierProperty
         var shop by shopProperty
@@ -115,7 +112,7 @@ class MenuShopSell(override val plugin: Plop): Addon {
         }
     }
 
-    private fun CombinedInterfaceBuilder.setupConfirmButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
+    private fun ChestInterfaceBuilder.setupConfirmButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
         // Confirm
         var shop by shopProperty
 
@@ -136,7 +133,7 @@ class MenuShopSell(override val plugin: Plop): Addon {
         }
     }
 
-    private fun CombinedInterfaceBuilder.setupBackButton(shopProperty: InterfaceProperty<Shop>) {
+    private fun ChestInterfaceBuilder.setupBackButton(shopProperty: InterfaceProperty<Shop>) {
         // Back button
         withTransform(shopProperty) { pane, view ->
             pane[4, 4] = StaticElement(drawable(

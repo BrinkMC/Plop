@@ -6,6 +6,7 @@ import com.brinkmc.plop.shared.base.isDrop
 import com.brinkmc.plop.shop.shop.Shop
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
+import com.noxcrew.interfaces.interfaces.ChestInterfaceBuilder
 import com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder
 import com.noxcrew.interfaces.interfaces.buildChestInterface
 import com.noxcrew.interfaces.interfaces.buildCombinedInterface
@@ -65,7 +66,7 @@ class MenuShopBuyLimit(override val plugin: Plop): Addon {
         }
     }
 
-    private fun CombinedInterfaceBuilder.setupConfirmButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
+    private fun ChestInterfaceBuilder.setupConfirmButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
         withTransform(shopProperty, unitMultiplierProperty) { pane, view ->
             val shop by shopProperty
 
@@ -85,7 +86,7 @@ class MenuShopBuyLimit(override val plugin: Plop): Addon {
         }
     }
 
-    private fun CombinedInterfaceBuilder.setupIncreaseButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
+    private fun ChestInterfaceBuilder.setupIncreaseButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
         withTransform(shopProperty, unitMultiplierProperty) { pane, view ->
             var shop by shopProperty
             var unitMultiplier by unitMultiplierProperty
@@ -107,7 +108,7 @@ class MenuShopBuyLimit(override val plugin: Plop): Addon {
         }
     }
 
-    private fun CombinedInterfaceBuilder.setupDecreaseButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
+    private fun ChestInterfaceBuilder.setupDecreaseButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
         withTransform(shopProperty, unitMultiplierProperty) { pane, view ->
             var shop by shopProperty
             var unitMultiplier by unitMultiplierProperty
@@ -134,7 +135,7 @@ class MenuShopBuyLimit(override val plugin: Plop): Addon {
         }
     }
 
-    private fun CombinedInterfaceBuilder.setupBackButton(shopProperty: InterfaceProperty<Shop>) {
+    private fun ChestInterfaceBuilder.setupBackButton(shopProperty: InterfaceProperty<Shop>) {
         withTransform(shopProperty) { pane, view ->
             pane[4, 4] = StaticElement(drawable(
                 getItem(BaseItems.BACK, "shop.back-stock.name", "shop.back-stock.desc")

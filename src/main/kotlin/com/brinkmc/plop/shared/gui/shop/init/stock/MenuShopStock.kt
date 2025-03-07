@@ -74,10 +74,12 @@ class MenuShopStock(override val plugin: Plop): Addon {
         }
     }
 
+
+    // Shop items
     private fun CombinedInterfaceBuilder.setupShopItemsDisplay(shopProperty: InterfaceProperty<Shop>) {
         withTransform(shopProperty) { pane, view ->
             val shop by shopProperty
-            var remainingQuantity = shop.quantity
+            var remainingQuantity = shop.quantity * shop.item.amount
 
             // Handle empty to begin with
             if (remainingQuantity == 0) {
@@ -127,6 +129,7 @@ class MenuShopStock(override val plugin: Plop): Addon {
         }
     }
 
+    // Player items
     private fun CombinedInterfaceBuilder.setupPlayerInventory(
         shopProperty: InterfaceProperty<Shop>
     ) {
@@ -150,6 +153,7 @@ class MenuShopStock(override val plugin: Plop): Addon {
                         if (item.isSimilar(shop.item)) {
                             // Update player inventory
                             inventoryClone[player]?.set(index, null)
+                            pane[row, col] = StaticElement(drawable(Material.AIR)) // Replace item with air
 
                             // Update shop quantity
                             shop.setQuantity(shop.quantity + (item.amount/shop.item.amount))

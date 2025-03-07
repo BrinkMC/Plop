@@ -28,6 +28,7 @@ class MenuShopItem(override val plugin: Plop): Addon {
     // Store player inventory clones to restore when menu closes
     val inventoryClone = mutableMapOf<Player, Array<ItemStack?>>()
 
+
     // Base items initialized only once
     private object BaseItems {
         val BACK = ItemStack(Material.REDSTONE)
@@ -49,7 +50,7 @@ class MenuShopItem(override val plugin: Plop): Addon {
         return item
     }
 
-    private fun inventory(player: Player, inputShop: Shop, clone: Array<ItemStack?>) = buildCombinedInterface {
+    private fun inventory(player: Player, inputShop: Shop) = buildCombinedInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
         rows = 5
@@ -58,7 +59,7 @@ class MenuShopItem(override val plugin: Plop): Addon {
 
         // Setup shared state
         val tempItemProperty = interfaceProperty(inputShop.item.clone())
-        val maxAmountProperty = interfaceProperty(inputShop.item.clone().amount)
+        val maxAmountProperty = interfaceProperty(inputShop.item.clone().maxStackSize)
 
         // Setup different sections of the interface
         setupCenterItem(tempItemProperty)
@@ -66,7 +67,7 @@ class MenuShopItem(override val plugin: Plop): Addon {
         setupLessButton(tempItemProperty)
         setupConfirmButton(shopProperty, tempItemProperty)
         setupBackButton()
-        setupPlayerInventory(clone, tempItemProperty, maxAmountProperty)
+        setupPlayerInventory(tempItemProperty, maxAmountProperty)
         setupCloseHandler(player)
     }
 
@@ -155,13 +156,15 @@ class MenuShopItem(override val plugin: Plop): Addon {
     }
 
     private fun CombinedInterfaceBuilder.setupPlayerInventory(
-        clone: Array<ItemStack?>,
         tempItemProperty: InterfaceProperty<ItemStack>,
         maxAmountProperty: InterfaceProperty<Int>
     ) {
         var tempItem by tempItemProperty
         var maxAmount by maxAmountProperty
+
+
         withTransform { pane, view ->
+            var clone = inventoryClone[view.player] ?: return@withTransform
             // Map inventory contents to the correct grid position
             for (index in clone.indices) {
                 val item = clone[index] ?: continue
@@ -199,7 +202,7 @@ class MenuShopItem(override val plugin: Plop): Addon {
         // Store the player's inventory to restore later
         inventoryClone[player] = player.inventory.contents.clone()
 
-        return inventory(player, shop, player.inventory.contents.clone()).open(player, parentView)
+        return inventory(player, shop).open(player, parentView)
     }
 
     internal fun returnInventory(player: Player) {

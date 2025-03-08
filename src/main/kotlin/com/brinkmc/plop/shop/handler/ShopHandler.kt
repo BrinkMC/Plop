@@ -53,7 +53,14 @@ class ShopHandler(override val plugin: Plop): Addon, State {
     }
 
     suspend fun deleteShop(shop: Shop) {
-        shopCache.deleteShop(shop)
+        val chest = shop.chest()
+        syncScope {
+            chest.persistentDataContainer.remove(key) // Set the chest data to shop data
+            chest.update()
+        }
+        asyncScope {
+            shopCache.deleteShop(shop)
+        }
     }
 
     fun emptyShop(plotId: UUID, plotType: PlotType): Shop {

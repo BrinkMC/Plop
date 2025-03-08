@@ -49,14 +49,14 @@ class MenuShopBuyLimit(override val plugin: Plop): Addon {
         prioritiseBlockInteractions = false
         rows = 5
 
-        val shopProperty = interfaceProperty(inputShop)
+        val shop = inputShop
         val unitMultiplierProperty = interfaceProperty(1)
 
         // Setup different sections of the interface
-        setupConfirmButton(shopProperty, unitMultiplierProperty)
-        setupIncreaseButton(shopProperty, unitMultiplierProperty)
-        setupDecreaseButton(shopProperty, unitMultiplierProperty)
-        setupBackButton(shopProperty)
+        setupConfirmButton(shop, unitMultiplierProperty)
+        setupIncreaseButton(shop, unitMultiplierProperty)
+        setupDecreaseButton(shop, unitMultiplierProperty)
+        setupBackButton(shop)
 
         // Close handler logic
         addCloseHandler { _, handler ->
@@ -67,17 +67,16 @@ class MenuShopBuyLimit(override val plugin: Plop): Addon {
         }
     }
 
-    private fun ChestInterfaceBuilder.setupConfirmButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
-        withTransform(shopProperty, unitMultiplierProperty) { pane, view ->
-            val shop by shopProperty
+    private fun ChestInterfaceBuilder.setupConfirmButton(shop: Shop, unitMultiplierProperty: InterfaceProperty<Int>) {
+        withTransform(unitMultiplierProperty) { pane, view ->
 
             pane[1, 4] = if (shop.buyLimit <= 0) {
                 StaticElement(drawable(
-                    getItem(BaseItems.BAD, "shop.bad-amount.name", "shop.bad-amount.desc")
+                    BaseItems.BAD.get("shop.bad-amount.name", "shop.bad-amount.desc")
                 ))
             } else {
                 StaticElement(drawable(
-                    getItem(BaseItems.CONFIRM, "shop.confirm-stock.name", "shop.confirm-stock.desc")
+                    BaseItems.CONFIRM.get("shop.confirm-stock.name", "shop.confirm-stock.desc")
                 )) { (player) ->
                     plugin.async {
                         view.close()
@@ -87,15 +86,14 @@ class MenuShopBuyLimit(override val plugin: Plop): Addon {
         }
     }
 
-    private fun ChestInterfaceBuilder.setupIncreaseButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
-        withTransform(shopProperty, unitMultiplierProperty) { pane, view ->
-            var shop by shopProperty
+    private fun ChestInterfaceBuilder.setupIncreaseButton(shop: Shop, unitMultiplierProperty: InterfaceProperty<Int>) {
+        withTransform(unitMultiplierProperty) { pane, view ->
             var unitMultiplier by unitMultiplierProperty
 
-            val multiplierPlaceholder = Placeholder.component("multiplier", Component.text(unitMultiplier))
+            val multiplierPlaceholder = arrayOf(Placeholder.component("multiplier", Component.text(unitMultiplier)))
 
             pane[1, 6] = StaticElement(drawable(
-                getItem(BaseItems.MORE, "shop.more-amount.name", "shop.more-amount.desc", multiplierPlaceholder)
+                BaseItems.MORE.get("shop.more-amount.name", "shop.more-amount.desc", args = multiplierPlaceholder)
             )) { (player, view, click) ->
                 plugin.async {
                     if (click.isDrop()) {
@@ -109,14 +107,13 @@ class MenuShopBuyLimit(override val plugin: Plop): Addon {
         }
     }
 
-    private fun ChestInterfaceBuilder.setupDecreaseButton(shopProperty: InterfaceProperty<Shop>, unitMultiplierProperty: InterfaceProperty<Int>) {
-        withTransform(shopProperty, unitMultiplierProperty) { pane, view ->
-            var shop by shopProperty
+    private fun ChestInterfaceBuilder.setupDecreaseButton(shop: Shop, unitMultiplierProperty: InterfaceProperty<Int>) {
+        withTransform(unitMultiplierProperty) { pane, view ->
             var unitMultiplier by unitMultiplierProperty
 
             pane[1, 2] = if (0 < shop.buyLimit) {
                 StaticElement(drawable(
-                    getItem(BaseItems.LESS, "shop.less-amount.name", "shop.less-amount.desc")
+                    BaseItems.LESS.get("shop.less-amount.name", "shop.less-amount.desc")
                 )) { (player, view, click) ->
                     plugin.async {
                         if (click.isDrop()) {
@@ -130,16 +127,16 @@ class MenuShopBuyLimit(override val plugin: Plop): Addon {
                 }
             } else {
                 StaticElement(drawable(
-                    getItem(BaseItems.BAD, "shop.bad-amount.toolittle.name", "shop.bad-amount.toolittle.desc")
+                    BaseItems.BAD.get("shop.bad-amount.toolittle.name", "shop.bad-amount.toolittle.desc")
                 ))
             }
         }
     }
 
-    private fun ChestInterfaceBuilder.setupBackButton(shopProperty: InterfaceProperty<Shop>) {
-        withTransform(shopProperty) { pane, view ->
+    private fun ChestInterfaceBuilder.setupBackButton(shop: Shop) {
+        withTransform { pane, view ->
             pane[4, 4] = StaticElement(drawable(
-                getItem(BaseItems.BACK, "shop.back-stock.name", "shop.back-stock.desc")
+                BaseItems.BACK.get("shop.back-stock.name", "shop.back-stock.desc")
             )) { (player) ->
                 plugin.async {
                     view.close()

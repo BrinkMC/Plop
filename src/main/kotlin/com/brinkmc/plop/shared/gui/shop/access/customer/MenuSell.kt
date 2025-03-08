@@ -2,6 +2,8 @@ package com.brinkmc.plop.shared.gui.shop.access.customer
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
+import com.brinkmc.plop.shared.base.isDrop
+import com.brinkmc.plop.shop.handler.ShopTransactionHandler
 import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.shop.ShopType
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
@@ -29,38 +31,40 @@ class MenuSell(override val plugin: Plop): Addon {
         val BAD = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
     }
 
-    // Helper function to get named and described items
-    private fun getItem(baseItem: ItemStack, nameKey: String? = null, descKey: String? = null, vararg args: TagResolver): ItemStack {
-        var item = baseItem.clone()
-        if (nameKey != null) {
-            item = item.name(nameKey, args = args)
-        }
-        if (descKey != null) {
-            item = item.description(descKey, args = args)
-        }
-        return item
-    }
-
     private fun inventory(player: Player, inputShop: Shop) = buildChestInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
         rows = 5
 
-        val shopProperty = interfaceProperty(inputShop)
-        val shop by shopProperty
+        val shop = inputShop
 
-        val amountProperty = interfaceProperty(0)
+        val amountProperty = interfaceProperty(1)
         var amount by amountProperty
 
-        // Setup different sections of the interface
-        setupConfirmButton(shopProperty, amountProperty)
-        setupIncreaseButton(shopProperty, amountProperty)
-        setupDecreaseButton(shopProperty, amountProperty)
-        setupBackButton(shopProperty)
+        val unitMultiplierProperty = interfaceProperty(1)
+        var unitMultiplier by unitMultiplierProperty
 
-        withTransform { pane, view ->
+        // Setup different sections of the interface
+        setupConfirmButton(shop, amountProperty)
+        setupIncreaseButton(shop, amountProperty, unitMultiplierProperty)
+        setupDecreaseButton(shop, amountProperty, unitMultiplierProperty)
+        setupBackButton(shop)
+
+        withTransform(amountProperty, unitMultiplierProperty) { pane, view ->
             // Shop items display
-            pane[1, 2] = StaticElement(drawable(shop.item))
+            val clone = shop.item.clone()
+            clone.amount = amount * shop.item.amount
+            pane[1, 2] = StaticElement(drawable(
+                clone
+            ))
+
+            // Placeholders
+            val amountPlaceholder = Placeholder.component("amount", Component.text(amount))
+
+            // Shop title
+            view.title(
+                lang.deserialise("shop.sell-player.title", shop = shop, args = arrayOf(amountPlaceholder))
+            )
         }
 
         // Close handler logic
@@ -73,42 +77,55 @@ class MenuSell(override val plugin: Plop): Addon {
     }
 
     private fun ChestInterfaceBuilder.setupConfirmButton(
-        shopProperty: InterfaceProperty<Shop>,
+        shop: Shop,
         amountProperty: InterfaceProperty<Int>
     ) {
-        withTransform(shopProperty, amountProperty) { pane, view ->
-            val shop by shopProperty
+        withTransform(amountProperty) { pane, view ->
             var amount by amountProperty
 
-            // Customer is BUYING from the shop
-            // Shop MUST have item, Client MUST have money being offered
+            // Customer is SELLING to the shop
+            // Shop MUST afford, Client MUST have item being offered
 
             // Amount means if it is 2, and the shop is selling in quantities of 16x, then the client is buying 32x total
-            pane[1, 6] = when {
-                amount <= 0 -> { // You aren't buying anything
+            pane[1, 6] = when(shops.transHandler.checkTransaction(view.player, shop, amount, ShopType.BUY)) {
+                ShopTransactionHandler.TransactionResult.FAILURE -> {
                     StaticElement(drawable(
-                        getItem(BaseItems.BAD, "shop.bad-amount.name", "shop.bad-amount.desc")
+                        BaseItems.BAD.get("shop.bad-amount.client-bad.name", "shop.bad-amount.client-bad.desc")
                     ))
                 }
-                amount * shop.sellPrice > economy.getBalance(view.player) -> {
+                ShopTransactionHandler.TransactionResult.PLAYER_INSUFFICIENT_STOCK -> {
                     StaticElement(drawable(
-                        getItem(BaseItems.BAD, "shop.bad-amount.client-bad.name", "shop.bad-amount.client-bad.desc")
+                        BaseItems.BAD.get("shop.bad-amount.client-bad.name", "shop.bad-amount.client-bad.desc")
                     ))
                 }
-                amount > shop.quantity/shop.item.amount -> {
+
+                ShopTransactionHandler.TransactionResult.SHOP_INSUFFICIENT_BALANCE -> {
                     StaticElement(drawable(
-                        getItem(BaseItems.BAD, "shop.bad-amount.shop-bad.name", "shop.bad-amount.shop-bad.desc")
+                        BaseItems.BAD.get("shop.bad-amount.shop-bad.name", "shop.bad-amount.shop-bad.desc")
                     ))
                 }
-                else -> {
+
+                ShopTransactionHandler.TransactionResult.BUY_LIMIT_REACHED -> {
                     StaticElement(drawable(
-                        getItem(BaseItems.CONFIRM, "shop.confirm-stock.name", "shop.confirm-stock.desc")
+                        BaseItems.BAD.get("shop.bad-amount.buy-limit.name", "shop.bad-amount.buy-limit.desc")
+                    ))
+                }
+
+                ShopTransactionHandler.TransactionResult.SUCCESS -> {
+                    StaticElement(drawable(
+                        BaseItems.CONFIRM.get("shop.confirm-stock.name", "shop.confirm-stock.desc")
                     )) { (player) ->
                         plugin.async {
-                            shop.doTransaction(player, amount, ShopType.SELL, economy)
+                            val result = shops.transHandler.playerSell(player, shop, amount)
+                            player.sendMiniMessage(result.toString())
                             view.close()
                         }
                     }
+                }
+                else -> {
+                    StaticElement(drawable(
+                        BaseItems.BAD.get("error", "error")
+                    ))
                 }
             }
         }
@@ -116,52 +133,62 @@ class MenuSell(override val plugin: Plop): Addon {
 
     // Increase the amount of items being bought
     private fun ChestInterfaceBuilder.setupIncreaseButton(
-        shopProperty: InterfaceProperty<Shop>,
-        amountProperty: InterfaceProperty<Int>
+        shop: Shop,
+        amountProperty: InterfaceProperty<Int>,
+        unitMultiplierProperty: InterfaceProperty<Int>
     ) {
-        withTransform(shopProperty, amountProperty) { pane, view ->
-            var shop by shopProperty
+        withTransform(amountProperty, unitMultiplierProperty) { pane, view ->
             var amount by amountProperty
+            var unitMultiplier by unitMultiplierProperty
 
-            val amountPlaceholder = Placeholder.component("amount", Component.text(amount))
+            val amountPlaceholder = arrayOf(Placeholder.component("amount", Component.text(amount)))
 
             pane[1, 3] = StaticElement(drawable(
-                getItem(BaseItems.MORE, "shop.more-amount.name", "shop.more-amount.desc", amountPlaceholder)
+                BaseItems.MORE.get("shop.more-amount.name", "shop.more-amount.desc", args = amountPlaceholder)
             )) { (player, view, click) ->
                 plugin.async {
-                    amount += 1
+                    if (click.isDrop()) {
+                        unitMultiplier = if (unitMultiplier != 10000) unitMultiplier * 10 else 1
+                        return@async
+                    }
+                    amount += unitMultiplier
                 }
             }
         }
     }
 
     private fun ChestInterfaceBuilder.setupDecreaseButton(
-        shopProperty: InterfaceProperty<Shop>,
-        amountProperty: InterfaceProperty<Int>
+        shop: Shop,
+        amountProperty: InterfaceProperty<Int>,
+        unitMultiplierProperty: InterfaceProperty<Int>
     ) {
-        withTransform(shopProperty, amountProperty) { pane, view ->
-            var shop by shopProperty
+        withTransform(amountProperty, unitMultiplierProperty) { pane, view ->
             var amount by amountProperty
+            var unitMultiplier by unitMultiplierProperty
 
-            val amountPlaceholder = Placeholder.component("amount", Component.text(amount))
+            val amountPlaceholder = arrayOf(Placeholder.component("amount", Component.text(amount)))
 
             pane[1, 1] = StaticElement(drawable(
-                getItem(BaseItems.LESS, "shop.less-amount.name", "shop.less-amount.desc", amountPlaceholder)
-            )) { (player, view, click) ->
+                BaseItems.LESS.get("shop.less-amount.name", "shop.less-amount.desc", args = amountPlaceholder)
+            )) { (_, _, click) ->
                 plugin.async {
-                    amount = maxOf(0, amount - 1)
+                    if (click.isDrop()) {
+                        unitMultiplier = if (unitMultiplier != 10000) unitMultiplier * 10 else 1
+                        return@async
+                    }
+                    maxOf(1, amount - unitMultiplier)
                 }
             }
         }
     }
 
     private fun ChestInterfaceBuilder.setupBackButton(
-        shopProperty: InterfaceProperty<Shop>
+        shop: Shop
     ) {
-        withTransform(shopProperty) { pane, view ->
+        withTransform { pane, view ->
             pane[4, 4] = StaticElement(drawable(
-                getItem(BaseItems.BACK, "shop.back-stock.name", "shop.back-stock.desc")
-            )) { (player) ->
+                BaseItems.BACK.get("shop.back-stock.name", "shop.back-stock.desc")
+            )) { (_) ->
                 plugin.async {
                     view.close()
                 }
@@ -170,6 +197,8 @@ class MenuSell(override val plugin: Plop): Addon {
     }
 
     suspend fun open(player: Player, shop: Shop, parentView: InterfaceView? = null): InterfaceView {
-        return inventory(player, shop).open(player, parentView)
+        val view = inventory(player, shop).open(player, parentView)
+        view.redrawComplete()
+        return view
     }
 }

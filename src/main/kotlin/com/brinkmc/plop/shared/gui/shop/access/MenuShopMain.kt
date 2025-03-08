@@ -85,6 +85,11 @@ class MenuShopMain(override val plugin: Plop): Addon {
     }
 
     suspend fun open(player: Player, shop: Shop) {
+        if (!shop.open && !shop.owner.isPlayer(player)) {
+            player.sendMiniMessage("shop.not-open")
+            return
+        }
+
         inventory(player, shop).open(player)
     }
 }

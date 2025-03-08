@@ -159,15 +159,6 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
     private suspend fun viewShop(event: PlayerInteractEvent, shop: Shop) {
         // Get the player
         val player = event.player
-
-        // Open the shop customer menu
-        if (!shop.open) {
-            player.sendMiniMessage("shop.closed")
-            return
-        }
-
-
-        player.sendMiniMessage("shop.client.open")
         plugin.menus.shopMainMenu.open(player, shop)
     }
 }

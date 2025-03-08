@@ -66,7 +66,7 @@ class ShopDisplay(override val plugin: Plop): Addon, State {
     private suspend fun render(player: Player, plot: Plot) {
         // Find closest shop to player
         val closestShop = plot.getShops()
-            .minByOrNull { it.location.distanceSquared(player.location) } ?: return
+            .minByOrNull { it.location.clone().add(0.5, 0.0, 0.5).distanceSquared(player.location) } ?: return
 
         val shopLoc = closestShop.location.clone()
         val isWithinViewDistance = shopLoc.distanceSquared(player.location) < shopConfig.viewDistance

@@ -38,24 +38,12 @@ class MenuShopItem(override val plugin: Plop): Addon {
         val BAD = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
     }
 
-    // Helper function to get named and described items
-    private fun getItem(baseItem: ItemStack, nameKey: String? = null, descKey: String? = null, vararg args: TagResolver): ItemStack {
-        var item = baseItem.clone()
-        if (nameKey != null) {
-            item = item.name(nameKey, args = args)
-        }
-        if (descKey != null) {
-            item = item.description(descKey, args = args)
-        }
-        return item
-    }
-
     private fun inventory(player: Player, inputShop: Shop) = buildCombinedInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
         rows = 5
 
-        val shopProperty = interfaceProperty(inputShop)
+        val shop = inputShop
 
         // Setup shared state
         val tempItemProperty = interfaceProperty(inputShop.item.clone())
@@ -65,7 +53,7 @@ class MenuShopItem(override val plugin: Plop): Addon {
         setupCenterItem(tempItemProperty)
         setupMoreButton(tempItemProperty, maxAmountProperty)
         setupLessButton(tempItemProperty)
-        setupConfirmButton(shopProperty, tempItemProperty)
+        setupConfirmButton(shop, tempItemProperty)
         setupBackButton()
         setupPlayerInventory(tempItemProperty, maxAmountProperty)
         setupCloseHandler(player)
@@ -87,7 +75,7 @@ class MenuShopItem(override val plugin: Plop): Addon {
         withTransform(tempItemProperty, maxAmountProperty) { pane, view ->
             pane[2, 6] = if (tempItem.amount < maxAmount) {
                 StaticElement(drawable(
-                    getItem(BaseItems.MORE, "shop.more-amount.name", "shop.more-amount.desc")
+                    BaseItems.MORE.get("shop.more-amount.name", "shop.more-amount.desc")
                 )) { (player) -> plugin.async {
                     val updatedItem = tempItem.clone()
                     updatedItem.amount += 1
@@ -96,7 +84,7 @@ class MenuShopItem(override val plugin: Plop): Addon {
                 }}
             } else {
                 StaticElement(drawable(
-                    getItem(BaseItems.BAD, "shop.bad-amount.toomuch.name", "shop.bad-amount.toomuch.desc")
+                    BaseItems.BAD.get("shop.bad-amount.toomuch.name", "shop.bad-amount.toomuch.desc")
                 ))
             }
         }
@@ -107,7 +95,7 @@ class MenuShopItem(override val plugin: Plop): Addon {
         withTransform(tempItemProperty) { pane, view ->
             pane[2, 2] = if (0 < tempItem.amount) {
                 StaticElement(drawable(
-                    getItem(BaseItems.LESS, "shop.less-amount.name", "shop.less-amount.desc")
+                    BaseItems.LESS.get("shop.less-amount.name", "shop.less-amount.desc")
                 )) { (player) -> plugin.async {
                     val updatedItem = tempItem.clone()
                     updatedItem.amount -= 1
@@ -116,27 +104,26 @@ class MenuShopItem(override val plugin: Plop): Addon {
                 }}
             } else {
                 StaticElement(drawable(
-                    getItem(BaseItems.BAD, "shop.bad-amount.toolittle.name", "shop.bad-amount.toolittle.desc")
+                    BaseItems.BAD.get("shop.bad-amount.toolittle.name", "shop.bad-amount.toolittle.desc")
                 ))
             }
         }
     }
 
     private fun CombinedInterfaceBuilder.setupConfirmButton(
-        shopProperty: InterfaceProperty<Shop>,
+        shop: Shop,
         tempItemProperty: InterfaceProperty<ItemStack>
     ) {
         withTransform(tempItemProperty) { pane, view ->
             val tempItem by tempItemProperty
-            var shop by shopProperty
 
             pane[2, 8] = if (tempItem.type == Material.AIR) {
                 StaticElement(drawable(
-                    getItem(BaseItems.BAD, "shop.bad-amount.noitem.name", "shop.bad-amount.noitem.desc")
+                    BaseItems.BAD.get("shop.bad-amount.noitem.name", "shop.bad-amount.noitem.desc")
                 ))
             } else {
                 StaticElement(drawable(
-                    getItem(BaseItems.CONFIRM, "shop.confirm-stock.name", "shop.confirm-stock.desc")
+                    BaseItems.CONFIRM.get("shop.confirm-stock.name", "shop.confirm-stock.desc")
                 )) { (player) -> plugin.async {
                     shop.setItem(tempItem.clone())
                     view.close()
@@ -148,7 +135,7 @@ class MenuShopItem(override val plugin: Plop): Addon {
     private fun CombinedInterfaceBuilder.setupBackButton() {
         withTransform { pane, view ->
             pane[2, 0] = StaticElement(drawable(
-                getItem(BaseItems.BACK, "shop.back-stock.name", "shop.back-stock.desc")
+                BaseItems.BACK.get("shop.back-stock.name", "shop.back-stock.desc")
             )) { (player) -> plugin.async {
                 view.close()
             }}

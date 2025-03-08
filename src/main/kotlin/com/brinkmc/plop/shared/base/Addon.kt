@@ -221,7 +221,7 @@ internal interface Addon {
     }
 
     suspend fun List<Location>.getClosest(location: Location): Location? {
-        return this.minByOrNull { it.distanceSquared(location) }
+        return this.minByOrNull { it.clone().add(0.5, 0.0, 0.5).distanceSquared(location) }
     }
 
     // Provide an easy way to get formatted MiniMessage messages with custom tags also replaced properly
@@ -232,6 +232,10 @@ internal interface Addon {
     }
 
     // GUI Extensions
+
+    fun ItemStack.get(name: String, description: String, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): ItemStack {
+        return this.name(name, player, shop, plot, *args).description(description, player, shop, plot, *args)
+    }
 
     fun ItemStack.name(name: String, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): ItemStack {
         itemMeta = itemMeta.also { meta ->

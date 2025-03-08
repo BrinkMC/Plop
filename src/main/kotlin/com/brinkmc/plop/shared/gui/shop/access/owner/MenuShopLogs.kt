@@ -14,6 +14,7 @@ import com.noxcrew.interfaces.view.ChestInterfaceView
 import com.noxcrew.interfaces.view.InterfaceView
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Chest
@@ -22,12 +23,11 @@ import org.bukkit.inventory.ItemStack
 
 class MenuShopLogs(override val plugin: Plop): Addon {
 
-    val LOG: ItemStack
-        get() = ItemStack(Material.PAPER)
 
-    val BACK: ItemStack
-        get() = ItemStack(Material.REDSTONE)
-            .name("menu.back")
+    object BaseItems {
+        val LOG = ItemStack(Material.PAPER)
+        val BACK = ItemStack(Material.REDSTONE)
+    }
 
     private fun inventory(player: Player, inputShop: Shop): ChestInterface = buildChestInterface {
         onlyCancelItemInteraction = false
@@ -48,8 +48,7 @@ class MenuShopLogs(override val plugin: Plop): Addon {
                         )
 
                         pane[i, j] = StaticElement(drawable(
-                            LOG.name("shop.log.name")
-                                .description("shop.log.desc", args = placeholders)
+                            BaseItems.LOG.get("shop.log.name", "shop.log.desc", args = placeholders)
                         ))
                     }
                 }
@@ -58,11 +57,18 @@ class MenuShopLogs(override val plugin: Plop): Addon {
 
         withTransform { pane, view ->
             pane[4, 4] = StaticElement(drawable(
-                BACK
+                BaseItems.BACK.get("shop.back.name", "shop.back.desc")
             )) { (player) ->
                 plugin.async {
                     view.close()
                 }
+            }
+        }
+
+        addCloseHandler { _, handler ->
+            if (handler.parent() != null) {
+                handler.parent()?.open()
+                handler.parent()?.redrawComplete()
             }
         }
     }

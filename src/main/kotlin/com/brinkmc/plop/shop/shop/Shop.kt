@@ -123,24 +123,7 @@ data class Shop(
         _buyLimit = -1
     }
 
-    suspend fun doTransaction(player: Player, amount: Int, type: ShopType, economy: Economy) = mutex.withLock {
-        when (type) {
-            ShopType.BUY -> {
-                setQuantity(quantity - amount*item.amount)
-                setBuyLimit(buyLimit - amount)
-                owner.depositBalance(economy, (amount * buyPrice).toDouble())
-                economy.withdraw(player, (amount * buyPrice).toDouble())
-            }
-            ShopType.SELL -> {
-                setQuantity(quantity + amount*item.amount)
-                owner.withdrawBalance(economy, (amount * sellPrice).toDouble())
-                economy.deposit(player, (amount * sellPrice).toDouble())
-            }
-        }
-        addTransaction(player.uniqueId, amount, type)
-    }
-
-    private suspend fun addTransaction(playerId: UUID, amount: Int, type: ShopType) = mutex.withLock {
+    suspend fun addTransaction(playerId: UUID, amount: Int, type: ShopType) = mutex.withLock {
         _transaction.add(ShopTransaction(playerId, amount, type, Timestamp(System.currentTimeMillis())))
     }
 

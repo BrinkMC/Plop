@@ -25,30 +25,17 @@ class MenuShopStock(override val plugin: Plop): Addon {
         val NEED_RESTOCK = ItemStack(Material.REDSTONE_BLOCK)
     }
 
-    // Helper function to get named and described items
-    private fun getItem(baseItem: ItemStack, nameKey: String? = null, descKey: String? = null, vararg args: TagResolver): ItemStack {
-        var item = baseItem.clone()
-        if (nameKey != null) {
-            item = item.name(nameKey, args = args)
-        }
-        if (descKey != null) {
-            item = item.description(descKey, args = args)
-        }
-        return item
-    }
-
     private fun inventory(player: Player, inputShop: Shop) = buildCombinedInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false
         rows = 5
 
-        val shopProperty = interfaceProperty(inputShop)
-        var shop by shopProperty
+        var shop = inputShop
 
         // Setup different sections of the interface
-        setupBackButton(shopProperty)
-        setupShopItemsDisplay(shopProperty)
-        setupPlayerInventory(shopProperty)
+        setupBackButton(shop)
+        setupShopItemsDisplay(shop)
+        setupPlayerInventory(shop)
 
         // Close handler logic
         addCloseHandler { _, handler ->
@@ -63,10 +50,10 @@ class MenuShopStock(override val plugin: Plop): Addon {
         }
     }
 
-    private fun CombinedInterfaceBuilder.setupBackButton(shopProperty: InterfaceProperty<Shop>) {
-        withTransform(shopProperty) { pane, view ->
+    private fun CombinedInterfaceBuilder.setupBackButton(shop: Shop) {
+        withTransform { pane, view ->
             pane[4, 4] = StaticElement(drawable(
-                getItem(BaseItems.BACK, "menu.back")
+                BaseItems.BACK.get("menu.back.name", "menu.back.desc")
             )) { (player) ->
                 plugin.async {
                     view.close()
@@ -77,15 +64,14 @@ class MenuShopStock(override val plugin: Plop): Addon {
 
 
     // Shop items
-    private fun CombinedInterfaceBuilder.setupShopItemsDisplay(shopProperty: InterfaceProperty<Shop>) {
-        withTransform(shopProperty) { pane, view ->
-            val shop by shopProperty
+    private fun CombinedInterfaceBuilder.setupShopItemsDisplay(shop: Shop) {
+        withTransform { pane, view ->
             var remainingQuantity = shop.quantity
 
             // Handle empty to begin with
             if (remainingQuantity == 0) {
                 pane[2, 4] = StaticElement(drawable(
-                    getItem(BaseItems.NEED_RESTOCK, "shop.need-restock")
+                    BaseItems.NEED_RESTOCK.get("shop.need-restock.name", "shop.need-restock.desc")
                 ))
                 return@withTransform
             }
@@ -132,10 +118,9 @@ class MenuShopStock(override val plugin: Plop): Addon {
 
     // Player items
     private fun CombinedInterfaceBuilder.setupPlayerInventory(
-        shopProperty: InterfaceProperty<Shop>
+        shop: Shop
     ) {
-        withTransform(shopProperty) { pane, view ->
-            val shop by shopProperty
+        withTransform { pane, view ->
             val clone = inventoryClone[view.player] ?: return@withTransform
 
             // Map inventory contents to the grid

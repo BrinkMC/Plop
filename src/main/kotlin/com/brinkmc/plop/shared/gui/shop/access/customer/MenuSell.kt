@@ -22,15 +22,6 @@ import org.bukkit.inventory.ItemStack
 
 class MenuSell(override val plugin: Plop): Addon {
 
-    // Base items initialized only once
-    private object BaseItems {
-        val CONFIRM = ItemStack(Material.EMERALD)
-        val MORE = ItemStack(Material.GOLD_INGOT)
-        val LESS = ItemStack(Material.GOLD_NUGGET)
-        val BACK = ItemStack(Material.REDSTONE)
-        val BAD = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
-    }
-
     private fun inventory(player: Player, inputShop: Shop) = buildChestInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false

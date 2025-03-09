@@ -19,12 +19,6 @@ class MenuShopStock(override val plugin: Plop): Addon {
 
     val inventoryClone = mutableMapOf<Player, Array<ItemStack?>>()
 
-    // Base items initialized only once
-    private object BaseItems {
-        val BACK = ItemStack(Material.REDSTONE)
-        val NEED_RESTOCK = ItemStack(Material.REDSTONE_BLOCK)
-    }
-
     private fun inventory(player: Player, inputShop: Shop) = buildCombinedInterface {
         onlyCancelItemInteraction = false
         prioritiseBlockInteractions = false

@@ -2,8 +2,10 @@ package com.brinkmc.plop.shared.gui.shop.access.customer
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.base.isDrop
-import com.brinkmc.plop.shop.handler.ShopTransactionHandler
+import com.brinkmc.plop.shared.util.TransactionResult
+import com.brinkmc.plop.shared.util.message.ItemKey
+import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shared.util.message.SoundKey
 import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.shop.ShopType
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
@@ -29,15 +31,6 @@ import kotlin.text.set
 import kotlin.times
 
 class MenuBuy(override val plugin: Plop): Addon {
-
-    // Base items initialized only once
-    private object BaseItems {
-        val CONFIRM = ItemStack(Material.EMERALD)
-        val MORE = ItemStack(Material.GOLD_INGOT)
-        val LESS = ItemStack(Material.GOLD_NUGGET)
-        val BACK = ItemStack(Material.REDSTONE)
-        val BAD = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
-    }
 
     private fun inventory(player: Player, inputShop: Shop) = buildChestInterface {
         onlyCancelItemInteraction = false
@@ -71,7 +64,7 @@ class MenuBuy(override val plugin: Plop): Addon {
 
             // Shop title
             view.title(
-                lang.deserialise("shop.buy-player.title", shop = shop, args = arrayOf(amountPlaceholder))
+                lang.deserialise(MessageKey.BUY_MENU_TITLE, shop = shop, args = arrayOf(amountPlaceholder))
             )
         }
 
@@ -96,45 +89,70 @@ class MenuBuy(override val plugin: Plop): Addon {
 
             // Amount means if it is 2, and the shop is selling in quantities of 16x, then the client is buying 32x total
             pane[1, 6] = when(shops.transHandler.checkTransaction(view.player, shop, amount, ShopType.SELL)) {
-                ShopTransactionHandler.TransactionResult.FAILURE -> {
+                TransactionResult.FAILURE -> {
                     StaticElement(drawable(
-                        BaseItems.BAD.get("shop.bad-amount.name", "shop.bad-amount.desc")
+                        ItemKey.BAD.get(MessageKey.MENU_ZERO_AMOUNT_NAME, MessageKey.MENU_ZERO_AMOUNT_DESC)
                     ))
                 }
-                ShopTransactionHandler.TransactionResult.PLAYER_INSUFFICIENT_BALANCE -> {
+                TransactionResult.PLAYER_INSUFFICIENT_BALANCE -> {
                     StaticElement(drawable(
-                        BaseItems.BAD.get("shop.bad-amount.client-bad.name", "shop.bad-amount.client-bad.desc")
-                    ))
-                }
-
-                ShopTransactionHandler.TransactionResult.SHOP_INSUFFICIENT_STOCK -> {
-                    StaticElement(drawable(
-                        BaseItems.BAD.get("shop.bad-amount.shop-bad.name", "shop.bad-amount.shop-bad.desc")
+                        ItemKey.BAD.get(MessageKey.MENU_PLAYER_INSUFFICIENT_BALANCE_NAME, MessageKey.MENU_PLAYER_INSUFFICIENT_BALANCE_DESC)
                     ))
                 }
 
-                ShopTransactionHandler.TransactionResult.BUY_LIMIT_REACHED -> {
+                TransactionResult.SHOP_INSUFFICIENT_STOCK -> {
                     StaticElement(drawable(
-                        BaseItems.BAD.get("shop.bad-amount.buy-limit.name", "shop.bad-amount.buy-limit.desc")
+                        ItemKey.BAD.get(MessageKey.MENU_SHOP_INSUFFICIENT_STOCK_NAME, MessageKey.MENU_SHOP_INSUFFICIENT_STOCK_DESC)
                     ))
                 }
-                ShopTransactionHandler.TransactionResult.SUCCESS -> {
+
+                TransactionResult.BUY_LIMIT_REACHED -> {
                     StaticElement(drawable(
-                        BaseItems.CONFIRM.get("shop.confirm-stock.name", "shop.confirm-stock.desc")
+                        ItemKey.BAD.get(MessageKey.MENU_BUY_LIMIT_REACHED_NAME, MessageKey.MENU_BUY_LIMIT_REACHED_DESC)
+                    ))
+                }
+                TransactionResult.SUCCESS -> {
+                    StaticElement(drawable(
+                        ItemKey.GOOD.get(MessageKey.MENU_CONFIRM_BUY_NAME, MessageKey.MENU_CONFIRM_BUY_DESC)
                     )) { (player) ->
                         plugin.async {
                             val result = shops.transHandler.playerPurchase(player, shop, amount)
-                            player.sendMiniMessage(result.toString())
-                            view.close()
+                            purchaseResult(player, shop, view, result)
                         }
                     }
                 }
                 else -> {
                     StaticElement(drawable(
-                        BaseItems.BAD.get("error", "error")
+                        ItemKey.BAD.get(MessageKey.MENU_ERROR_NAME, MessageKey.MENU_ERROR_DESC)
                     ))
                 }
             }
+        }
+    }
+
+    suspend fun purchaseResult(player: Player, shop: Shop, view: InterfaceView, transactionResult: TransactionResult) {
+        when (transactionResult) {
+            TransactionResult.PLAYER_INSUFFICIENT_BALANCE -> {
+                player.sendMiniMessage(MessageKey.PLAYER_INSUFFICIENT_BALANCE)
+                player.sendSound(SoundKey.FAILURE)
+                view.redrawComplete()
+            }
+            TransactionResult.SHOP_INSUFFICIENT_STOCK -> {
+                player.sendMiniMessage(MessageKey.PLAYER_INSUFFICIENT_STOCK)
+                player.sendSound(SoundKey.FAILURE)
+                view.redrawComplete()
+            }
+            TransactionResult.BUY_LIMIT_REACHED -> {
+                player.sendMiniMessage(MessageKey.SHOP_BUY_LIMIT_REACHED)
+                player.sendSound(SoundKey.FAILURE)
+                view.redrawComplete()
+            }
+            TransactionResult.SUCCESS -> {
+                player.sendMiniMessage(MessageKey.SHOP_PURCHASE_SUCCESSFUL)
+                player.sendSound(SoundKey.BUY)
+                view.close()
+            }
+            else -> { }
         }
     }
 
@@ -148,10 +166,12 @@ class MenuBuy(override val plugin: Plop): Addon {
             var amount by amountProperty
             var unitMultiplier by unitMultiplierProperty
 
-            val amountPlaceholder = arrayOf(Placeholder.component("amount", Component.text(amount)))
+            val amountPlaceholder = arrayOf(
+                Placeholder.component("amount", Component.text(amount))
+            )
 
             pane[1, 3] = StaticElement(drawable(
-                BaseItems.MORE.get("shop.more-amount.name", "shop.more-amount.desc", args = amountPlaceholder)
+                ItemKey.MORE.get(MessageKey.MENU_MORE_NAME, MessageKey.MENU_MORE_DESC, args = amountPlaceholder)
             )) { (_, _, click) ->
                 plugin.async {
                     if (click.isDrop()) {
@@ -159,6 +179,7 @@ class MenuBuy(override val plugin: Plop): Addon {
                         return@async
                     }
                     amount += unitMultiplier
+                    view.player.sendSound(SoundKey.CLICK)
                 }
             }
         }
@@ -173,10 +194,12 @@ class MenuBuy(override val plugin: Plop): Addon {
             var amount by amountProperty
             var unitMultiplier by unitMultiplierProperty
 
-            val amountPlaceholder = arrayOf(Placeholder.component("amount", Component.text(amount)))
+            val amountPlaceholder = arrayOf( // Placeholder for the amount of items being bought
+                Placeholder.component("amount", Component.text(amount))
+            )
 
             pane[1, 1] = StaticElement(drawable(
-                BaseItems.LESS.get("shop.less-amount.name", "shop.less-amount.desc", args = amountPlaceholder)
+                ItemKey.LESS.get(MessageKey.MENU_LESS_NAME, MessageKey.MENU_LESS_DESC, args = amountPlaceholder)
             )) { (_, _, click) ->
                 plugin.async {
                     if (click.isDrop()) {
@@ -184,6 +207,7 @@ class MenuBuy(override val plugin: Plop): Addon {
                         return@async
                     }
                     amount = maxOf(1, amount - unitMultiplier)
+                    view.player.sendSound(SoundKey.CLICK)
                 }
             }
         }

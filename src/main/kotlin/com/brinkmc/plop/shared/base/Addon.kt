@@ -15,6 +15,7 @@ import com.brinkmc.plop.shared.config.configs.*
 import com.brinkmc.plop.shared.hooks.Economy
 import com.brinkmc.plop.shared.hooks.Locals.world
 import com.brinkmc.plop.shared.storage.HikariManager
+import com.brinkmc.plop.shared.util.message.ItemKey
 import com.brinkmc.plop.shared.util.message.MessageKey
 import com.brinkmc.plop.shared.util.message.MessageService
 import com.brinkmc.plop.shared.util.message.SoundKey
@@ -51,6 +52,7 @@ import org.slf4j.Logger
 import java.util.UUID
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 internal interface Addon {
 
@@ -270,6 +272,10 @@ internal interface Addon {
 
     // GUI Extensions
 
+    fun ItemKey.get(name: MessageKey, description: MessageKey, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): ItemStack {
+        return this.item.name(name, player, shop, plot, *args).description(description, player, shop, plot, *args)
+    }
+
     fun ItemStack.get(name: MessageKey, description: MessageKey, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): ItemStack {
         return this.name(name, player, shop, plot, *args).description(description, player, shop, plot, *args)
     }
@@ -346,7 +352,7 @@ internal interface Addon {
 
             player.sendSound(SoundKey.CLICK)
             onTick?.invoke(secondsLeft)
-            delay(1000)
+            delay(1.seconds)
         }
 
         return MessageKey.TELEPORT_COMPLETE

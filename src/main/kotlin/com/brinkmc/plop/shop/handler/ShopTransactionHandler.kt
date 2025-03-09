@@ -3,6 +3,7 @@ package com.brinkmc.plop.shop.handler
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shared.util.TransactionResult
 import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.shop.ShopType
 import com.brinkmc.plop.shop.storage.ShopCache
@@ -22,16 +23,6 @@ class ShopTransactionHandler(override val plugin: Plop): Addon, State {
 
     override suspend fun kill() {
         TODO("Not yet implemented")
-    }
-
-    enum class TransactionResult {
-        SUCCESS,
-        PLAYER_INSUFFICIENT_STOCK,
-        PLAYER_INSUFFICIENT_BALANCE,
-        SHOP_INSUFFICIENT_STOCK,
-        SHOP_INSUFFICIENT_BALANCE,
-        BUY_LIMIT_REACHED,
-        FAILURE
     }
 
     // Amount as in amount of bundles being purchased

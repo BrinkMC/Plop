@@ -9,12 +9,15 @@ import com.brinkmc.plop.plot.plot.modifier.PlotFactory
 import com.brinkmc.plop.plot.plot.modifier.PlotShop
 import com.brinkmc.plop.plot.plot.modifier.PlotSize
 import com.brinkmc.plop.plot.plot.modifier.PlotTotem
+import com.brinkmc.plop.plot.plot.modifier.PlotVisit
 import com.brinkmc.plop.shared.config.ConfigReader
 import com.brinkmc.plop.shared.config.configs.*
 import com.brinkmc.plop.shared.hooks.Economy
 import com.brinkmc.plop.shared.hooks.Locals.world
 import com.brinkmc.plop.shared.storage.HikariManager
+import com.brinkmc.plop.shared.util.message.MessageKey
 import com.brinkmc.plop.shared.util.message.MessageService
+import com.brinkmc.plop.shared.util.message.SoundKey
 import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.Shops
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
@@ -26,12 +29,15 @@ import io.lumine.mythic.api.adapters.AbstractLocation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.glaremasters.guilds.guild.Guild
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import net.kyori.adventure.title.Title
 import org.apache.http.util.Args
 import org.bukkit.*
 import org.bukkit.block.Chest
@@ -44,6 +50,7 @@ import org.bukkit.persistence.PersistentDataType
 import org.slf4j.Logger
 import java.util.UUID
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.roundToInt
 
 internal interface Addon {
 
@@ -122,6 +129,20 @@ internal interface Addon {
 
     val PlotTotem.max: Int
         get() = plots.totemHandler.getMaximumTotemLimit(this.plotType)
+
+    // PlotShopHandler extensions
+    val PlotShop.limit: Int
+        get() = plots.shopHandler.getCurrentShopLimit(this.plotType, this.level)
+
+    val PlotShop.max: Int
+        get() = plots.shopHandler.getMaximumShopLimit(this.plotType)
+
+    // PlotVisitHandler extensions
+    val PlotVisit.limit: Int
+        get() = plots.visitorHandler.getCurrentVisitorLimit(this.plotType, this.level)
+
+    val PlotVisit.max: Int
+        get() = plots.visitorHandler.getMaximumVisitorLimit(this.plotType)
 
     // Extension functions for Bukkit
     suspend fun Player.personalPlot(): Plot? {
@@ -226,25 +247,41 @@ internal interface Addon {
 
     // Provide an easy way to get formatted MiniMessage messages with custom tags also replaced properly
 
-    fun Player.sendMiniMessage(message: String, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver) {
+    fun Player.sendMiniMessage(message: MessageKey, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver) {
         val component = lang.deserialise(message, player = this, shop = shop, plot = plot, args = args)
         sendMessage(component)
     }
 
+    fun Player.sendMiniTitle(titleMessage: MessageKey, subTitleMessage: MessageKey, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver) {
+        val componentOne = lang.deserialise(titleMessage, player = this, shop = shop, plot = plot, args = args)
+        val componentTwo = lang.deserialise(subTitleMessage, player = this, shop = shop, plot = plot, args = args)
+
+        showTitle(Title.title(componentOne, componentTwo))
+    }
+
+    fun Player.sendMiniActionBar(message: MessageKey, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver) {
+        val component = lang.deserialise(message, player = this, shop = shop, plot = plot, args = args)
+        sendActionBar(component)
+    }
+
+    fun Player.sendSound(sound: SoundKey, volume: Float = 1.0f, pitch: Float = 1.0f) {
+        playSound(location, sound.sound, volume, pitch)
+    }
+
     // GUI Extensions
 
-    fun ItemStack.get(name: String, description: String, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): ItemStack {
+    fun ItemStack.get(name: MessageKey, description: MessageKey, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): ItemStack {
         return this.name(name, player, shop, plot, *args).description(description, player, shop, plot, *args)
     }
 
-    fun ItemStack.name(name: String, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): ItemStack {
+    fun ItemStack.name(name: MessageKey, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): ItemStack {
         itemMeta = itemMeta.also { meta ->
             meta.displayName(lang.deserialise(name, player = player, shop = shop, plot = plot, args = args))
         }
         return this
     }
 
-    fun ItemStack.description(description: String, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): ItemStack {
+    fun ItemStack.description(description: MessageKey, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): ItemStack {
         itemMeta = itemMeta.also { meta ->
             meta.lore(listOf(lang.deserialise(description, player = player, shop = shop, plot = plot, args = args)))
         }
@@ -285,8 +322,39 @@ internal interface Addon {
         return contents.filterNotNull().filter { it.isSimilar(item) }.sumOf{ it.amount }.div(item.amount)
     }
 
+    // UI satisfaction extensions
+
+    suspend fun performTeleportCountdown( // Takes seconds and extra action to perform on each tick
+        player: Player,
+        seconds: Int = 5,
+        onTick: ((secondsLeft: Int) -> Unit)? = null
+    ): MessageKey {
+        val previousLoc = player.location.clone()
+
+        for (i in 0 until seconds) {
+            val secondsLeft = seconds - i
+            val timeLeftPlaceholder = arrayOf(Placeholder.component("timeLeft", Component.text(secondsLeft)))
+
+            player.sendMiniMessage(MessageKey.TELEPORT_IN_PROGRESS, args = timeLeftPlaceholder)
+
+            // Check if player moved
+            if (player.location.x.roundToInt() != previousLoc.x.roundToInt() ||
+                player.location.y.roundToInt() != previousLoc.y.roundToInt() ||
+                player.location.z.roundToInt() != previousLoc.z.roundToInt()) {
+                return MessageKey.TELEPORT_INTERRUPTED
+            }
+
+            player.sendSound(SoundKey.CLICK)
+            onTick?.invoke(secondsLeft)
+            delay(1000)
+        }
+
+        return MessageKey.TELEPORT_COMPLETE
+    }
+
+    fun ClickType.isDrop(): Boolean {
+        return this == ClickType.DROP || this == ClickType.CONTROL_DROP
+    }
 }
 
-fun ClickType.isDrop(): Boolean {
-    return this == ClickType.DROP || this == ClickType.CONTROL_DROP
-}
+

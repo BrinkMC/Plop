@@ -48,6 +48,7 @@ import com.brinkmc.plop.shared.hooks.listener.NexusListener
 import com.brinkmc.plop.shared.hooks.PlayerTracker
 import com.brinkmc.plop.shared.hooks.listener.ShopListener
 import com.brinkmc.plop.shared.hooks.listener.TotemListener
+import com.brinkmc.plop.shared.hooks.listener.VisitListener
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.LocationUtils
 import com.brinkmc.plop.shared.util.message.MessageService
@@ -95,6 +96,7 @@ class Plop : State, SuspendingJavaPlugin() {
     private lateinit var previewListener: PreviewListener
     private lateinit var shopListener: ShopListener
     private lateinit var totemListener: TotemListener
+    private lateinit var visitListener: VisitListener
 
     override suspend fun onLoadAsync() {
         com.github.retrooper.packetevents.PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
@@ -185,6 +187,7 @@ class Plop : State, SuspendingJavaPlugin() {
         previewListener = PreviewListener(plugin)
         shopListener = ShopListener(plugin)
         totemListener = TotemListener(plugin)
+        visitListener = VisitListener(plugin)
 
         // Listeners
         listOf(
@@ -195,7 +198,8 @@ class Plop : State, SuspendingJavaPlugin() {
             playerTracker,
             previewListener,
             shopListener,
-            totemListener
+            totemListener,
+            visitListener
         ).forEach { listener ->
             listener.load()
             server.pluginManager.registerSuspendingEvents(listener, this)

@@ -4,10 +4,17 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.util.cmd.CmdAddon
+import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shared.util.message.SoundKey
 import io.papermc.paper.command.brigadier.CommandSourceStack
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.future.await
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
+import kotlin.math.roundToInt
 
 class CommandPlotVisit(override val plugin: Plop) : Addon, CmdAddon {
 
@@ -22,22 +29,46 @@ class CommandPlotVisit(override val plugin: Plop) : Addon, CmdAddon {
         val choice = plugin.menus.selectionOtherMenu.requestChoice(player, receiver, type, null)
 
         if (choice == null) {
-            player.sendMiniMessage("plot.no-plot")
+            player.sendMiniMessage(MessageKey.NOT_PLOT)
+            player.sendSound(SoundKey.FAILURE)
             return
         }
 
         postTypeChosen(player, receiver, choice)
     }
 
-    suspend fun postTypeChosen(player: Player, receiver: Player, type: PlotType) {
+    suspend fun postTypeChosen(player: Player, receiver: Player, type: PlotType) { asyncScope {
         val plot = receiver.getPlot(type)
 
-        if (plot?.visit?.visitable == false) {
-            player.sendMiniMessage("plot.not-visitable")
-            return
+        if (plot == null) {
+            player.sendMiniMessage(MessageKey.NOT_PLOT)
+            player.sendSound(SoundKey.FAILURE)
+            return@asyncScope
         }
 
-        plot?.claim?.visit?.let { player.teleportAsync(it) }
-        player.sendMiniMessage("plot.teleport-complete")
-    }
+        if (plot.visit.visitable == false) {
+            player.sendMiniMessage(MessageKey.NOT_VISITABLE)
+            player.sendSound(SoundKey.FAILURE)
+            return@asyncScope
+        }
+
+        val status = performTeleportCountdown(player, 5)
+        if (status == MessageKey.TELEPORT_INTERRUPTED) {
+            player.sendSound(SoundKey.FAILURE)
+            player.sendMiniMessage(MessageKey.TELEPORT_INTERRUPTED)
+            return@asyncScope
+        }
+
+        val result = plot.claim.visit.let {
+            player.teleportAsync(it)
+        }
+
+        if (result.await() == false) { // Ensure teleport was successful
+            player.sendMiniMessage(MessageKey.TELEPORT_FAILED)
+            return@asyncScope
+        }
+
+        player.sendSound(SoundKey.TELEPORT)
+        player.sendMiniMessage(MessageKey.TELEPORT_COMPLETE)
+    } }
 }

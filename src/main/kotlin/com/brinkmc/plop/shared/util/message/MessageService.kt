@@ -9,10 +9,8 @@ import com.brinkmc.plop.shared.util.message.tags.ShopTags
 import com.brinkmc.plop.shop.shop.Shop
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.minimessage.tag.standard.StandardTags
-import org.apache.http.util.Args
 import org.bukkit.entity.Player
 
 class MessageService(override val plugin: Plop): Addon {
@@ -32,9 +30,9 @@ class MessageService(override val plugin: Plop): Addon {
 
     // All possible iteration of deserialisation methods which are possible
 
-    fun deserialise(string: String, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): Component {
+    fun deserialise(key: MessageKey, player: Player? = null, shop: Shop? = null, plot: Plot? = null, vararg args: TagResolver): Component {
         return miniMessage.deserialize(
-            plopMessageSource.findMessage(string) ?: string,
+            plopMessageSource.findMessage(key) ?: key.toString(),
             getTags(player, shop, plot),
             *args
         )

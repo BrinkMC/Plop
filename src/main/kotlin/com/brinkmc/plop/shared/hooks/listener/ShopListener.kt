@@ -141,6 +141,11 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
         // Get the plot
         val plot = player.getCurrentPlot() ?: return
 
+        if (plot.shop.limit >= plot.getShops().size) {
+            player.sendMiniMessage("plot.totem.limit")
+            return
+        }
+
         // Check if the player is the owner of the plot
         if (!plot.owner.isPlayer(player)) {
             return

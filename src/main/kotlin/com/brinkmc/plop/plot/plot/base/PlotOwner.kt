@@ -86,7 +86,7 @@ sealed class PlotOwner {
 
     fun isPlayer(check: Player): Boolean {
         return when (this) {
-            is GuildOwner -> {
+            is GuildOwner -> { // Determine if the player is part of the guild
                 guild.members.map{ it.uuid }.contains(check.uniqueId)
             }
             is PlayerOwner -> {

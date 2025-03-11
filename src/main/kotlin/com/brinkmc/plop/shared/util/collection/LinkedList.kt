@@ -1,7 +1,7 @@
 package com.brinkmc.plop.shared.util.collection
 
 /*
-Credits to https://github.com/zuyatna/linked-list for implementation
+Credits to https://github.com/zuyatna/linked-list for part of the implementation
  */
 class LinkedList<T> {
     private var head: Node<T>? = null

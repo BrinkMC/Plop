@@ -2,6 +2,8 @@ package com.brinkmc.plop.shared.util
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
+import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shared.util.message.SoundKey
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.sksamuel.aedile.core.Cache
 import com.sksamuel.aedile.core.asCache
@@ -43,7 +45,8 @@ class Cooldown(override val plugin: Plop, private val cooldown: Duration): Addon
     suspend fun bool(player: Player): Boolean {
         val cooldown = checkCooldown(player)
         if (cooldown != null) {
-            player.sendMiniMessage("preview.cooldown", args = arrayOf(cooldownTag(cooldown)))
+            player.sendSound(SoundKey.CLICK)
+            player.sendMiniMessage(MessageKey.COOLDOWN, args = arrayOf(cooldownTag(cooldown)))
             return true
         }
         return false

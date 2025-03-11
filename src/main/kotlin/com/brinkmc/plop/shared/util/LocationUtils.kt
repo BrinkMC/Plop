@@ -49,7 +49,7 @@ class LocationUtils(override val plugin: Plop): Addon {
 
     suspend fun getSafe(location: Location): Location? { return asyncScope {
         val world = location.world
-        val maxDistance: Int = 16
+        val maxDistance = 16
         var safe = false
 
         var length = 1

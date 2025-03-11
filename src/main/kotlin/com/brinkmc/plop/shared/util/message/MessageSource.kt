@@ -7,7 +7,7 @@ import org.spongepowered.configurate.ConfigurateException
 import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader
 
-class PlopMessageSource(override val plugin: Plop): State, Addon {
+class MessageSource(override val plugin: Plop): State, Addon {
 
     private val hashOfStrings: HashMap<MessageKey, String> = hashMapOf()
 
@@ -19,7 +19,6 @@ class PlopMessageSource(override val plugin: Plop): State, Addon {
 
     override suspend fun kill() {
         hashOfStrings.clear()
-        loader
     }
 
     private suspend fun readLocale() {

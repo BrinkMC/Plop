@@ -18,9 +18,6 @@ class GuildListener(override val plugin: Plop): Addon, State, Listener {
 
     override suspend fun kill() {}
 
-    @EventHandler // Handle nexus placement + totem placement and registering in system
-    suspend fun onGuildCreate(guildCreateEvent: GuildCreateEvent) { }
-
     @EventHandler
     suspend fun onGuildRemove(guildRemoveEvent: GuildRemoveEvent) {
         val plot = guildRemoveEvent.guild.plot() ?: return

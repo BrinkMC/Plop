@@ -52,7 +52,7 @@ class NexusDisplay(override val plugin: Plop): Addon, State {
     }
 
     private suspend fun updateHologramForPlayer(player: Player, plot: Plot) {
-        // Find closest nexus and calculate centered position
+        // Find the closest nexus and calculate centered position
         val nexusLocation = findClosestNexusPosition(player, plot) ?: return
 
         // Handle visibility based on distance

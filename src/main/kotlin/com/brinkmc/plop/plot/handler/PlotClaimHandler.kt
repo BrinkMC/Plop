@@ -47,7 +47,7 @@ class PlotClaimHandler(override val plugin: Plop): Addon, State {
             plotType,
             mutableListOf(),
             plotClaim,
-            PlotVisit(true, 0, 0, mutableListOf(), plotType),
+            PlotVisit(level = 0, currentVisits = 0, historicalVisits = mutableListOf(), plotType = plotType),
             PlotSize(0, plotType),
             PlotFactory(0, mutableListOf(), plotType),
             PlotShop(0, plotType),

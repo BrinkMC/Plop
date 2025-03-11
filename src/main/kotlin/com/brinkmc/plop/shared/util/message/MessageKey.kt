@@ -23,7 +23,7 @@ enum class MessageKey(val key: String) {
     TELEPORT_FAILED("plot.teleport.failed"),
     TELEPORT_COMPLETE("plot.teleport.complete"),
 
-
+    COOLDOWN("preview.cooldown"),
 
     // GUIs
     MENU_BUY_TITLE("gui.buy_player.title"),

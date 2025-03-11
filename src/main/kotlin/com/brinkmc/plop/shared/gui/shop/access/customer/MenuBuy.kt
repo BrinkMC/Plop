@@ -11,24 +11,13 @@ import com.brinkmc.plop.shop.shop.ShopType
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.ChestInterfaceBuilder
-import com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder
 import com.noxcrew.interfaces.interfaces.buildChestInterface
-import com.noxcrew.interfaces.interfaces.buildCombinedInterface
 import com.noxcrew.interfaces.properties.InterfaceProperty
 import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.InterfaceView
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import org.bukkit.Material
 import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
-import kotlin.collections.plusAssign
-import kotlin.compareTo
-import kotlin.div
-import kotlin.text.compareTo
-import kotlin.text.set
-import kotlin.times
 
 class MenuBuy(override val plugin: Plop): Addon {
 
@@ -84,7 +73,7 @@ class MenuBuy(override val plugin: Plop): Addon {
         withTransform(amountProperty) { pane, view ->
             var amount by amountProperty
 
-            // Customer is BUYING from the shop
+            // Customer is BUYING from shop
             // Shop MUST have item, Client MUST have money being offered
 
             // Amount means if it is 2, and the shop is selling in quantities of 16x, then the client is buying 32x total

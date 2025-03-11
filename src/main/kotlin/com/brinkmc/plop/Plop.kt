@@ -52,7 +52,7 @@ import com.brinkmc.plop.shared.hooks.listener.VisitListener
 import com.brinkmc.plop.shared.storage.HikariManager
 import com.brinkmc.plop.shared.util.LocationUtils
 import com.brinkmc.plop.shared.util.message.MessageService
-import com.brinkmc.plop.shared.util.message.PlopMessageSource
+import com.brinkmc.plop.shared.util.message.MessageSource
 import com.brinkmc.plop.shop.Shops
 import com.github.retrooper.packetevents.event.PacketListenerPriority
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
@@ -80,7 +80,7 @@ class Plop : State, SuspendingJavaPlugin() {
 
     private lateinit var commandManager: PaperCommandManager<CommandSourceStack>
     private lateinit var annotationParser: AnnotationParser<CommandSourceStack>
-    private lateinit var messageSource: PlopMessageSource
+    private lateinit var messageSource: MessageSource
     private lateinit var messageService: MessageService
     private lateinit var configManager: ConfigReader
 
@@ -125,7 +125,7 @@ class Plop : State, SuspendingJavaPlugin() {
         } // I can't believe I have to do this
 
         // Load messages
-        messageSource = PlopMessageSource(plugin)
+        messageSource = MessageSource(plugin)
         messageSource.load()
         messageService = MessageService(plugin)
 
@@ -250,7 +250,7 @@ class Plop : State, SuspendingJavaPlugin() {
         return this.configManager
     }
 
-    fun plopMessageSource(): PlopMessageSource {
+    fun plopMessageSource(): MessageSource {
         return this.messageSource
     }
 

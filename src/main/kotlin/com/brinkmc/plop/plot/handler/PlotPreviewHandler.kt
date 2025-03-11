@@ -113,7 +113,7 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
         previews.put(player, previewInstance)
 
         previewInstance.teleportToViewPlot() // Update player to correct location
-        val view = plugin.menus.hotbarPreview.open(bukkitPlayer, null) // Start hotbar preview
+        val view = plugin.menus.hotbarPreview.open(bukkitPlayer) // Start hotbar preview
         previewInstance.interfaceView = view // Save hotbar preview to instance
         bukkitPlayer.updateBorder() // Update border
     }

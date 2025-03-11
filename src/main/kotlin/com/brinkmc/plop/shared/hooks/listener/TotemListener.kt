@@ -60,7 +60,7 @@ class TotemListener(override val plugin: Plop): Addon, State, Listener {
 
         if (!plot.owner.getPlayers().contains(player.uniqueId)) {
             event.isCancelled = true
-            player.sendMiniMessage("plot.not-owner")
+            player.sendMiniMessage("You are not the owner!")
             return
         }
 

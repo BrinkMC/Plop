@@ -46,11 +46,7 @@ class DamageListener(override val plugin: Plop): Addon, State, Listener {
         if (!player.world.isPlotWorld()) { // Ignore if not in plot world
             return
         }
-        val plot = player.getCurrentPlot()
-
-        if (plot == null) {
-            return
-        }
+        val plot = player.getCurrentPlot() ?: return
 
         if (plot.owner.isPlayer(player)) { // Ignore if they're in own plot
             return

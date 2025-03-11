@@ -22,11 +22,6 @@ object Funcs {
         }
     }
 
-
-    internal fun String.colour(): String {
-        return ChatColor.translateAlternateColorCodes('&', this)
-    }
-
     fun precision(x: Double, p: Int): Double { // Rounding algorithm
         val pow = 10.0.pow(p.toDouble())
         return (x * pow).roundToInt() / pow

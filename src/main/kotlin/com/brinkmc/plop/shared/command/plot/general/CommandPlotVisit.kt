@@ -26,7 +26,7 @@ class CommandPlotVisit(override val plugin: Plop) : Addon, CmdAddon {
     ) {
         val player = getPlayer(sender.sender)
 
-        val choice = plugin.menus.selectionOtherMenu.requestChoice(player, receiver, type, null)
+        val choice = plugin.menus.selectionOtherMenu.requestChoice(player, receiver, type)
 
         if (choice == null) {
             player.sendMiniMessage(MessageKey.NOT_PLOT)
@@ -52,7 +52,7 @@ class CommandPlotVisit(override val plugin: Plop) : Addon, CmdAddon {
             return@asyncScope
         }
 
-        val status = performTeleportCountdown(player, 5)
+        val status = performTeleportCountdown(player)
         if (status == MessageKey.TELEPORT_INTERRUPTED) {
             player.sendSound(SoundKey.FAILURE)
             player.sendMiniMessage(MessageKey.TELEPORT_INTERRUPTED)

@@ -102,7 +102,7 @@ class ConfigReader(override val plugin: Plop): Addon, State {
 
         sqlConfig = databaseConfigLoader.load().get(SQLConfig::class) ?: run {
             logger.error("Failed to load database config")
-            sqlConfig = SQLConfig("", "", "", "")
+            sqlConfig = SQLConfig()
             return
         }
     }

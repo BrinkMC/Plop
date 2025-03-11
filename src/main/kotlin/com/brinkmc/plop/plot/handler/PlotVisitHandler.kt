@@ -57,8 +57,4 @@ class PlotVisitHandler(override val plugin: Plop): Addon, State {
     fun upgradePlot(plot: Plot) {
         plot.visit.level += 1
     }
-
-    fun addVisitor() {
-
-    }
 }

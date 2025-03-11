@@ -53,7 +53,7 @@ class ShopCache(override val plugin: Plop): Addon, State {
         }
     }
 
-    suspend fun getShops(plotId: UUID): List<Shop>? {
+    suspend fun getShops(plotId: UUID): List<Shop> {
         return shopListMap.get(plotId).mapNotNull { getShop(it) }
     }
 

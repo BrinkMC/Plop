@@ -13,15 +13,15 @@ class HikariManager(override val plugin: Plop): Addon, State {
     private lateinit var database: HikariDataSource
     private val connections = LinkedBlockingQueue<Connection>()
 
-    fun getConnection(): Connection {
+    private fun getConnection(): Connection {
         return connections.take()
     }
 
-    fun releaseConnection(connection: Connection) {
+    private fun releaseConnection(connection: Connection) {
         connections.put(connection)
     }
 
-    fun closeAllConnections() {
+    private fun closeAllConnections() {
         connections.forEach { connection ->
             connection.close()
         }

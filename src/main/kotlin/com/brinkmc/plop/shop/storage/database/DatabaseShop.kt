@@ -1,9 +1,7 @@
 package com.brinkmc.plop.shop.storage.database
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.base.PlotType
-import com.brinkmc.plop.plot.plot.modifier.*
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.Funcs.fullString
@@ -15,14 +13,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.bukkit.Location
 import org.bukkit.inventory.ItemStack
-import org.bukkit.util.io.BukkitObjectInputStream
-import org.bukkit.util.io.BukkitObjectOutputStream
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.sql.Timestamp
 import java.util.*
-import kotlin.toString
 
 class DatabaseShop(override val plugin: Plop): Addon, State {
 
@@ -33,30 +24,30 @@ class DatabaseShop(override val plugin: Plop): Addon, State {
     override suspend fun kill() {}
 
     suspend fun load(shopId: UUID): Shop? = mutex.withLock {
-        val id = shopId
-        val shop = loadShopCore(id) ?: return null
-        val transaction = loadTransactions(id).toMutableList()
+        val shop = loadShopCore(shopId) ?: return null
+        val transaction = loadTransactions(shopId).toMutableList()
         return shop.copy(_transaction = transaction)
     }
 
     private suspend fun loadShopCore(shopId: UUID): Shop? {
         val rs = DB.query("SELECT * FROM shops WHERE shop_id=?", shopId.toString()) ?: return null
-        return if (rs.next()) {
+        return if (rs.next()) { // rs is the query, there should only be one result
             Shop(
                 shopId = shopId,
                 plotId = UUID.fromString(rs.getString("plot_id")),
                 plotType = PlotType.valueOf(rs.getString("plot_type")),
-                _location = rs.getString("shop_location").toLocation() ?: Location(null, 0.0, 0.0, 0.0), // Temporary placeholder
+                _location = rs.getString("shop_location").toLocation() ?: Location(null, 0.0, 0.0, 0.0), // Temporary placeholder location till it is taken from another section
                 _item = ItemStack.deserializeBytes(rs.getBytes("item")),
                 _quantity = rs.getInt("quantity"),
                 _sellPrice = rs.getFloat("sell_price"),
-                _buyPrice = rs.getFloat("buy_price"),
+                _buyPrice = rs.getFloat("buy_price"), // Reading the MySQL
                 _buyLimit = rs.getInt("buy_limit"),
                 _open = rs.getBoolean("open"),
-                _transaction = mutableListOf()
+                _transaction = mutableListOf() // Create empty list of transactions, populate later
             )
-        } else null
+        } else null // No shop was found
     }
+
 
     // Transaction logic
     suspend fun loadTransactions(shopId: UUID): List<ShopTransaction> {

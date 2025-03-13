@@ -3,6 +3,8 @@ package com.brinkmc.plop.shared.gui.shop.init
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
+import com.brinkmc.plop.shared.util.message.ItemKey
+import com.brinkmc.plop.shared.util.message.MessageKey
 import com.brinkmc.plop.shop.shop.Shop
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
@@ -26,18 +28,6 @@ import java.util.UUID
 
 class MenuShopCreate(override val plugin: Plop): Addon {
 
-    // Base items initialized only once
-    private object BaseItems {
-        val BAD = ItemStack(Material.BARRIER)
-        val CLICK_ENABLE = ItemStack(Material.NETHER_STAR)
-        val ITEM_CHOOSE = ItemStack(Material.VERDANT_FROGLIGHT)
-        val BUY = ItemStack(Material.HOPPER)
-        val BUY_LIMIT = ItemStack(Material.CAULDRON)
-        val SELL = ItemStack(Material.CHEST)
-        val STOCK = ItemStack(Material.BARREL)
-        val CONFIRM = ItemStack(Material.EMERALD)
-    }
-
     // Creation stages
     enum class ShopStage {
         ITEM_SELECTION,      // Stage 0: Initial item selection
@@ -47,7 +37,6 @@ class MenuShopCreate(override val plugin: Plop): Addon {
         SELL_COMPLETE,       // Stage 4: Sell price set Stage 3 & 4 are equivalent
         STOCK_COMPLETE       // Stage 5: Stock configured NOT NECESSARY FOR BUY SHOP DO NOT NEED STOCK
     }
-
 
     private fun inventory(player: Player, inputShop: Shop) = buildChestInterface {
         // Interface configuration remains unchanged
@@ -82,6 +71,7 @@ class MenuShopCreate(override val plugin: Plop): Addon {
                     stage = ShopStage.PRICE_PENDING
                 }
             }
+            view.title(lang.deserialise(MessageKey.MENU_CREATE_TITLE))
         }
 
         // Setup UI elements with modified item creation
@@ -106,7 +96,7 @@ class MenuShopCreate(override val plugin: Plop): Addon {
         var stage by stageProperty
         withTransform(stageProperty) { pane, view ->
             pane[0, 4] = StaticElement(drawable(
-                BaseItems.ITEM_CHOOSE.get("shop.create.choose.name", "shop.create.choose.desc")
+                ItemKey.CREATE_CHOOSE.get(MessageKey.MENU_CREATE_CHOOSE_ITEM_NAME, MessageKey.MENU_CREATE_CHOOSE_ITEM_DESC)
             )) { (player) ->
                 plugin.async {
                     plugin.menus.shopInitItemMenu.open(player, shop, view)
@@ -121,22 +111,22 @@ class MenuShopCreate(override val plugin: Plop): Addon {
             pane[2, 2] = when {
                 stage == ShopStage.ITEM_SELECTION -> {
                     StaticElement(drawable(
-                        BaseItems.BAD.get("shop.create.fill-item.name", "shop.create.fill-item.desc")
+                        ItemKey.BAD.get(MessageKey.MENU_CREATE_NO_ITEM_NAME, MessageKey.MENU_CREATE_NO_ITEM_DESC)
                     ))
                 }
                 shop.buyPrice == -1.0f -> {
                     StaticElement(drawable(
-                        BaseItems.BAD.get("shop.create.choose-buy-sell.name", "shop.create.choose-buy-sell.desc")
+                        ItemKey.BAD.get(MessageKey.MENU_CREATE_NO_BUY_SELL_NAME, MessageKey.MENU_CREATE_NO_BUY_SELL_DESC)
                     ))
                 }
                 !shop.isBuy() -> {
                     StaticElement(drawable(
-                        BaseItems.BAD.get("shop.create.choose-buy-sell.name", "shop.create.choose-buy-sell.desc")
+                        ItemKey.BAD.get(MessageKey.MENU_CREATE_NO_BUY_SELL_NAME, MessageKey.MENU_CREATE_NO_BUY_SELL_DESC)
                     ))
                 }
                 else -> {
                     StaticElement(drawable(
-                        BaseItems.BUY_LIMIT.get("shop.create.buy-limit.name", "shop.create.buy-limit.desc")
+                        ItemKey.BUY.get(MessageKey.MENU_BUY_LIMIT_NAME, MessageKey.MENU_BUY_LIMIT_DESC)
                     )) { (player) ->
                         plugin.async {
                             plugin.menus.shopInitBuyLimitMenu.open(player, shop, view)

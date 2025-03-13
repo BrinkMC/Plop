@@ -4,6 +4,8 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shared.util.message.SoundKey
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.sksamuel.aedile.core.asLoadingCache
 import org.bukkit.entity.Player
@@ -26,7 +28,7 @@ class VisitListener(override val plugin: Plop): Addon, State, Listener {
 
 
     // This code was NOT worth the spaghetti of nested if statements
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.NORMAL)
     suspend fun change(event: PlayerTeleportEvent) {
         val player = event.player
         val previousPlot = event.from.getCurrentPlot()
@@ -65,7 +67,8 @@ class VisitListener(override val plugin: Plop): Addon, State, Listener {
 
     private fun canPlayerEnterPlot(plot: Plot, player: Player, event: PlayerTeleportEvent): Boolean {
         if (plot.visit.currentVisits >= plot.visit.limit) {
-            player.sendMiniMessage("visit.limit.reached")
+            player.sendMiniMessage(MessageKey.PLOT_FULL)
+            player.sendSound(SoundKey.FAILURE)
             event.isCancelled = true
             return false
         }

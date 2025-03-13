@@ -3,6 +3,8 @@ package com.brinkmc.plop.shared.hooks.listener
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shared.util.message.SoundKey
 import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.shop.ShopType
 import io.papermc.paper.event.block.BlockBreakBlockEvent
@@ -142,7 +144,8 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
         val plot = player.getCurrentPlot() ?: return
 
         if (plot.shop.limit >= plot.getShops().size) {
-            player.sendMiniMessage("plot.totem.limit")
+            player.sendMiniMessage(MessageKey.SHOP_LIMIT)
+            player.sendSound(SoundKey.FAILURE)
             return
         }
 
@@ -152,6 +155,8 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
         }
 
         if (!player.hasPermission("plop.shop.create")) { // No permission to create a shop in the plot
+            player.sendMiniMessage(MessageKey.NO_PERMISSION)
+            player.sendSound(SoundKey.FAILURE)
             return
         }
 

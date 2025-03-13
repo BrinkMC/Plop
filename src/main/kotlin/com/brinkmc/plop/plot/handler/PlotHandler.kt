@@ -76,7 +76,7 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
     } }
 
     fun updateBorder(player: UUID) { plugin.async {
-        // Update player tracker for handy informatio
+        // Update player tracker for handy information
         plugin.playerTracker.refresh(player.player() ?: return@async)
 
         val bukkitPlayer = player.player() ?: run {

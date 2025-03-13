@@ -3,6 +3,8 @@ package com.brinkmc.plop.shared.hooks.listener
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shared.util.message.SoundKey
 import io.papermc.paper.event.block.BlockBreakBlockEvent
 import io.papermc.paper.event.player.PlayerInsertLecternBookEvent
 import org.bukkit.Material
@@ -108,7 +110,7 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
         val player = event.player
 
         if (!player.world.isPlotWorld()) {
-            player.sendMiniMessage("land.not-in-plot-world")
+            player.sendMiniMessage(MessageKey.NOT_PLOT)
             event.isCancelled = false
             return
         }
@@ -116,19 +118,22 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
         val plot = player.getCurrentPlot()
 
         if (plot == null) {
-            player.sendMiniMessage("land.not-in-plot")
+            player.sendMiniMessage(MessageKey.NOT_PLOT)
+            player.sendSound(SoundKey.FAILURE)
             event.isCancelled = false
             return
         }
 
-        if (!player.getPlots().contains(player.getCurrentPlot())) {
-            player.sendMiniMessage("land.not-plot-owner")
+        if (!plot.owner.isPlayer(player)) {
+            player.sendMiniMessage(MessageKey.NOT_OWNER)
+            player.sendSound(SoundKey.FAILURE)
             event.isCancelled = false
             return
         }
 
         if (!player.hasPermission("plop.nexus.use")) {
-            player.sendMiniMessage("land.nexus-no-permission")
+            player.sendMiniMessage(MessageKey.NO_PERMISSION)
+            player.sendSound(SoundKey.FAILURE)
             event.isCancelled = false
             return
         }
@@ -142,16 +147,19 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
                 block.world.dropItemNaturally(block.location, plots.nexusManager.NEXUS_BOOK)
             }
             plot.removeNexus(lectern.block.location)
+            player.sendSound(SoundKey.CLICK)
             return
         }
 
         if (event.action == Action.RIGHT_CLICK_BLOCK) {
             plugin.menus.nexusMainMenu.open(player)
+            player.sendSound(SoundKey.CLICK)
             return
         }
 
         if (event.action == Action.LEFT_CLICK_BLOCK) {
             plugin.menus.nexusMainMenu.open(player)
+            player.sendSound(SoundKey.CLICK)
             return
         }
     }

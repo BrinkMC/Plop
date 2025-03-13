@@ -24,4 +24,7 @@ enum class ItemKey(val item: ItemStack) {
     CLOSE_SHOP(ItemStack(Material.IRON_DOOR)),
     OPEN_SHOP(ItemStack(Material.OAK_DOOR)),
     DELETE_SHOP(ItemStack(Material.BARRIER)),
+
+    // Creation
+    CREATE_CHOOSE(ItemStack(Material.BOOK)),
 }

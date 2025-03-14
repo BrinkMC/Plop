@@ -7,6 +7,7 @@ import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.preview.PreviewInstance
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shared.util.message.MessageKey
 import java.util.UUID
 
 /*
@@ -51,7 +52,7 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
 
         // Handle potential forced guild plot errors
         if (type == PlotType.GUILD && guild == null) {
-            bukkitPlayer.sendMiniMessage("preview.start.no-guild")
+            bukkitPlayer.sendMiniMessage(MessageKey.NO_GUILD)
             return
         }
 

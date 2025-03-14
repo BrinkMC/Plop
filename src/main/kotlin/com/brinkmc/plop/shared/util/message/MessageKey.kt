@@ -10,6 +10,8 @@ enum class MessageKey(val key: String) {
     NOT_VISITABLE("plot.not_visitable"),
     PLOT_FULL("plot.full"),
     TOTEM_LIMIT("plot.totem.limit"),
+    NO_PREVIEW("plot.preview.none"),
+    NO_GUILD("plot.guild.none"),
 
     // Shop messages
     PLAYER_INSUFFICIENT_BALANCE("shop.purchase.player.insufficient.balance"),

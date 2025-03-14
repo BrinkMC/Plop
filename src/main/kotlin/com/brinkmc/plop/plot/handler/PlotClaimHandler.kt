@@ -7,6 +7,8 @@ import com.brinkmc.plop.plot.plot.modifier.*
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hooks.Locals.localWorld
+import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shared.util.message.SoundKey
 import com.sk89q.worldedit.WorldEdit
 import com.sk89q.worldedit.function.operation.Operations
 import com.sk89q.worldedit.math.BlockVector3
@@ -23,7 +25,8 @@ class PlotClaimHandler(override val plugin: Plop): Addon, State {
         val previewInstance = plots.previewHandler.getPreview(player)
         
         if (previewInstance == null) {
-            player.player()?.sendMiniMessage("preview.start.no-preview")
+            player.player()?.sendMiniMessage(MessageKey.NO_PREVIEW)
+            player.player()?.sendSound(SoundKey.FAILURE)
             return
         }
 

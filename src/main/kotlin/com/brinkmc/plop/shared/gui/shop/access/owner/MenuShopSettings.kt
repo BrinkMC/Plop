@@ -2,7 +2,7 @@ package com.brinkmc.plop.shared.gui.shop.access.owner
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.base.isDrop
+import com.brinkmc.plop.shared.util.message.MessageKey
 import com.brinkmc.plop.shop.shop.Shop
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
@@ -14,20 +14,6 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
 class MenuShopSettings(override val plugin: Plop): Addon {
-
-
-    private object BaseItems {
-        val HANDLE_BUY = ItemStack(Material.HOPPER)
-        val HANDLE_SELL = ItemStack(Material.GOLD_INGOT)
-        val CLICK_ENABLE = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
-        val STOCK = ItemStack(Material.BARREL)
-        val TRANSACTION_LOG = ItemStack(Material.PAPER)
-        val CLOSE_SHOP = ItemStack(Material.IRON_DOOR)
-        val OPEN_SHOP = ItemStack(Material.OAK_DOOR)
-        val DELETE_SHOP = ItemStack(Material.BARRIER)
-        val BACK = ItemStack(Material.REDSTONE)
-        val BAD = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
-    }
 
     private fun inventory(player: Player, shop: Shop) = buildChestInterface {
         // Internal settings menu for shop, only to owners
@@ -182,7 +168,7 @@ class MenuShopSettings(override val plugin: Plop): Addon {
 
             if (shop.quantity != 0) {
                 pane[4, 0] = StaticElement(drawable(
-                    BaseItems.BAD.get("shop.delete-shop.notempty.name", "shop.delete-shop.notempty.desc")
+                    BaseItems.BAD.get(MessageKey.MENU_IS_STOCK_NAME, MessageKey.MENU_IS_STOCK_DESC)
                 ))
                 return@withTransform
             }

@@ -50,7 +50,7 @@ class MenuTotemList(override val plugin: Plop): Addon {
             var k = 0
             for (i in 0..8) {
                 for (j in 0..5) {
-                    while (k < totemItems.size) {
+                    if (k < totemItems.size) {
                         val totem = totemItems[k] // Populate every item of pane with totem till no more
                         k++
                         pane[i, j] = StaticElement(

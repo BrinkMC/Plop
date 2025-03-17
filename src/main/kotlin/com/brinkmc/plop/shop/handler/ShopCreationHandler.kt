@@ -41,12 +41,6 @@ class ShopCreationHandler(override val plugin: Plop): Addon, State {
         return sessions.asMap().values.map { it.shop.location }.toSet()
     }
 
-    override suspend fun load() {}
-
-    override suspend fun kill() {
-        sessions.invalidateAll()
-    }
-
     suspend fun getShop(player: Player): Shop? {
         return sessions.getIfPresent(player.uniqueId)?.shop
     }
@@ -116,5 +110,11 @@ class ShopCreationHandler(override val plugin: Plop): Addon, State {
 
     suspend fun isReserved(location: Location): Boolean {
         return reservedLocations().contains(location)
+    }
+
+    override suspend fun load() {}
+
+    override suspend fun kill() {
+        sessions.invalidateAll()
     }
 }

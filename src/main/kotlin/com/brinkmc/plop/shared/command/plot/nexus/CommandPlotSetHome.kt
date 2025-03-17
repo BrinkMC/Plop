@@ -33,7 +33,6 @@ internal class CommandPlotSetHome(override val plugin: Plop) : Addon, CmdAddon {
         plot.claim.home = player.location
         player.sendMiniMessage("plot.home-set")
     }
-
 }
 
 

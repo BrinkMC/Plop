@@ -5,6 +5,7 @@ import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.util.message.ItemKey
 import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shop.Shops
 import com.brinkmc.plop.shop.shop.Shop
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
@@ -51,26 +52,30 @@ class MenuShopCreate(override val plugin: Plop): Addon {
 
         withTransform(stageProperty) { pane, view ->
             // Determine what stage it is at
-            when {
-                shop.quantity > 0 -> {
-                    stage = ShopStage.STOCK_COMPLETE
+            stage = when {
+                shop.quantity > Shops.MIN_QUANTITY -> {
+                     ShopStage.STOCK_COMPLETE
                 }
-                shop.buyPrice > 0.0f -> {
-                    stage = ShopStage.BUY_COMPLETE
+                shop.buyPrice > Shops.MIN_BUY_PRICE -> {
+                    ShopStage.BUY_COMPLETE
                 }
-                shop.sellPrice > 0.0f -> {
-                    stage = ShopStage.SELL_COMPLETE
+                shop.sellPrice > Shops.MIN_SELL_PRICE -> {
+                    ShopStage.SELL_COMPLETE
                 }
-                shop.buyLimit > 0 -> {
-                    stage = ShopStage.BUY_LIMIT_COMPLETE
+                shop.buyLimit > Shops.MIN_BUY_LIMIT -> {
+                    ShopStage.BUY_LIMIT_COMPLETE
                 }
-                shop.item.type == Material.AIR -> {
-                    stage = ShopStage.ITEM_SELECTION
+                shop.item.type == Shops.EMPTY_ITEM -> {
+                    ShopStage.ITEM_SELECTION
                 }
-                shop.buyPrice == -1.0f && shop.sellPrice == -1.0f -> {
-                    stage = ShopStage.PRICE_PENDING
+                shop.buyPrice == Shops.NO_BUY_PRICE && shop.sellPrice == Shops.NO_SELL_PRICE -> {
+                    ShopStage.PRICE_PENDING
+                }
+                else -> {
+                    ShopStage.PRICE_PENDING
                 }
             }
+
             view.title(lang.deserialise(MessageKey.MENU_CREATE_TITLE))
         }
 
@@ -114,19 +119,14 @@ class MenuShopCreate(override val plugin: Plop): Addon {
                         ItemKey.BAD.get(MessageKey.MENU_CREATE_NO_ITEM_NAME, MessageKey.MENU_CREATE_NO_ITEM_DESC)
                     ))
                 }
-                shop.buyPrice == -1.0f -> {
-                    StaticElement(drawable(
-                        ItemKey.BAD.get(MessageKey.MENU_CREATE_NO_BUY_SELL_NAME, MessageKey.MENU_CREATE_NO_BUY_SELL_DESC)
-                    ))
-                }
-                !shop.isBuy() -> {
+                shop.buyPrice == Shops.NO_BUY_PRICE || !shop.isBuy() -> {
                     StaticElement(drawable(
                         ItemKey.BAD.get(MessageKey.MENU_CREATE_NO_BUY_SELL_NAME, MessageKey.MENU_CREATE_NO_BUY_SELL_DESC)
                     ))
                 }
                 else -> {
                     StaticElement(drawable(
-                        ItemKey.BUY.get(MessageKey.MENU_BUY_LIMIT_NAME, MessageKey.MENU_BUY_LIMIT_DESC)
+                        ItemKey.BUY.get(MessageKey.MENU_BUY_LIMIT_REACHED_NAME, MessageKey.MENU_BUY_LIMIT_REACHED_DESC)
                     )) { (player) ->
                         plugin.async {
                             plugin.menus.shopInitBuyLimitMenu.open(player, shop, view)

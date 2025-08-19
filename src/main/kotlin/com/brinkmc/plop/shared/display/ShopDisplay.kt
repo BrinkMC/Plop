@@ -55,8 +55,9 @@ class ShopDisplay(override val plugin: Plop): Addon, State {
     private suspend fun renderTask() {
         logger.info("Started render task for shops")
         while (true) {
-            for (player in server.onlinePlayers) { // Iterate over online players
-                val plot = plugin.playerTracker.locations.get(player) ?: continue
+            server.onlinePlayers.forEach { player ->
+                // Iterate over online players
+                val plot = plugin.playerTracker.locations.get(player) ?: return@forEach
                 render(player, plot)
             }
             delay(renderDelay)

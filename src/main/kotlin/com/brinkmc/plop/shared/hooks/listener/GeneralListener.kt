@@ -13,7 +13,7 @@ class GeneralListener(override val plugin: Plop): Addon, State, Listener {
 
     override suspend fun kill() {}
 
-    @EventHandler
+    @EventHandler(priority = org.bukkit.event.EventPriority.MONITOR)
     suspend fun onPlayerJoin(playerJoinEvent: PlayerJoinEvent) {
         playerJoinEvent.player.personalPlot() // Populate the cache when they join so that first command isn't so slow
         playerJoinEvent.player.guildPlot()

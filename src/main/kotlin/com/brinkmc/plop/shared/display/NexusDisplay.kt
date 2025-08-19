@@ -43,8 +43,8 @@ class NexusDisplay(override val plugin: Plop): Addon, State {
     private suspend fun startRenderLoop() {
         logger.info("Starting nexus hologram render task")
         while (true) {
-            for (player in server.onlinePlayers) {
-                val plot = plugin.playerTracker.locations.get(player) ?: continue
+            server.onlinePlayers.forEach { player ->
+                val plot = plugin.playerTracker.locations.get(player) ?: return@forEach
                 updateHologramForPlayer(player, plot)
             }
             delay(TICK_DELAY.ticks)

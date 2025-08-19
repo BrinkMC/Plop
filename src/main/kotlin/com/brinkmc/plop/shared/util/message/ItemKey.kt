@@ -27,4 +27,10 @@ enum class ItemKey(val item: ItemStack) {
 
     // Creation
     CREATE_CHOOSE(ItemStack(Material.BOOK)),
+
+
+    // Nexus
+    NEXUS_OVERVIEW(ItemStack(Material.PLAYER_HEAD)),
+    NEXUS_UPGRADE(ItemStack(Material.SPLASH_POTION)),
+    NEXUS_TOTEM(ItemStack(Material.TOTEM_OF_UNDYING)),
 }

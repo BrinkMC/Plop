@@ -4,19 +4,19 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 //import xyz.jpenilla.runpaper.task.RunServer
 
 plugins {
-    kotlin("jvm") version "1.9.25"
+    kotlin("jvm") version "2.2.0"
     alias(libs.plugins.ktlint)
     alias(libs.plugins.shadow)
 }
 
 repositories {
     mavenCentral()
+    google()
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.jpenilla.xyz/snapshots/")
-    maven("https://repo.doesnt-want-to.work/snapshots/")
+    maven("https://maven.noxcrew.com/public")
     maven("https://jitpack.io/")
     maven("https://maven.enginehub.org/repo/")
-    maven("https://maven.noxcrew.com/public")
     maven("https://repo.fancyplugins.de/releases")
     maven("https://eldonexus.de/repository/maven-releases/")
     maven("https://repo.glaremasters.me/repository/public/")
@@ -27,27 +27,27 @@ repositories {
         content { includeGroup("me.clip") }
     }
     maven("https://jitpack.io")
+    maven("https://repo.doesnt-want-to.work/snapshots/")
 }
 
 dependencies {
     implementation(platform(kotlin("bom")))
     implementation(kotlin("stdlib"))
 
-    compileOnly("io.papermc.paper", "paper-api", "1.21.1-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper", "paper-api", "1.21.7-R0.1-SNAPSHOT")
     compileOnly("com.github.MilkBowl", "VaultAPI", "1.7.1")
     compileOnly("me.clip", "placeholderapi", "2.11.6")
     compileOnly("me.glaremasters", "guilds", "3.5.7.0")
     compileOnly("io.lumine", "Mythic-Dist", "5.7.2")
-    compileOnly(fileTree("libs/") { include("*.jar") })
-    compileOnly("com.github.yannicklamprecht:worldborderapi:1.211.0:dev") // Weird import
+    compileOnly("com.github.yannicklamprecht:worldborderapi:1.217.0:dev") // Weird import
     compileOnly("com.github.retrooper", "packetevents-spigot", "2.7.0")
     compileOnly("de.oliver", "FancyHolograms", "2.4.2")
 
 
-    compileOnly("com.sk89q.worldguard", "worldguard-core", "7.0.12")
-    compileOnly("com.sk89q.worldguard", "worldguard-bukkit", "7.0.12")
-    compileOnly("com.sk89q.worldedit", "worldedit-core", "7.3.9")
-    compileOnly("com.sk89q.worldedit", "worldedit-core", "7.3.9")
+    compileOnly("com.sk89q.worldguard", "worldguard-core", "7.0.15-SNAPSHOT")
+    compileOnly("com.sk89q.worldguard", "worldguard-bukkit", "7.0.15-SNAPSHOT")
+    compileOnly("com.sk89q.worldedit", "worldedit-core", "7.3.15-SNAPSHOT")
+    compileOnly("com.sk89q.worldedit", "worldedit-bukkit", "7.3.15-SNAPSHOT")
 
     // Kyori
     compileOnly(platform("net.kyori:adventure-bom:4.17.0"))
@@ -66,7 +66,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-api","2.20.0")
     implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-core","2.20.0")
-    implementation("com.noxcrew.interfaces", "interfaces", "1.3.2")
+    implementation("com.noxcrew.interfaces", "interfaces", "2.0.0") {
+        exclude(group = "com.google.guava")
+    }
 
     implementation(platform("org.spongepowered:configurate-bom:4.1.2"))
     implementation("org.spongepowered", "configurate-hocon")
@@ -91,9 +93,9 @@ kotlin {
 
 tasks {
     compileKotlin {
-        kotlinOptions {
-            jvmTarget = "21"
-            javaParameters = true
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+            javaParameters.set(true)
         }
     }
     withType<JavaCompile> {
@@ -118,6 +120,7 @@ tasks {
             "io.papermc.lib",
             "com.brinkmc.pluginbase",
             "org.incendo",
+            "com.google.common",
             "com.noxcrew",
             "org.koin",
             "com.zaxxer",

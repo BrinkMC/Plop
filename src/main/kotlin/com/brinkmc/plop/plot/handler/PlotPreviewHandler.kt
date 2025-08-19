@@ -8,6 +8,8 @@ import com.brinkmc.plop.plot.preview.PreviewInstance
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shared.util.message.SoundKey
+import kotlinx.coroutines.processNextEventInCurrentThread
 import java.util.UUID
 
 /*
@@ -57,7 +59,8 @@ class PlotPreviewHandler(override val plugin: Plop): Addon, State {
         }
 
         if (type == PlotType.GUILD && (guild?.size ?: 0) <= plotConfig.guildConfig.minSize-1) {
-            bukkitPlayer.sendMiniMessage("preview.start.guild-too-small")
+            bukkitPlayer.sendMiniMessage(MessageKey.PREVIEW_ERROR_GUILD_SMALL)
+            bukkitPlayer.sendSound(SoundKey.FAILURE)
             return
         }
 

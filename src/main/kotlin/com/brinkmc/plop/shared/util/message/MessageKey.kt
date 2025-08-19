@@ -70,4 +70,6 @@ enum class MessageKey(val key: String) {
     MENU_MORE_DESC("gui.more.desc"),
     MENU_LESS_NAME("gui.less.name"),
     MENU_LESS_DESC("gui.less.desc"),
+
+    PREVIEW_ERROR_GUILD_SMALL("preview.error.guild-too-small"),
 }

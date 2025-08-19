@@ -4,6 +4,7 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.util.cmd.CmdAddon
+import com.brinkmc.plop.shared.util.message.MessageKey
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Argument
@@ -20,7 +21,7 @@ internal class CommandAdminResetPlot(override val plugin: Plop) : Addon, CmdAddo
         val player = getPlayer(sender.sender)
 
         if (!player.hasPermission("plop.admin.claim")) {
-            player.sendMiniMessage("no-permission")
+            player.sendMiniMessage(MessageKey.NO_PERMISSION)
             return
         }
 
@@ -34,26 +35,26 @@ internal class CommandAdminResetPlot(override val plugin: Plop) : Addon, CmdAddo
         val personalPlot = receiver.personalPlot()
 
         if (personalPlot == null) {
-            player.sendMiniMessage("no-plot")
+            player.sendMiniMessage(MessageKey.NO_PLOT)
             return
         }
 
         plugin.hooks.worldGuard.deleteRegion(personalPlot.plotId)
         plots.handler.deletePlot(personalPlot)
-        player.sendMiniMessage("plot-unclaimed")
+        player.sendMiniMessage(MessageKey.CLAIM_SUCCESS)
     }
 
     suspend fun resetGuildPlot(player: Player, receiver: Player) {
         val guildPlot = receiver.guildPlot()
 
         if (guildPlot == null) {
-            player.sendMiniMessage("no-plot")
+            player.sendMiniMessage(MessageKey.NO_PLOT)
             return
         }
 
         plugin.hooks.worldGuard.deleteRegion(guildPlot.plotId)
         plots.handler.deletePlot(guildPlot)
-        player.sendMiniMessage("plot-unclaimed")
+        player.sendMiniMessage(MessageKey.CLAIM_SUCCESS)
     }
 
 }

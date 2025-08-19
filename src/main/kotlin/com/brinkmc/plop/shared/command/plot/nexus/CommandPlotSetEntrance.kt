@@ -3,6 +3,7 @@ package com.brinkmc.plop.shared.command.plot.nexus
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.util.cmd.CmdAddon
+import com.brinkmc.plop.shared.util.message.MessageKey
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.incendo.cloud.annotations.Command
 
@@ -16,21 +17,21 @@ internal class CommandPlotSetEntrance(override val plugin: Plop): Addon, CmdAddo
         val plot = player.getCurrentPlot()
 
         if (plot == null) {
-            player.sendMiniMessage("plot.not-in-claim")
+            player.sendMiniMessage(MessageKey.NOT_PLOT)
             return
         }
 
         if (!plot.owner.isPlayer(player)) {
-            player.sendMiniMessage("plot.not-owner")
+            player.sendMiniMessage(MessageKey.NOT_OWNER)
             return
         }
 
         if (!player.hasPermission("plop.plot.command.setentrance")) {
-            player.sendMiniMessage("plot.no-permission")
+            player.sendMiniMessage(MessageKey.NO_PERMISSION)
             return
         }
 
         plot.claim.visit = player.location
-        player.sendMiniMessage("plot.entrance-set")
+        player.sendMiniMessage(MessageKey.PLOT_SET_ENTRANCE)
     }
 }

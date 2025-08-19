@@ -14,6 +14,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.block.BlockFace
 import org.bukkit.block.Chest
 import org.bukkit.block.Lectern
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -170,5 +171,20 @@ class ShopListener(override val plugin: Plop): Addon, State, Listener {
         // Get the player
         val player = event.player
         plugin.menus.shopMainMenu.open(player, shop)
+    }
+
+    // Start the trade
+    private suspend fun startTrade(event: PlayerInteractEvent, receiver: Player) {
+        // Get the player
+        val player = event.player
+
+        // Get the action
+        val action = event.action
+        if (action != Action.RIGHT_CLICK_AIR) { // Only select player clicking other player
+            return
+        }
+        if (!player.isSneaking) { // Only select player sneaking
+            return
+        }
     }
 }

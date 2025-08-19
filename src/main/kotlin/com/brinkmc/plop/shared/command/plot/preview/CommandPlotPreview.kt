@@ -4,6 +4,7 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.util.cmd.CmdAddon
+import com.brinkmc.plop.shared.util.message.MessageKey
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
@@ -25,7 +26,7 @@ internal class CommandPlotPreview(override val plugin: Plop): Addon, CmdAddon {
         val guildPlot = player.guildPlot()
 
         if (plots.previewHandler.getPreview(player.uniqueId) != null) {
-            player.sendMiniMessage("command.already-previewing")
+            player.sendMiniMessage(MessageKey.PREVIEW_IN_PROGRESS)
             return
         }
 
@@ -45,7 +46,7 @@ internal class CommandPlotPreview(override val plugin: Plop): Addon, CmdAddon {
                 return@asyncScope
             }
 
-            player.sendMiniMessage("command.already-claimed-max")
+            player.sendMiniMessage(MessageKey.MAX_PLOTS_REACHED)
         }
     }
 }

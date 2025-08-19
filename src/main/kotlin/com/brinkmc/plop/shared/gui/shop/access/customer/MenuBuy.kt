@@ -53,7 +53,7 @@ class MenuBuy(override val plugin: Plop): Addon {
 
             // Shop title
             view.title(
-                lang.deserialise(MessageKey.BUY_MENU_TITLE, shop = shop, args = arrayOf(amountPlaceholder))
+                lang.deserialise(MessageKey.MENU_BUY_TITLE, shop = shop, args = arrayOf(amountPlaceholder))
             )
         }
 

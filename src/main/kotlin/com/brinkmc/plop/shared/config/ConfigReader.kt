@@ -53,6 +53,7 @@ class ConfigReader(override val plugin: Plop): Addon, State {
         saveShopConfig()
         saveTotemConfig() 
     } }
+
     // MAIN CONFIG
     private fun readMainConfig() {
         logger.info("Load main config") // Load main config file

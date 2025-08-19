@@ -3,6 +3,7 @@ package com.brinkmc.plop.shared.command.admin
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.util.cmd.CmdAddon
+import com.brinkmc.plop.shared.util.message.MessageKey
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.incendo.cloud.annotations.Command
 
@@ -15,7 +16,7 @@ internal class CommandAdminUnclaimPlot(override val plugin: Plop) : Addon, CmdAd
         val player = getPlayer(sender.sender)
 
         if (!player.hasPermission("plop.admin.claim")) {
-            player.sendMiniMessage("no-permission")
+            player.sendMiniMessage(MessageKey.NO_PERMISSION)
             return
         }
 
@@ -23,13 +24,13 @@ internal class CommandAdminUnclaimPlot(override val plugin: Plop) : Addon, CmdAd
         val plot = player.getCurrentPlot()
 
         if (plot == null) {
-            player.sendMiniMessage("no-plot")
+            player.sendMiniMessage(MessageKey.NO_PLOT)
             return
         }
 
         plugin.hooks.worldGuard.deleteRegion(plot.plotId)
         plots.handler.deletePlot(plot)
-        player.sendMiniMessage("plot-unclaimed")
+        player.sendMiniMessage(MessageKey.DELETE_SUCCESS)
     }
 
 }

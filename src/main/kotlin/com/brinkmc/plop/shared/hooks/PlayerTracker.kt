@@ -30,6 +30,12 @@ class PlayerTracker(override val plugin: Plop): Addon, State, Listener {
         locations.invalidateAll()
     }
 
+    @EventHandler(priority = EventPriority.LOW)
+    suspend fun join(event: PlayerJoinEvent) {
+        val player = event.player
+        locations.invalidate(player)
+    }
+
     @EventHandler(priority = EventPriority.MONITOR)
     suspend fun change(event: PlayerChangedWorldEvent) {
         val player = event.player

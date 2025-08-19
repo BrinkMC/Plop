@@ -2,6 +2,8 @@ package com.brinkmc.plop.shared.gui.nexus
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
+import com.brinkmc.plop.shared.util.message.ItemKey
+import com.brinkmc.plop.shared.util.message.MessageKey
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.buildChestInterface
@@ -11,18 +13,6 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
 class MenuNexusMain(override val plugin: Plop): Addon {
-
-    val MAIN_OVERVIEW
-        get() = ItemStack(Material.PLAYER_HEAD)
-        .name("nexus.main.overview.name")
-
-    val UPGRADES
-        get() = ItemStack(Material.SPLASH_POTION)
-        .name("nexus.main.upgrades.name")
-
-    val TOTEMS
-        get() = ItemStack(Material.LIGHTNING_ROD)
-        .name("nexus.main.totems.name")
 
     private val inventory = buildChestInterface {
         onlyCancelItemInteraction = false
@@ -34,7 +24,10 @@ class MenuNexusMain(override val plugin: Plop): Addon {
             val plot = view.player.getCurrentPlot() ?: return@withTransform
 
             // Main overview button
-            val individualMainOverview = MAIN_OVERVIEW
+            val individualMainOverview = ItemKey.NEXUS_OVERVIEW.get(
+                MessageKey.MENU_NEXUS_ICON_NAME,
+                MessageKey.MENU_NEXUS_ICON_DESC
+            )
                 .setSkull(plot.owner)
                 .description("nexus.main.overview.description",
                     player = view.player,

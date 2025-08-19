@@ -5,6 +5,7 @@ import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.plot.base.PlotOwner
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shared.util.message.MessageKey
 import org.bukkit.entity.Player
 
 class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
@@ -30,7 +31,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         // Using the economy API, check if they can afford it
 
         if (!plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            initiator.sendMiniMessage("not-enough-money")
+            initiator.sendMiniMessage(MessageKey.NO_MONEY)
             return
         }
 
@@ -47,7 +48,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
 
         // Using the economy API, check if they can afford it
         if (!plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            initiator.sendMiniMessage("not-enough-money")
+            initiator.sendMiniMessage(MessageKey.NO_MONEY)
             return
         }
 
@@ -65,7 +66,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         // Using the economy API, check if they can afford it
 
         if (!plot.owner.hasBalance(economy, potentialLevel?.price?.toDouble() ?: 0.0)) {
-            initiator.sendMiniMessage("not-enough-money")
+            initiator.sendMiniMessage(MessageKey.NO_MONEY)
             return
         }
 
@@ -83,7 +84,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         // Using the economy API, check if they can afford it
 
         if (!plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            initiator.sendMiniMessage("not-enough-money")
+            initiator.sendMiniMessage(MessageKey.NO_MONEY)
             return
         }
 
@@ -101,7 +102,7 @@ class PlotUpgradeHandler(override val plugin: Plop): Addon, State {
         // Using the economy API, check if they can afford it
 
         if (!plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            initiator.sendMiniMessage("not-enough-money")
+            initiator.sendMiniMessage(MessageKey.NO_MONEY)
             return
         }
 

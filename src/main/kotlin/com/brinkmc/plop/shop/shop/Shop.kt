@@ -24,7 +24,7 @@ enum class ShopType { // Types of shop
 data class Shop(
     val shopId: UUID,
     val plotId: UUID,
-    val plotType: PlotType,
+    private var _shopType: ShopType,
     private var _location: Location,
     private var _item: ItemStack,
     private var _quantity: Int,

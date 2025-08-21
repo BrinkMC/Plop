@@ -2,12 +2,12 @@ package com.brinkmc.plop.shared.command.admin
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.util.cmd.CmdAddon
-import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shared.base.Command
+import com.brinkmc.plop.shared.util.design.enums.MessageKey
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.incendo.cloud.annotations.Command
 
-internal class CommandAdminCreateShop(override val plugin: Plop) : Addon, CmdAddon {
+internal class CommandAdminCreateShop(override val plugin: Plop) : Addon, Command {
 
     @Command("plop claim plot")
     suspend fun claimPlot(

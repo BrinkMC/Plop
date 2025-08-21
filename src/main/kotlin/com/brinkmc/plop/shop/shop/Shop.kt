@@ -1,54 +1,45 @@
 package com.brinkmc.plop.shop.shop
 
-import com.brinkmc.plop.plot.plot.base.PlotOwner
-import com.brinkmc.plop.plot.plot.base.PlotType
-import com.brinkmc.plop.shared.hooks.Economy
+import com.brinkmc.plop.shared.util.shop.ShopType
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import me.glaremasters.guilds.Guilds
-import org.bukkit.Bukkit
 import org.bukkit.Location
-import org.bukkit.block.Chest
-import org.bukkit.entity.Item
-import org.bukkit.entity.Player
-import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import java.sql.Timestamp
 import java.util.UUID
 
-enum class ShopType { // Types of shop
-    BUY,
-    SELL
-}
-
 data class Shop(
-    val shopId: UUID,
-    val plotId: UUID,
+    private val _id: UUID,
+    private val _location: Location,
+
     private var _shopType: ShopType,
-    private var _location: Location,
     private var _item: ItemStack,
     private var _quantity: Int,
-    private var _sellPrice: Float,
-    private var _buyPrice: Float,
-    private var _buyLimit: Int,
+    private var _price: Float, // Sell price / buy price
     private var _open: Boolean,
-    private var _transaction: MutableList<ShopTransaction>
+    private var _transaction: MutableList<ShopTransaction>,
+
+    // Only active if shopType is BUY
+    private var _buyLimit: Int,
 ) {
     private val mutex = Mutex()
 
     // Thread-safe getters
+    val id: UUID get() = _id
     val location: Location get() = _location
+
+    val shopType: ShopType get() = _shopType
     val item: ItemStack get() = _item.clone()
     val quantity: Int get() = _quantity
-    val sellPrice: Float get() = _sellPrice
-    val buyPrice: Float get() = _buyPrice
-    val buyLimit: Int get() = _buyLimit
+    val price: Float get() = _price
     val open: Boolean get() = _open
     val transactions: List<ShopTransaction> get() = _transaction.toList()
 
+    val buyLimit: Int get() = _buyLimit
+
     // Thread-safe setters
-    suspend fun setLocation(location: Location) = mutex.withLock {
-        _location = location
+    suspend fun setShopType(type: ShopType) = mutex.withLock {
+        _shopType = type
     }
 
     suspend fun setItem(item: ItemStack) = mutex.withLock {
@@ -59,23 +50,30 @@ data class Shop(
         _quantity = quantity
     }
 
-    suspend fun setSellPrice(price: Float) = mutex.withLock {
-        _sellPrice = price
-    }
-
-    suspend fun setBuyPrice(price: Float) = mutex.withLock {
-        _buyPrice = price
+    suspend fun setPrice(price: Float) = mutex.withLock {
+        _price = price
     }
 
     suspend fun setBuyLimit(limit: Int) = mutex.withLock {
         _buyLimit = limit
     }
 
-    suspend fun setOpen(open: Boolean) = mutex.withLock {
-        _open = open
+    suspend fun reduceLimit(amount: Int) = mutex.withLock {
+        _buyLimit -= amount
+        if (_buyLimit <= 0) {
+            _buyLimit = 0
+            close() // Auto close shop
+        }
     }
 
-    // Thread-safe operations
+    suspend fun open() = mutex.withLock {
+        _open = true
+    }
+
+    suspend fun close() = mutex.withLock {
+        _open = false
+    }
+
     suspend fun addQuantity(amount: Int) = mutex.withLock {
         _quantity += amount
     }
@@ -92,46 +90,8 @@ data class Shop(
         )
     }
 
-    val owner: PlotOwner by lazy {
-        if (plotType == PlotType.GUILD) {
-            val guild = Guilds.getApi().getGuild(plotId) // Try to find guild
-
-            if (guild != null) {
-                PlotOwner.GuildOwner(guild)
-            } else {
-                throw IllegalStateException("Guild not found for plot $plotId")
-            }
-        } else {
-            PlotOwner.PlayerOwner(Bukkit.getOfflinePlayer(plotId))
-        }
-    }
-
-    fun isSell(): Boolean {
-        return sellPrice != -1.0f
-    }
-
-    fun isBuy(): Boolean {
-        return buyPrice != -1.0f
-    }
-
-    suspend fun unsetSell() = mutex.withLock {
-        _sellPrice = -1.0f
-    }
-
-    suspend fun unsetBuy() = mutex.withLock {
-        _buyPrice = -1.0f
-        _buyLimit = -1
-    }
-
     suspend fun addTransaction(playerId: UUID, amount: Int, type: ShopType) = mutex.withLock {
-        _transaction.add(ShopTransaction(playerId, amount, type, Timestamp(System.currentTimeMillis())))
+        _transaction.add(ShopTransaction(Timestamp(System.currentTimeMillis()), playerId, amount, type ))
     }
-
 }
 
-data class ShopTransaction(
-    val playerId: UUID,
-    val amount: Int,
-    val type: ShopType,
-    val timestamp: Timestamp
-)

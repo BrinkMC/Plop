@@ -2,10 +2,10 @@ package com.brinkmc.plop.shared.gui.shop.access.customer
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.util.TransactionResult
-import com.brinkmc.plop.shared.util.message.ItemKey
-import com.brinkmc.plop.shared.util.message.MessageKey
-import com.brinkmc.plop.shared.util.message.SoundKey
+import com.brinkmc.plop.shared.util.shop.TransactionResult
+import com.brinkmc.plop.shared.util.design.enums.ItemKey
+import com.brinkmc.plop.shared.util.design.enums.MessageKey
+import com.brinkmc.plop.shared.util.design.enums.SoundKey
 import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.shop.ShopType
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable

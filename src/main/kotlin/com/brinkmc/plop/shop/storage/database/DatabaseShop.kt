@@ -4,8 +4,8 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.util.Funcs.fullString
-import com.brinkmc.plop.shared.util.Funcs.toLocation
+import com.brinkmc.plop.shared.util.LocationString.fullString
+import com.brinkmc.plop.shared.util.LocationString.toLocation
 import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.shop.ShopTransaction
 import com.brinkmc.plop.shop.shop.ShopType

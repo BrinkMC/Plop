@@ -6,10 +6,13 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.mutableListOf
 
 data class PlotFactory(
-    var level: Int,
-    val factories: MutableList<Location>,
-    @Transient internal val plotType: PlotType
+    private var level: Int
 ) {
-    val current: Int
-        get() = factories.size
+    fun getLevel(): Int {
+        return level
+    }
+
+    fun upgradeLevel() {
+        level++
+    }
 }

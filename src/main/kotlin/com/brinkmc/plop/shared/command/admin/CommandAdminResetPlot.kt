@@ -3,14 +3,14 @@ package com.brinkmc.plop.shared.command.admin
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.util.cmd.CmdAddon
-import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shared.base.Command
+import com.brinkmc.plop.shared.util.design.enums.MessageKey
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
 
-internal class CommandAdminResetPlot(override val plugin: Plop) : Addon, CmdAddon {
+internal class CommandAdminResetPlot(override val plugin: Plop) : Addon, Command {
 
     @Command("plop plot reset <Player> <PlotType>")
     suspend fun reset(

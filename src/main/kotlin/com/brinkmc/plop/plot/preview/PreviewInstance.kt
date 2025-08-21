@@ -3,14 +3,11 @@ package com.brinkmc.plop.plot.preview
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.util.collection.Node
+import com.brinkmc.plop.shared.util.datatype.Node
 import com.noxcrew.interfaces.view.InterfaceView
-import org.bukkit.Bukkit
-import org.bukkit.GameMode
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
-import java.util.Base64
 import java.util.UUID
 
 /*

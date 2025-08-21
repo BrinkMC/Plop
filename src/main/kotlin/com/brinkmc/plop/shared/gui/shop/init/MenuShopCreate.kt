@@ -1,10 +1,9 @@
 package com.brinkmc.plop.shared.gui.shop.init
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.util.message.ItemKey
-import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shared.util.design.enums.ItemKey
+import com.brinkmc.plop.shared.util.design.enums.MessageKey
 import com.brinkmc.plop.shop.Shops
 import com.brinkmc.plop.shop.shop.Shop
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
@@ -14,18 +13,7 @@ import com.noxcrew.interfaces.interfaces.buildChestInterface
 import com.noxcrew.interfaces.properties.InterfaceProperty
 import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.InterfaceView
-import io.lumine.shadow.Static
-import kotlinx.coroutines.CompletableDeferred
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import org.bukkit.Location
-import org.bukkit.Material
-import org.bukkit.block.Chest
 import org.bukkit.entity.Player
-import org.bukkit.event.inventory.ClickType
-import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.BlockDataMeta
-import java.util.UUID
 
 class MenuShopCreate(override val plugin: Plop): Addon {
 

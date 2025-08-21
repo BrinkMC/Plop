@@ -1,22 +1,28 @@
 package com.brinkmc.plop.plot.plot.modifier
 
-import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.plot.structure.Totem
-import com.brinkmc.plop.plot.plot.structure.TotemType
+import com.brinkmc.plop.shared.util.plot.TotemType
 import org.bukkit.Location
 
 data class PlotTotem(
-    var level: Int,
-    val totems: MutableList<Totem>,
-    val enableLightning: Boolean,
-    @Transient internal val plotType: PlotType
+    private var level: Int,
+    private val totems: MutableList<Totem>,
+    private var enableLightning: Boolean
 ) {
-    fun getTypes(): List<TotemType> {
-        return totems.map { it.totemType }
+    fun getLevel(): Int {
+        return level
     }
 
-    fun getTotem(type: TotemType): Totem? {
-        return totems.firstOrNull { it.totemType == type }
+    fun upgradeLevel() {
+        level++
+    }
+
+    fun getTypes(): List<TotemType> {
+        return totems.map { it.getTotemType() }
+    }
+
+    fun getTotems(): List<Totem> {
+        return totems
     }
 
     fun addTotem(type: TotemType, location: Location) {
@@ -24,6 +30,6 @@ data class PlotTotem(
     }
 
     fun removeTotem(type: TotemType, location: Location) {
-        totems.removeIf { it.totemType == type && it.location == location }
+        totems.removeIf { it.getTotemType() == type && it.getLocation() == location }
     }
 }

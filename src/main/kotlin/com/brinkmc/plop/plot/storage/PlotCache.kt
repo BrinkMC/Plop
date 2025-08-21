@@ -5,6 +5,7 @@ import com.brinkmc.plop.plot.plot.base.Plot
 import com.brinkmc.plop.plot.storage.database.DatabasePlot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shared.util.CoroutineUtils.async
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.sksamuel.aedile.core.asCache
@@ -35,7 +36,7 @@ class PlotCache(override val plugin: Plop): Addon, State {
     private val plotMap = Caffeine.newBuilder()
         .expireAfterAccess(30.minutes)
         .asLoadingCache<UUID, Plot?> {
-            asyncScope {
+            plugin.asyncScope {
                 databaseHandler.load(it)
             }
         }
@@ -60,7 +61,7 @@ class PlotCache(override val plugin: Plop): Addon, State {
     }
 
     suspend fun addPlot(plot: Plot) {
-        asyncScope {
+        plugin.asyncScope {
             plotMap.invalidate(plot.plotId) // In case it was there before
             databaseHandler.create(plot) // Adds the plot to the database
             plotMap.get(plot.plotId) {
@@ -70,7 +71,7 @@ class PlotCache(override val plugin: Plop): Addon, State {
     }
 
     suspend fun  deletePlot(plot: Plot) {
-        asyncScope {
+        plugin.asyncScope {
             plotMap.invalidate(plot.plotId) // Deletes the plot from the cache
             databaseHandler.delete(plot) // Deletes the plot from the database
         }

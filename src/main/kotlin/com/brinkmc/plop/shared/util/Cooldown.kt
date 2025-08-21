@@ -2,25 +2,18 @@ package com.brinkmc.plop.shared.util
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.util.message.MessageKey
-import com.brinkmc.plop.shared.util.message.SoundKey
+import com.brinkmc.plop.shared.util.design.enums.MessageKey
+import com.brinkmc.plop.shared.util.design.enums.SoundKey
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.sksamuel.aedile.core.Cache
 import com.sksamuel.aedile.core.asCache
 import com.sksamuel.aedile.core.expireAfterWrite
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import org.bukkit.command.CommandSender
-import org.incendo.cloud.paper.util.sender.Source
 import org.bukkit.entity.Player
-import org.bukkit.potion.PotionEffectType
-import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 class Cooldown(override val plugin: Plop, private val cooldown: Duration): Addon {
 

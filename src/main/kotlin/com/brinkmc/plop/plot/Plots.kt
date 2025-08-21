@@ -23,6 +23,7 @@ class Plots(override val plugin: Plop): Addon, State {
     lateinit var claimHandler: PlotClaimHandler
     lateinit var shopHandler: PlotShopHandler
     lateinit var sizeHandler: PlotSizeHandler
+    lateinit var fuelerHandler: PlotFuelerHandler
 
     lateinit var nexusManager: NexusManager
 
@@ -63,6 +64,7 @@ class Plots(override val plugin: Plop): Addon, State {
         shopHandler = PlotShopHandler(plugin)
         sizeHandler = PlotSizeHandler(plugin)
         nexusManager = NexusManager(plugin)
+        fuelerHandler = PlotFuelerHandler(plugin)
 
         listOf(
             handler,
@@ -74,7 +76,8 @@ class Plots(override val plugin: Plop): Addon, State {
             claimHandler,
             shopHandler,
             sizeHandler,
-            nexusManager
+            nexusManager,
+            fuelerHandler
         ).forEach { handler -> (handler as State).load() }
     }
 
@@ -89,7 +92,8 @@ class Plots(override val plugin: Plop): Addon, State {
             claimHandler,
             shopHandler,
             sizeHandler,
-            nexusManager
+            nexusManager,
+            fuelerHandler
         ).forEach { handler -> (handler as State).kill() }
     }
 

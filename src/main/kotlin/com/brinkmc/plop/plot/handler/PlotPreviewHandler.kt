@@ -7,7 +7,7 @@ import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.preview.PreviewInstance
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shared.util.design.enums.MessageKey
 import java.util.UUID
 
 /*

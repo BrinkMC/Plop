@@ -1,5 +1,6 @@
 package com.brinkmc.plop
 
+import com.brinkmc.plop.factory.Factories
 import com.brinkmc.plop.plot.Plots
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.command.admin.*
@@ -12,54 +13,37 @@ import com.brinkmc.plop.shared.command.plot.nexus.CommandPlotVisitToggle
 import com.brinkmc.plop.shared.command.plot.preview.CommandPlotPreview
 import com.brinkmc.plop.shared.command.processors.GeneralSuggestionProcessor
 import com.brinkmc.plop.shared.command.utils.PlotTypeParser
-import com.brinkmc.plop.shared.config.ConfigReader
-import com.brinkmc.plop.shared.display.NexusDisplay
-import com.brinkmc.plop.shared.display.ShopDisplay
-import com.brinkmc.plop.shared.gui.nexus.MenuNexusMain
-import com.brinkmc.plop.shared.gui.nexus.MenuPlotLogs
-import com.brinkmc.plop.shared.gui.nexus.MenuTotemList
-import com.brinkmc.plop.shared.gui.nexus.MenuUpgrade
-import com.brinkmc.plop.shared.gui.preview.HotbarPreview
-import com.brinkmc.plop.shared.gui.selector.SelectionOtherMenu
-import com.brinkmc.plop.shared.gui.selector.SelectionSelfMenu
-import com.brinkmc.plop.shared.gui.shop.access.MenuShopMain
-import com.brinkmc.plop.shared.gui.shop.access.customer.MenuBuy
-import com.brinkmc.plop.shared.gui.shop.access.customer.MenuSell
-import com.brinkmc.plop.shared.gui.shop.access.owner.MenuShopLogs
-import com.brinkmc.plop.shared.gui.shop.access.owner.MenuShopSettings
-import com.brinkmc.plop.shared.gui.shop.init.MenuShopCreate
-import com.brinkmc.plop.shared.gui.shop.init.item.MenuShopItem
-import com.brinkmc.plop.shared.gui.shop.init.price.MenuShopBuy
-import com.brinkmc.plop.shared.gui.shop.init.price.MenuShopBuyLimit
-import com.brinkmc.plop.shared.gui.shop.init.price.MenuShopSell
-import com.brinkmc.plop.shared.gui.shop.init.stock.MenuShopStock
-import com.brinkmc.plop.shared.gui.visit.MenuPlotList
-import com.brinkmc.plop.shared.hooks.Display
-import com.brinkmc.plop.shared.hooks.Economy
-import com.brinkmc.plop.shared.hooks.Guilds
-import com.brinkmc.plop.shared.hooks.MythicMobs
-import com.brinkmc.plop.shared.hooks.PacketEvents
-import com.brinkmc.plop.shared.hooks.WorldGuard
-import com.brinkmc.plop.shared.hooks.listener.GeneralListener
-import com.brinkmc.plop.shared.hooks.listener.GuildListener
-import com.brinkmc.plop.shared.hooks.listener.PreviewListener
-import com.brinkmc.plop.shared.hooks.listener.DamageListener
-import com.brinkmc.plop.shared.hooks.listener.NexusListener
-import com.brinkmc.plop.shared.hooks.PlayerTracker
-import com.brinkmc.plop.shared.hooks.listener.ShopListener
-import com.brinkmc.plop.shared.hooks.listener.TotemListener
-import com.brinkmc.plop.shared.hooks.listener.VisitListener
-import com.brinkmc.plop.shared.storage.HikariManager
-import com.brinkmc.plop.shared.util.LocationUtils
-import com.brinkmc.plop.shared.util.message.MessageService
-import com.brinkmc.plop.shared.util.message.MessageSource
+import com.brinkmc.plop.shared.config.ConfigHandler
+import com.brinkmc.plop.shared.hook.listener.GeneralListener
+import com.brinkmc.plop.shared.hook.listener.GuildListener
+import com.brinkmc.plop.shared.hook.listener.PreviewListener
+import com.brinkmc.plop.shared.hook.listener.DamageListener
+import com.brinkmc.plop.shared.hook.listener.NexusListener
+import com.brinkmc.plop.shared.hook.api.PlayerTracker
+import com.brinkmc.plop.shared.hook.listener.ShopListener
+import com.brinkmc.plop.shared.hook.listener.TotemListener
+import com.brinkmc.plop.shared.hook.listener.VisitListener
+import com.brinkmc.plop.shared.db.HikariManager
+import com.brinkmc.plop.shared.gui.MenuHandler
+import com.brinkmc.plop.shared.hologram.HologramHandler
+import com.brinkmc.plop.shared.hook.HookHandler
+import com.brinkmc.plop.shared.util.ClaimUtils
+import com.brinkmc.plop.shared.util.LocationString
+import com.brinkmc.plop.shared.util.design.DesignHandler
+import com.brinkmc.plop.shared.util.design.MessageSource
 import com.brinkmc.plop.shop.Shops
-import com.github.retrooper.packetevents.event.PacketListenerPriority
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
+import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
+import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.github.shynixn.mccoroutine.bukkit.registerSuspendingEvents
+import com.google.gson.Gson
 import com.noxcrew.interfaces.InterfacesListeners
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.withContext
+import net.kyori.adventure.audience.Audience
+import net.kyori.adventure.audience.Audiences
 import org.bukkit.NamespacedKey
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.bukkit.parser.PlayerParser
@@ -72,31 +56,29 @@ import java.io.File
 class Plop : State, SuspendingJavaPlugin() {
 
     private val plugin = this
+    lateinit var DB: HikariManager
+    lateinit var gson: Gson
 
+    // 3 main modules of the plugin
     lateinit var plots: Plots
     lateinit var shops: Shops
-    lateinit var menus: Menus
-    lateinit var DB: HikariManager
+    lateinit var factories: Factories
 
+    // Shared modules
+    lateinit var menuHandler: MenuHandler
+    lateinit var configHandler: ConfigHandler
+    lateinit var hookHandler: HookHandler
+    lateinit var designHandler: DesignHandler
+    lateinit var hologramHandler: HologramHandler
+    lateinit var audiences: Audiences
+
+
+    // Private components for plop use only
     private lateinit var commandManager: PaperCommandManager<CommandSourceStack>
     private lateinit var annotationParser: AnnotationParser<CommandSourceStack>
     private lateinit var messageSource: MessageSource
-    private lateinit var messageService: MessageService
-    private lateinit var configManager: ConfigReader
 
-    // Hooks
-    lateinit var hooks: Hooks
-    lateinit var display: Displays
 
-    private lateinit var damageListener: DamageListener
-    private lateinit var generalListener: GeneralListener
-    private lateinit var guildListener: GuildListener
-    private lateinit var nexusListener: NexusListener
-    lateinit var playerTracker: PlayerTracker
-    private lateinit var previewListener: PreviewListener
-    private lateinit var shopListener: ShopListener
-    private lateinit var totemListener: TotemListener
-    private lateinit var visitListener: VisitListener
 
     override suspend fun onLoadAsync() {
         com.github.retrooper.packetevents.PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
@@ -111,8 +93,7 @@ class Plop : State, SuspendingJavaPlugin() {
         //TODO ascertain order to kill
         plots.kill()
         shops.kill()
-        configManager.kill()
-        DB.kill()
+
     }
 
     /*
@@ -127,12 +108,12 @@ class Plop : State, SuspendingJavaPlugin() {
         // Load messages
         messageSource = MessageSource(plugin)
         messageSource.load()
-        messageService = MessageService(plugin)
+        designHandler = DesignHandler(plugin)
 
         // Load configs initially to get all necessary data
         plugin.slF4JLogger.info("Initiating config manager")
-        configManager = ConfigReader(plugin)
-        configManager.load()
+        configHandler = ConfigHandler(plugin)
+        configHandler.load()
         plugin.slF4JLogger.info("Finished loading config manager")
 
         DB = HikariManager(plugin)
@@ -140,8 +121,8 @@ class Plop : State, SuspendingJavaPlugin() {
 
         // Get instance of hooks
         plugin.slF4JLogger.info("Hooking into other plugins")
-        hooks = Hooks(plugin)
-        hooks.load()
+        hookHandler = HookHandler(plugin)
+        hookHandler.load()
 
         // Load the two parts of the plugin
         plugin.slF4JLogger.info("Initiating plots")
@@ -150,21 +131,20 @@ class Plop : State, SuspendingJavaPlugin() {
         plugin.slF4JLogger.info("Initiating shops")
         shops = Shops(plugin)
         shops.load()
-
-
+        plugin.slF4JLogger.info("Initiating factories")
+        factories = Factories(plugin)
+        factories.load()
 
         // Load displays
         plugin.slF4JLogger.info("Initiating displays")
-        display = Displays(plugin)
-        display.load()
+        hologramHandler = HologramHandler(plugin)
+        hologramHandler.load()
 
         // Enable all menus
         plugin.slF4JLogger.info("Creating menus and hotbars")
-        menus = Menus(plugin)
-
+        menuHandler = MenuHandler(plugin)
 
         // Register listener
-        loadListeners()
 
         // Finally enable commands
         loadCmds()
@@ -173,38 +153,6 @@ class Plop : State, SuspendingJavaPlugin() {
     override suspend fun kill() {
         plots.kill()
         shops.kill()
-    }
-
-    private suspend fun loadListeners() {
-        InterfacesListeners.install(this)
-
-        plugin.slF4JLogger.info("Initiating listeners")
-        damageListener = DamageListener(plugin)
-        generalListener = GeneralListener(plugin)
-        guildListener = GuildListener(plugin)
-        nexusListener = NexusListener(plugin)
-        playerTracker = PlayerTracker(plugin)
-        previewListener = PreviewListener(plugin)
-        shopListener = ShopListener(plugin)
-        totemListener = TotemListener(plugin)
-        visitListener = VisitListener(plugin)
-
-        // Listeners
-        listOf(
-            damageListener,
-            generalListener,
-            guildListener,
-            nexusListener,
-            playerTracker,
-            previewListener,
-            shopListener,
-            totemListener,
-            visitListener
-        ).forEach { listener ->
-            listener.load()
-            server.pluginManager.registerSuspendingEvents(listener, this)
-        }
-        plugin.slF4JLogger.info("Finished hooking listeners")
     }
 
     private fun loadCmds() {
@@ -238,16 +186,8 @@ class Plop : State, SuspendingJavaPlugin() {
         }
     }
 
-    fun getFile(fileName: String): File? {
+    fun getFile(fileName: String): File {
         return File(plugin.dataFolder, fileName)
-    }
-
-    fun getMessageService(): MessageService {
-        return this.messageService
-    }
-
-    fun getConfigManager(): ConfigReader {
-        return this.configManager
     }
 
     fun plopMessageSource(): MessageSource {
@@ -257,95 +197,7 @@ class Plop : State, SuspendingJavaPlugin() {
     val namespacedKey: NamespacedKey
         get() = NamespacedKey(plugin, "plop")
 
-    // All displays used in plugin
-    class Displays(val plugin: Plop): State {
-        val shopDisplay = ShopDisplay(plugin)
-        val nexusDisplay = NexusDisplay(plugin)
+    suspend fun <T> syncScope(block: suspend CoroutineScope.() -> T): T = withContext(plugin.minecraftDispatcher, block)
 
-        override suspend fun load() {
-            listOf(
-                shopDisplay,
-                nexusDisplay
-            ).forEach { display -> display.load() }
-        }
-
-        override suspend fun kill() {
-            listOf(
-                shopDisplay,
-                nexusDisplay
-            ).forEach { display -> display.kill() }
-        }
-    }
-
-    // Enable hooks
-    class Hooks(val plugin: Plop): State {
-        val display = Display(plugin)
-        val guilds = Guilds(plugin)
-        val packetEvents = PacketEvents(plugin)
-        val mythicMobs = MythicMobs(plugin)
-        val worldGuard = WorldGuard(plugin)
-        val economy = Economy(plugin)
-
-        override suspend fun load() {
-            listOf(
-                guilds,
-                display,
-                mythicMobs,
-                worldGuard,
-                economy
-            ).forEach { hook -> hook.load() }
-            com.github.retrooper.packetevents.PacketEvents.getAPI().init()
-            com.github.retrooper.packetevents.PacketEvents.getAPI().eventManager.registerListener(packetEvents, PacketListenerPriority.NORMAL)
-        }
-
-        override suspend fun kill() {
-            listOf(
-                guilds,
-                display,
-                mythicMobs,
-                worldGuard,
-                economy
-            ).forEach { hook -> hook.kill() }
-        }
-    }
-
-    // All menus used in the plugin
-    class Menus(val plugin: Plop) {
-        // Selectors
-        val selectionSelfMenu = SelectionSelfMenu(plugin)
-        val selectionOtherMenu = SelectionOtherMenu(plugin)
-
-        // Hotbar
-        val hotbarPreview = HotbarPreview(plugin)
-
-        // Nexus configs
-        val nexusMainMenu = MenuNexusMain(plugin)
-        val nexusLogsMenu = MenuPlotLogs(plugin)
-        val nexusTotemsMenu = MenuTotemList(plugin)
-        val nexusUpgradeMenu = MenuUpgrade(plugin)
-
-        // Plot Visit
-        val plotVisitMenu = MenuPlotList(plugin)
-
-        // Shop menus creation
-        val shopInitCreateMenu = MenuShopCreate(plugin)
-        val shopInitItemMenu = MenuShopItem(plugin)
-        val shopInitBuyMenu = MenuShopBuy(plugin)
-        val shopInitBuyLimitMenu = MenuShopBuyLimit(plugin)
-        val shopInitSellMenu = MenuShopSell(plugin)
-        val shopInitStockMenu = MenuShopStock(plugin)
-
-        val shopMainMenu = MenuShopMain(plugin)
-
-        // Shop owner menus
-        val shopLogsMenu = MenuShopLogs(plugin)
-        val shopSettingsMenu = MenuShopSettings(plugin)
-
-        // Shop client menus
-        val shopBuyMenu = MenuBuy(plugin)
-        val shopSellMenu = MenuSell(plugin)
-
-    }
-
-    val locationUtils = LocationUtils(plugin)
+    suspend fun <T> asyncScope(block: suspend CoroutineScope.() -> T): T = withContext(plugin.asyncDispatcher, block)
 }

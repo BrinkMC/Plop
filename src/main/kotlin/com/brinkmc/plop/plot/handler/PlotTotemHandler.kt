@@ -34,7 +34,12 @@ class PlotTotemHandler(override val plugin: Plop): Addon, State {
             string = string.substringAfter(totemConfig.totemId)
         }
 
-        TotemType.entries.find { it.name == string }?.let { return it } ?: return null
+        TotemType.entries.find {
+            it.name == string
+        }?.let {
+            return it
+        }
+        return null
     }
 
     fun getHighestLevel(plotType: PlotType): Int {

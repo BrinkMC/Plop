@@ -3,15 +3,15 @@ package com.brinkmc.plop.shared.command.plot.preview
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.util.cmd.CmdAddon
-import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shared.base.Command
+import com.brinkmc.plop.shared.util.design.enums.MessageKey
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.CommandDescription
 import org.incendo.cloud.annotations.Permission
 
-internal class CommandPlotPreview(override val plugin: Plop): Addon, CmdAddon {
+internal class CommandPlotPreview(override val plugin: Plop): Addon, Command {
 
     @Command("plot preview [PlotType]")
     @CommandDescription("preview a plot if not already claimed")

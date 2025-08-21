@@ -1,7 +1,7 @@
 package com.brinkmc.plop.shop
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.base.PlotOwner
+import com.brinkmc.plop.plot.plot.modifier.PlotOwner
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shop.handler.ShopCreationHandler
@@ -16,16 +16,6 @@ import java.util.UUID
 import kotlin.math.log
 
 class Shops(override val plugin: Plop): Addon, State {
-
-    companion object {
-        const val NO_BUY_PRICE = -1.0f
-        const val NO_SELL_PRICE = -1.0f
-        const val MIN_BUY_PRICE = 0.0f
-        const val MIN_SELL_PRICE = 0.0f
-        const val MIN_BUY_LIMIT = 0
-        const val MIN_QUANTITY = 0
-        val EMPTY_ITEM = Material.AIR
-    }
 
     lateinit var handler: ShopHandler
     lateinit var transHandler: ShopTransactionHandler

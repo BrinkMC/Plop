@@ -2,30 +2,34 @@ package com.brinkmc.plop.plot.handler
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.Plot
-import com.brinkmc.plop.plot.plot.base.PlotOwner
-import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.plot.storage.PlotCache
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.hooks.Locals.world
+import com.brinkmc.plop.shared.hook.api.Locals.world
+import com.brinkmc.plop.shared.util.BukkitUtils.player
+import com.brinkmc.plop.shared.util.CoroutineUtils.async
+import com.brinkmc.plop.shared.util.LocationString.fullString
+import com.brinkmc.plop.shared.util.design.enums.MessageKey
+import com.brinkmc.plop.shared.util.design.enums.SoundKey
+import com.brinkmc.plop.shared.util.plot.PlotType
 import com.github.yannicklamprecht.worldborder.api.WorldBorderApi
 import kotlinx.coroutines.delay
-import org.bukkit.Bukkit
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Location
 import org.bukkit.World
-import org.bukkit.plugin.RegisteredServiceProvider
+import org.bukkit.entity.Player
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
-import kotlin.collections.HashMap
+import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 class PlotHandler(override val plugin: Plop): Addon, State  {
 
     private lateinit var plotCache: PlotCache
-
+    private lateinit var locationCache: HashMap<String, UUID>
     private lateinit var borderAPI: WorldBorderApi // Late init as it is not available on startup
 
-    override suspend fun load() { syncScope {
+    override suspend fun load() { plugin.syncScope {
         plotCache = PlotCache(plugin) // Load the cache + database
         plotCache.load()
 
@@ -46,19 +50,45 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
         return plotCache.getPlot(plotId)
     }
 
-    suspend fun getPlotsByMembership(playerId: UUID): List<Plot> { // Gets all plots someone is in
+    suspend fun getPlotsByMembership(player: UUID): List<Plot> { // Gets all plots someone is in
         return listOfNotNull(
-            getPlotById(playerId),
-            getPlotById(playerId.guild()?.id)
+            getPlotById(player),
+            getPlotById(hookHandler.guilds.getGuild(player)?.id)
         )
     }
 
+    suspend fun getPlotFromLocation(location: Location): Plot? { return plugin.asyncScope {
+        val locationKey = location.fullString(false)
+        val cachedPlotId = locationCache[locationKey]
+        if (cachedPlotId != null) {
+            return@asyncScope getPlotById(cachedPlotId)
+        }
+
+        val worldGuardRegions = plugin.hookHandler.worldGuard.getRegions(location)
+
+        if (worldGuardRegions?.size != 1) {
+            return@asyncScope null
+        }
+        val regionIdString = worldGuardRegions.first()?.id ?: return@asyncScope null
+        val plotId = UUID.fromString(regionIdString)
+
+        locationCache[locationKey] = plotId
+        return@asyncScope getPlotById(plotId)
+    } }
+
     suspend fun hasGuildPlot(player: UUID): Boolean {
-        return getPlotById(player.guild()?.id) != null
+        return getPlotById(hookHandler.guilds.getGuild(player)?.id) != null
     }
 
     suspend fun hasPersonalPlot(player: UUID): Boolean {
         return getPlotById(player) != null
+    }
+
+    suspend fun isPlotWorld(world: World): Boolean {
+        return listOfNotNull(
+            configHandler.plotConfig.getPlotWorld(PlotType.PERSONAL).world(),
+            configHandler.plotConfig.getPlotWorld(PlotType.GUILD).world()
+        ).contains(world)
     }
 
     suspend fun addPlot(plot: Plot) {
@@ -68,41 +98,4 @@ class PlotHandler(override val plugin: Plop): Addon, State  {
     suspend fun deletePlot(plot: Plot) {
         plotCache.deletePlot(plot)
     }
-
-    suspend fun getPlotFromLocation(location: Location): Plot? { return asyncScope {
-        val worldGuardRegions = plugin.hooks.worldGuard.getRegions(location) // WorldGuard is async so it is fine to access async
-        if (worldGuardRegions?.size != 1) return@asyncScope null // Must only be one region player is standing in if it is a plot world
-        return@asyncScope getPlotById(UUID.fromString(worldGuardRegions.first()?.id))
-    } }
-
-    fun updateBorder(player: UUID) { plugin.async {
-        // Update player tracker for handy information
-        plugin.playerTracker.refresh(player.player() ?: return@async)
-
-        val bukkitPlayer = player.player() ?: run {
-            logger.error("Failed to send fake border to player $player")
-            return@async
-        }
-
-        val potentialPreview = plots.previewHandler.getPreview(player)
-        if (potentialPreview != null) { // Check if player is in a preview
-            syncScope {
-                borderAPI.setBorder(bukkitPlayer, plotConfig.getPlotMaxSize(potentialPreview.type).toDouble(), potentialPreview.viewPlot.value.toLocation())
-            }
-            return@async
-        }
-
-
-        if (bukkitPlayer.world.isPlotWorld()) { // Run logic for getting plot they are in
-            val plot = getPlotFromLocation(bukkitPlayer.location) ?:  return@async // Make sure plot isn't null
-
-            syncScope {
-                borderAPI.setBorder(bukkitPlayer, plot.size.current.toDouble(), plot.claim.centre) // Send the player the border
-            }
-        } else {
-            syncScope {
-                borderAPI.resetWorldBorderToGlobal(bukkitPlayer)
-            }
-        }
-    } }
 }

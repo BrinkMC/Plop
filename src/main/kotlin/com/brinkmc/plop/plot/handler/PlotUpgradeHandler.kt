@@ -2,10 +2,9 @@ package com.brinkmc.plop.plot.handler
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.Plot
-import com.brinkmc.plop.plot.plot.base.PlotOwner
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.util.message.MessageKey
+import com.brinkmc.plop.shared.util.design.enums.MessageKey
 import org.bukkit.entity.Player
 
 class PlotUpgradeHandler(override val plugin: Plop): Addon, State {

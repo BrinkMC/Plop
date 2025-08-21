@@ -13,15 +13,13 @@ import com.brinkmc.plop.plot.plot.structure.Totem
 import com.brinkmc.plop.plot.plot.structure.TotemType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.util.Funcs.fullString
-import com.brinkmc.plop.shared.util.Funcs.toLocation
+import com.brinkmc.plop.shared.util.LocationString.fullString
+import com.brinkmc.plop.shared.util.LocationString.toLocation
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.bukkit.Location
-import java.sql.ResultSet
 import java.sql.Timestamp
 import java.util.UUID
-import java.util.concurrent.locks.ReentrantLock
 
 class DatabasePlot(override val plugin: Plop): Addon, State {
 
@@ -31,8 +29,9 @@ class DatabasePlot(override val plugin: Plop): Addon, State {
 
     override suspend fun kill() {}
 
-    suspend fun load(plotId: UUID): Plot? = mutex.withLock {
-        val id = plotId
+    suspend fun load(id: UUID): Plot? = mutex.withLock {
+        gson.
+
         val plot = loadPlotCore(id) ?: return null
         plot.setClaim(loadClaim(id) ?: plot.claim)
         plot.setSize(loadSize(id) ?: plot.size)

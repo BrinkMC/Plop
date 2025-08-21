@@ -3,13 +3,10 @@ package com.brinkmc.plop.plot.nexus
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.util.message.MessageKey
-import com.noxcrew.interfaces.view.InterfaceView
+import com.brinkmc.plop.shared.util.design.enums.MessageKey
 import com.sk89q.worldedit.extent.clipboard.Clipboard
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats
-import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import java.io.File
 import java.io.FileInputStream

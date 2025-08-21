@@ -3,7 +3,7 @@ package com.brinkmc.plop.shop.handler
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.util.TransactionResult
+import com.brinkmc.plop.shared.util.shop.TransactionResult
 import com.brinkmc.plop.shop.shop.Shop
 import com.brinkmc.plop.shop.shop.ShopType
 import com.brinkmc.plop.shop.storage.ShopCache

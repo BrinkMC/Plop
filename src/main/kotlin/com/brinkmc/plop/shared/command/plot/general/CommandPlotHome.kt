@@ -3,20 +3,16 @@ package com.brinkmc.plop.shared.command.plot.general
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.util.cmd.CmdAddon
-import com.brinkmc.plop.shared.util.message.MessageKey
-import com.brinkmc.plop.shared.util.message.SoundKey
+import com.brinkmc.plop.shared.base.Command
+import com.brinkmc.plop.shared.util.design.enums.MessageKey
+import com.brinkmc.plop.shared.util.design.enums.SoundKey
 import io.papermc.paper.command.brigadier.CommandSourceStack
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.future.await
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Argument
 import org.incendo.cloud.annotations.Command
-import kotlin.math.roundToInt
 
-class CommandPlotHome(override val plugin: Plop) : Addon, CmdAddon {
+class CommandPlotHome(override val plugin: Plop) : Addon, Command {
 
     @Command("plot home|home [PlotType]")
     suspend fun goHome(

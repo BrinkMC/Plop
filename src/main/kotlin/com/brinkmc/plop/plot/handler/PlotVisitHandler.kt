@@ -24,6 +24,17 @@ class PlotVisitHandler(override val plugin: Plop): Addon, State {
 
     // Getters
 
+    fun addVisitor(plot: Plot, amount: Int) {
+        plot.visit.currentVisits += amount
+    }
+
+    fun removeVisitor(plot: Plot, amount: Int) {
+        plot.visit.currentVisits -= amount
+        if (plot.visit.currentVisits < 0) {
+            plot.visit.currentVisits = 0 // Ensure we don't go below zero
+        }
+    }
+
     fun getHighestLevel(plotType: PlotType): Int {
        return when (plotType) {
            PlotType.GUILD -> guildLevels.size - 1

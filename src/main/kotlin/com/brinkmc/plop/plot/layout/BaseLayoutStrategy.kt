@@ -6,12 +6,10 @@ import com.brinkmc.plop.plot.preview.Direction
 import com.brinkmc.plop.plot.preview.StringLocation
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.config.configs.PlotConfig
-import com.brinkmc.plop.shared.util.collection.LinkedList
-import com.brinkmc.plop.shared.util.collection.Node
+import com.brinkmc.plop.shared.util.datatype.LinkedList
+import com.brinkmc.plop.shared.util.datatype.Node
 import org.bukkit.Location
 import org.bukkit.World
-import org.bukkit.WorldCreator
 import java.util.concurrent.atomic.AtomicBoolean
 
 abstract class BaseLayoutStrategy(override val plugin: Plop, open val plotType: PlotType) : State, Addon {

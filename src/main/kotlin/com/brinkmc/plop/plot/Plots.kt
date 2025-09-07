@@ -1,31 +1,29 @@
 package com.brinkmc.plop.plot
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.handler.*
-import com.brinkmc.plop.plot.nexus.NexusManager
+import com.brinkmc.plop.plot.service.*
+import com.brinkmc.plop.plot.service.PlotNexusService
 import com.brinkmc.plop.plot.plot.base.PlotType
-import com.brinkmc.plop.plot.plot.modifier.PlotTotem
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import org.bukkit.World
 import org.bukkit.WorldCreator
-import org.bukkit.generator.ChunkGenerator
 
 class Plots(override val plugin: Plop): Addon, State {
 
-    // Sub handlers
-    lateinit var handler: PlotHandler
-    lateinit var visitorHandler: PlotVisitHandler
-    lateinit var upgradeHandler: PlotUpgradeHandler
-    lateinit var totemHandler: PlotTotemHandler
-    lateinit var previewHandler: PlotPreviewHandler
-    lateinit var factoryHandler: PlotFactoryHandler
-    lateinit var claimHandler: PlotClaimHandler
-    lateinit var shopHandler: PlotShopHandler
-    lateinit var sizeHandler: PlotSizeHandler
-    lateinit var fuelerHandler: PlotFuelerHandler
-
-    lateinit var nexusManager: NexusManager
+    // Sub Services
+    override val plotService = PlotService(plugin)
+    override val plotVisitService = PlotVisitService(plugin)
+    override val plotUpgradeService = PlotUpgradeService(plugin)
+    override val plotTotemService = PlotTotemService(plugin)
+    override val plotPreviewService = PlotPreviewService(plugin)
+    override val plotFactoryService = PlotFactoryService(plugin)
+    override val plotClaimService = PlotClaimService(plugin)
+    override val plotShopService = PlotShopService(plugin)
+    override val plotSizeService = PlotSizeService(plugin)
+    override val plotFuelerService = PlotFuelerService(plugin)
+    override val plotNexusService = PlotNexusService(plugin)
+    override val plotLayoutService = PlotLayoutService(plugin)
 
     override suspend fun load() {
         logger.info("Loading Plots...")
@@ -54,47 +52,47 @@ class Plots(override val plugin: Plop): Addon, State {
             // Register / load worlds on server
         }
 
-        handler = PlotHandler(plugin)
-        visitorHandler = PlotVisitHandler(plugin)
-        upgradeHandler = PlotUpgradeHandler(plugin)
-        previewHandler = PlotPreviewHandler(plugin)
-        totemHandler = PlotTotemHandler(plugin)
-        factoryHandler = PlotFactoryHandler(plugin)
-        claimHandler = PlotClaimHandler(plugin)
-        shopHandler = PlotShopHandler(plugin)
-        sizeHandler = PlotSizeHandler(plugin)
-        nexusManager = NexusManager(plugin)
-        fuelerHandler = PlotFuelerHandler(plugin)
+        plotService = PlotService(plugin)
+        visitorService = PlotVisitService(plugin)
+        upgradeService = PlotUpgradeService(plugin)
+        previewService = PlotPreviewService(plugin)
+        totemService = PlotTotemService(plugin)
+        factoryService = PlotFactoryService(plugin)
+        claimService = PlotClaimService(plugin)
+        shopService = PlotShopService(plugin)
+        sizeService = PlotSizeService(plugin)
+        nexusService = PlotNexusService(plugin)
+        fuelerService = PlotFuelerService(plugin)
 
         listOf(
-            handler,
-            visitorHandler,
-            upgradeHandler,
-            previewHandler,
-            totemHandler,
-            factoryHandler,
-            claimHandler,
-            shopHandler,
-            sizeHandler,
-            nexusManager,
-            fuelerHandler
-        ).forEach { handler -> (handler as State).load() }
+            plotService,
+            visitorService,
+            upgradeService,
+            previewService,
+            totemService,
+            factoryService,
+            claimService,
+            shopService,
+            sizeService,
+            nexusService,
+            fuelerService
+        ).forEach { Service -> (Service as State).load() }
     }
 
     override suspend fun kill() {
         listOf(
-            handler,
-            visitorHandler,
-            upgradeHandler,
-            previewHandler,
-            totemHandler,
-            factoryHandler,
-            claimHandler,
-            shopHandler,
-            sizeHandler,
-            nexusManager,
-            fuelerHandler
-        ).forEach { handler -> (handler as State).kill() }
+            plotService,
+            visitorService,
+            upgradeService,
+            previewService,
+            totemService,
+            factoryService,
+            claimService,
+            shopService,
+            sizeService,
+            nexusService,
+            fuelerService
+        ).forEach { Service -> (Service as State).kill() }
     }
 
 

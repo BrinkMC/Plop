@@ -2,8 +2,8 @@ package com.brinkmc.plop.shared.gui.shop.access.owner
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.util.design.enums.MessageKey
-import com.brinkmc.plop.shop.shop.Shop
+import com.brinkmc.plop.shared.design.enums.MessageKey
+import com.brinkmc.plop.shop.dto.Shop
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.ChestInterfaceBuilder

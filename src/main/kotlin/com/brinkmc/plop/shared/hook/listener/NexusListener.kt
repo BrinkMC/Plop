@@ -3,8 +3,8 @@ package com.brinkmc.plop.shared.hook.listener
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.util.design.enums.MessageKey
-import com.brinkmc.plop.shared.util.design.enums.SoundKey
+import com.brinkmc.plop.shared.design.enums.MessageKey
+import com.brinkmc.plop.shared.design.enums.SoundKey
 import io.papermc.paper.event.player.PlayerInsertLecternBookEvent
 import org.bukkit.Material
 import org.bukkit.block.Lectern
@@ -26,7 +26,7 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
         val lectern = event.lectern
         val book = event.book
 
-        if (book.itemMeta.displayName() != plots.nexusManager.NEXUS_BOOK.itemMeta.displayName()) {
+        if (book.itemMeta.displayName() != plots.nexusService.NEXUS_BOOK.itemMeta.displayName()) {
             return
         }
 
@@ -55,7 +55,7 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
             return
         }
 
-        if (lectern.inventory.getItem(0)?.itemMeta?.displayName() != plots.nexusManager.NEXUS_BOOK.itemMeta.displayName()) {
+        if (lectern.inventory.getItem(0)?.itemMeta?.displayName() != plots.nexusService.NEXUS_BOOK.itemMeta.displayName()) {
             return
         }
 
@@ -77,8 +77,8 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
             return
         }
 
-        if (player.inventory.contains(plots.nexusManager.NEXUS_BOOK)) {
-            player.inventory.removeAll { it == plots.nexusManager.NEXUS_BOOK } // NO NEXUS BOOKS ALLOWED OUTSIDE PLOT!!
+        if (player.inventory.contains(plots.nexusService.NEXUS_BOOK)) {
+            player.inventory.removeAll { it == plots.nexusService.NEXUS_BOOK } // NO NEXUS BOOKS ALLOWED OUTSIDE PLOT!!
         }
     }
 
@@ -99,7 +99,7 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
             return
         }
 
-        if (lectern.inventory.getItem(0)?.itemMeta?.displayName() != plots.nexusManager.NEXUS_BOOK.itemMeta.displayName()) {
+        if (lectern.inventory.getItem(0)?.itemMeta?.displayName() != plots.nexusService.NEXUS_BOOK.itemMeta.displayName()) {
             event.isCancelled = false
             return
         }
@@ -143,7 +143,7 @@ class NexusListener(override val plugin: Plop): Addon, State, Listener {
             syncScope {
                 lectern.inventory.clear() // Clear the lectern of the book
                 // Drop book on ground
-                block.world.dropItemNaturally(block.location, plots.nexusManager.NEXUS_BOOK)
+                block.world.dropItemNaturally(block.location, plots.nexusService.NEXUS_BOOK)
             }
             plot.removeNexus(lectern.block.location)
             player.sendSound(SoundKey.CLICK)

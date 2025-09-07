@@ -2,7 +2,7 @@ package com.brinkmc.plop.shared.hook.listener
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
-import com.brinkmc.plop.plot.plot.structure.TotemType
+import com.brinkmc.plop.plot.dto.structure.TotemType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hook.api.Locals.world

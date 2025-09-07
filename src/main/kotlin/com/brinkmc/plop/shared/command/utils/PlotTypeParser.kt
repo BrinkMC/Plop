@@ -1,8 +1,6 @@
 package com.brinkmc.plop.shared.command.utils
 
-import com.brinkmc.plop.Plop
-import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.util.plot.PlotType
+import com.brinkmc.plop.plot.constant.PlotType
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.incendo.cloud.context.CommandContext
 import org.incendo.cloud.context.CommandInput

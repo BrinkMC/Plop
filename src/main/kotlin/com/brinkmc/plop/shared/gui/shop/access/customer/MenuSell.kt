@@ -3,9 +3,9 @@ package com.brinkmc.plop.shared.gui.shop.access.customer
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.isDrop
-import com.brinkmc.plop.shop.handler.ShopTransactionHandler
-import com.brinkmc.plop.shop.shop.Shop
-import com.brinkmc.plop.shop.shop.ShopType
+import com.brinkmc.plop.shop.service.ShopTransactionService
+import com.brinkmc.plop.shop.dto.Shop
+import com.brinkmc.plop.shop.dto.ShopType
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.ChestInterfaceBuilder
@@ -15,10 +15,7 @@ import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.InterfaceView
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import org.bukkit.Material
 import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 
 class MenuSell(override val plugin: Plop): Addon {
 
@@ -79,30 +76,30 @@ class MenuSell(override val plugin: Plop): Addon {
 
             // Amount means if it is 2, and the shop is selling in quantities of 16x, then the client is buying 32x total
             pane[1, 6] = when(shops.transHandler.checkTransaction(view.player, shop, amount, ShopType.BUY)) {
-                ShopTransactionHandler.TransactionResult.FAILURE -> {
+                ShopTransactionService.TransactionResult.FAILURE -> {
                     StaticElement(drawable(
                         BaseItems.BAD.get("shop.bad-amount.client-bad.name", "shop.bad-amount.client-bad.desc")
                     ))
                 }
-                ShopTransactionHandler.TransactionResult.PLAYER_INSUFFICIENT_STOCK -> {
+                ShopTransactionService.TransactionResult.PLAYER_INSUFFICIENT_STOCK -> {
                     StaticElement(drawable(
                         BaseItems.BAD.get("shop.bad-amount.client-bad.name", "shop.bad-amount.client-bad.desc")
                     ))
                 }
 
-                ShopTransactionHandler.TransactionResult.SHOP_INSUFFICIENT_BALANCE -> {
+                ShopTransactionService.TransactionResult.SHOP_INSUFFICIENT_BALANCE -> {
                     StaticElement(drawable(
                         BaseItems.BAD.get("shop.bad-amount.shop-bad.name", "shop.bad-amount.shop-bad.desc")
                     ))
                 }
 
-                ShopTransactionHandler.TransactionResult.BUY_LIMIT_REACHED -> {
+                ShopTransactionService.TransactionResult.BUY_LIMIT_REACHED -> {
                     StaticElement(drawable(
                         BaseItems.BAD.get("shop.bad-amount.buy-limit.name", "shop.bad-amount.buy-limit.desc")
                     ))
                 }
 
-                ShopTransactionHandler.TransactionResult.SUCCESS -> {
+                ShopTransactionService.TransactionResult.SUCCESS -> {
                     StaticElement(drawable(
                         BaseItems.CONFIRM.get("shop.confirm-stock.name", "shop.confirm-stock.desc")
                     )) { (player) ->

@@ -2,26 +2,18 @@ package com.brinkmc.plop.shared.gui.shop.init.item
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shop.shop.Shop
-import com.noxcrew.interfaces.drawable.Drawable
+import com.brinkmc.plop.shop.dto.Shop
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.CombinedInterfaceBuilder
-import com.noxcrew.interfaces.interfaces.buildChestInterface
 import com.noxcrew.interfaces.interfaces.buildCombinedInterface
 import com.noxcrew.interfaces.properties.InterfaceProperty
 import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.InterfaceView
-import kotlinx.coroutines.CompletableDeferred
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
-import kotlin.collections.get
 import kotlin.text.get
-import kotlin.text.set
 
 class MenuShopItem(override val plugin: Plop): Addon {
 

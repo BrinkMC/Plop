@@ -1,7 +1,7 @@
 package com.brinkmc.plop.shared.hologram.holograms
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.base.Plot
+import com.brinkmc.plop.plot.dto.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hook.api.Display
@@ -29,7 +29,7 @@ class NexusDisplay(override val plugin: Plop): Addon, State {
     // Store hologram instances by player
     private val playerHolograms = Caffeine.newBuilder().asCache<Player, Hologram>()
 
-    private val hologramManager: Display get() = plugin.hookHandler.display
+    private val hologramManager: Display get() = plugin.hookService.display
 
     override suspend fun load() {
         plugin.async { startRenderLoop() }

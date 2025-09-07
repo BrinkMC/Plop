@@ -1,11 +1,11 @@
 package com.brinkmc.plop.shared.hologram.holograms
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.base.Plot
+import com.brinkmc.plop.plot.dto.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hook.api.Display
-import com.brinkmc.plop.shop.shop.Shop
+import com.brinkmc.plop.shop.dto.Shop
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.sksamuel.aedile.core.asCache

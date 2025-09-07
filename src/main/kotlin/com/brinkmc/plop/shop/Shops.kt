@@ -1,36 +1,27 @@
 package com.brinkmc.plop.shop
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.modifier.PlotOwner
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shop.handler.ShopCreationHandler
-import com.brinkmc.plop.shop.handler.ShopHandler
-import com.brinkmc.plop.shop.handler.ShopTransactionHandler
-import com.brinkmc.plop.shop.shop.Shop
-import me.glaremasters.guilds.guild.Guild
-import me.glaremasters.guilds.libs.jdbi.v3.core.transaction.TransactionHandler
-import org.bukkit.Material
-import org.bukkit.entity.Player
-import java.util.UUID
-import kotlin.math.log
+import com.brinkmc.plop.shop.service.ShopCreationService
+import com.brinkmc.plop.shop.service.ShopService
+import com.brinkmc.plop.shop.service.ShopStockService
+import com.brinkmc.plop.shop.service.ShopTransactionService
 
 class Shops(override val plugin: Plop): Addon, State {
 
-    lateinit var handler: ShopHandler
-    lateinit var transHandler: ShopTransactionHandler
-    lateinit var creationHandler: ShopCreationHandler
+    override val shopService = ShopService(plugin)
+    override val shopTransactionService = ShopTransactionService(plugin)
+    override val shopCreationService = ShopCreationService(plugin)
+    override val shopStockService = ShopStockService(plugin)
 
     override suspend fun load() {
         logger.info("Loading shops...")
-        handler = ShopHandler(plugin)
-        transHandler = ShopTransactionHandler(plugin)
-        creationHandler = ShopCreationHandler(plugin)
-
         listOf(
-            handler,
-            transHandler,
-            creationHandler
+            shopService,
+            shopTransactionService,
+            shopCreationService,
+            shopStockService
         ).forEach { handler -> (handler as State).load() }
     }
 

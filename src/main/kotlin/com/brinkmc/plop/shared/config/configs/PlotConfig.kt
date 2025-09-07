@@ -1,15 +1,10 @@
 package com.brinkmc.plop.shared.config.configs
 
-import com.brinkmc.plop.Plop
-import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.config.configs.plot.GuildConfig
 import com.brinkmc.plop.shared.config.configs.plot.NexusConfig
 import com.brinkmc.plop.shared.config.configs.plot.PersonalConfig
 import com.brinkmc.plop.shared.config.serialisers.Level
-import com.brinkmc.plop.shared.util.plot.PlotType
-import kotlinx.coroutines.sync.withLock
-import org.spongepowered.configurate.ConfigurationNode
+import com.brinkmc.plop.plot.constant.PlotType
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 import org.spongepowered.configurate.objectmapping.meta.Setting
 

@@ -3,8 +3,8 @@ package com.brinkmc.plop.shared.command.plot.general
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.Command
-import com.brinkmc.plop.shared.util.design.enums.MessageKey
-import com.brinkmc.plop.shared.util.design.enums.SoundKey
+import com.brinkmc.plop.shared.design.enums.MessageKey
+import com.brinkmc.plop.shared.design.enums.SoundKey
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.incendo.cloud.annotations.Command
 
@@ -16,7 +16,7 @@ class CommandNexusBook(override val plugin: Plop) : Addon, Command {
     ) {
         val player = getPlayer(sender.sender) as org.bukkit.entity.Player
 
-        if (player.inventory.contains(plots.nexusManager.NEXUS_BOOK)) {
+        if (player.inventory.contains(plots.nexusService.NEXUS_BOOK)) {
             player.sendMiniMessage(MessageKey.NEXUS_BOOK_PRESENT)
             return
         }
@@ -31,7 +31,7 @@ class CommandNexusBook(override val plugin: Plop) : Addon, Command {
             return
         }
 
-        player.inventory.addItem(plots.nexusManager.NEXUS_BOOK)
+        player.inventory.addItem(plots.nexusService.NEXUS_BOOK)
         player.sendMiniMessage(MessageKey.NEXUS_BOOK_GIVEN)
         player.sendSound(SoundKey.RECEIVE_ITEM)
     }

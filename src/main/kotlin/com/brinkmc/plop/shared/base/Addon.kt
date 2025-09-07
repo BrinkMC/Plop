@@ -2,14 +2,35 @@ package com.brinkmc.plop.shared.base
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.factory.Factories
+import com.brinkmc.plop.factory.service.FactoryActionService
+import com.brinkmc.plop.factory.service.FactoryAugmentService
+import com.brinkmc.plop.factory.service.FactoryService
 import com.brinkmc.plop.plot.Plots
-import com.brinkmc.plop.shared.config.ConfigHandler
+import com.brinkmc.plop.plot.service.PlotClaimService
+import com.brinkmc.plop.plot.service.PlotFactoryService
+import com.brinkmc.plop.plot.service.PlotFuelerService
+import com.brinkmc.plop.plot.service.PlotLayoutService
+import com.brinkmc.plop.plot.service.PlotNexusService
+import com.brinkmc.plop.plot.service.PlotPreviewService
+import com.brinkmc.plop.plot.service.PlotService
+import com.brinkmc.plop.plot.service.PlotShopService
+import com.brinkmc.plop.plot.service.PlotSizeService
+import com.brinkmc.plop.plot.service.PlotTotemService
+import com.brinkmc.plop.plot.service.PlotUpgradeService
+import com.brinkmc.plop.plot.service.PlotVisitService
+import com.brinkmc.plop.shared.service.ConfigService
 import com.brinkmc.plop.shared.db.HikariManager
-import com.brinkmc.plop.shared.gui.MenuHandler
-import com.brinkmc.plop.shared.hook.HookHandler
+import com.brinkmc.plop.shared.service.HookService
 import com.brinkmc.plop.shared.hook.api.PlayerTracker
-import com.brinkmc.plop.shared.util.design.DesignHandler
+import com.brinkmc.plop.shared.service.DesignService
+import com.brinkmc.plop.shared.service.MenuService
+import com.brinkmc.plop.shared.service.PlayerService
 import com.brinkmc.plop.shop.Shops
+import com.brinkmc.plop.shop.service.ShopAccessService
+import com.brinkmc.plop.shop.service.ShopCreationService
+import com.brinkmc.plop.shop.service.ShopService
+import com.brinkmc.plop.shop.service.ShopStockService
+import com.brinkmc.plop.shop.service.ShopTransactionService
 import com.google.gson.Gson
 import net.kyori.adventure.audience.Audiences
 import org.bukkit.*
@@ -31,69 +52,93 @@ internal interface Addon {
     val gson: Gson
         get() = plugin.gson
 
-    val menuHandler: MenuHandler
-        get() = plugin.menuHandler
+    val menuService: MenuService
+        get() = plugin.menuService
 
-    val hookHandler: HookHandler
-        get() = plugin.hookHandler
+    val configService: ConfigService
+        get() = plugin.configService
 
-    val configHandler: ConfigHandler
-        get() = plugin.configHandler
+    val hookService: HookService
+        get() = plugin.hookService
 
-    val messages: DesignHandler
-        get() = plugin.designHandler
+    val designService: DesignService
+        get() = plugin.designService
 
-    val audiences: Audiences
-        get() = plugin.audiences
+    val playerService: PlayerService
+        get() = plugin.playerService
 
-    val playerTracker: PlayerTracker
-        get() = plugin.hookHandler.playerTracker
 
     // Plot handlers
     val plots: Plots
         get() = plugin.plots
 
-    val plotHandler: Plots
-        get() = plugin.plots.plotHandler
+    val plotService: PlotService
+        get() = plugin.plots.plotService
 
-    val plotFactoryHandler: Plots
-        get() = plugin.plots.plotFactoryHandler
+    val plotVisitService: PlotVisitService
+        get() = plugin.plots.plotVisitService
 
-    val plotFuelerHandler: Plots
-        get() = plugin.plots.plotFuelerHandler
+    val plotUpgradeService: PlotUpgradeService
+        get() = plugin.plots.plotUpgradeService
 
-    val plotClaimHandler: Plots
-        get() = plugin.plots.plotClaimHandler
+    val plotPreviewService: PlotPreviewService
+        get() = plugin.plots.plotPreviewService
 
-    val plotPreviewHandler: Plots
-        get() = plugin.plots.plotPreviewHandler
+    val plotTotemService: PlotTotemService
+        get() = plugin.plots.plotTotemService
 
-    val plotShopHandler: Plots
-        get() = plugin.plots.plotShopHandler
+    val plotFactoryService: PlotFactoryService
+        get() = plugin.plots.plotFactoryService
 
-    val plotSizeHandler: Plots
-        get() = plugin.plots.plotSizeHandler
+    val plotClaimService: PlotClaimService
+        get() = plugin.plots.plotClaimService
 
-    val plotTotemHandler: Plots
-        get() = plugin.plots.plotTotemHandler
+    val plotShopService: PlotShopService
+        get() = plugin.plots.plotShopService
 
-    val plotUpgradeHandler: Plots
-        get() = plugin.plots.plotUpgradeHandler
+    val plotSizeService: PlotSizeService
+        get() = plugin.plots.plotSizeService
 
-    val plotVisitHandler: Plots
-        get() = plugin.plots.plotVisitHandler
+    val plotNexusService: PlotNexusService
+        get() = plugin.plots.plotNexusService
+
+    val plotFuelerService: PlotFuelerService
+        get() = plugin.plots.plotFuelerService
+
+    val plotLayoutService: PlotLayoutService
+        get() = plugin.plots.plotLayoutService
+
 
     // Shop handlers
     val shops: Shops
         get() = plugin.shops
 
-    val shopTransactionHandler: Shops
-        get() = plugin.shops.shopTransactionHandler
+    val shopStockService: ShopStockService
+        get() = plugin.shops.shopStockService
 
-    val shopCreationHandler: Shops
-        get() = plugin.shops.shopCreationHandler
+    val shopCreationService: ShopCreationService
+        get() = plugin.shops.shopCreationService
+
+    val shopTransactionService: ShopTransactionService
+        get() = plugin.shops.shopTransactionService
+
+    val shopAccessService: ShopAccessService
+        get() = plugin.shops.shopAccessService
+
+    val shopService: ShopService
+        get() = plugin.shops.shopService
 
     // Factory handlers
     val factories: Factories
         get() = plugin.factories
+
+    val factoryService: FactoryService
+        get() = plugin.factories.factoryService
+
+    val factoryActionService: FactoryActionService
+        get() = plugin.factories.factoryActionService
+
+    val factoryAugmentService: FactoryAugmentService
+        get() = plugin.factories.factoryAugmentService
+
 }

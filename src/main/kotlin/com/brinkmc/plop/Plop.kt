@@ -13,36 +13,24 @@ import com.brinkmc.plop.shared.command.plot.nexus.CommandPlotVisitToggle
 import com.brinkmc.plop.shared.command.plot.preview.CommandPlotPreview
 import com.brinkmc.plop.shared.command.processors.GeneralSuggestionProcessor
 import com.brinkmc.plop.shared.command.utils.PlotTypeParser
-import com.brinkmc.plop.shared.config.ConfigHandler
-import com.brinkmc.plop.shared.hook.listener.GeneralListener
-import com.brinkmc.plop.shared.hook.listener.GuildListener
-import com.brinkmc.plop.shared.hook.listener.PreviewListener
-import com.brinkmc.plop.shared.hook.listener.DamageListener
-import com.brinkmc.plop.shared.hook.listener.NexusListener
-import com.brinkmc.plop.shared.hook.api.PlayerTracker
-import com.brinkmc.plop.shared.hook.listener.ShopListener
-import com.brinkmc.plop.shared.hook.listener.TotemListener
-import com.brinkmc.plop.shared.hook.listener.VisitListener
+import com.brinkmc.plop.shared.service.ConfigService
 import com.brinkmc.plop.shared.db.HikariManager
-import com.brinkmc.plop.shared.gui.MenuHandler
+import com.brinkmc.plop.shared.service.MenuHandler
 import com.brinkmc.plop.shared.hologram.HologramHandler
-import com.brinkmc.plop.shared.hook.HookHandler
-import com.brinkmc.plop.shared.util.ClaimUtils
-import com.brinkmc.plop.shared.util.LocationString
-import com.brinkmc.plop.shared.util.design.DesignHandler
-import com.brinkmc.plop.shared.util.design.MessageSource
+import com.brinkmc.plop.shared.service.HookService
+import com.brinkmc.plop.shared.service.DesignService
+import com.brinkmc.plop.shared.design.MessageSource
+import com.brinkmc.plop.shared.service.MenuService
+import com.brinkmc.plop.shared.service.PlayerService
 import com.brinkmc.plop.shop.Shops
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
-import com.github.shynixn.mccoroutine.bukkit.registerSuspendingEvents
 import com.google.gson.Gson
-import com.noxcrew.interfaces.InterfacesListeners
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
-import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.audience.Audiences
 import org.bukkit.NamespacedKey
 import org.incendo.cloud.annotations.AnnotationParser
@@ -60,15 +48,19 @@ class Plop : State, SuspendingJavaPlugin() {
     lateinit var gson: Gson
 
     // 3 main modules of the plugin
-    lateinit var plots: Plots
-    lateinit var shops: Shops
-    lateinit var factories: Factories
+    val plots: Plots = Plots(plugin)
+    val shops: Shops = Shops(plugin)
+    val factories: Factories = Factories(plugin)
 
-    // Shared modules
+    // Shared services
+
+    val menuService: MenuService = MenuService(plugin)
+    val configService: ConfigService = ConfigService(plugin)
+    val hookService: HookService = HookService(plugin)
+    val designService: DesignService = DesignService(plugin)
+    val playerService: PlayerService = PlayerService(plugin)
+
     lateinit var menuHandler: MenuHandler
-    lateinit var configHandler: ConfigHandler
-    lateinit var hookHandler: HookHandler
-    lateinit var designHandler: DesignHandler
     lateinit var hologramHandler: HologramHandler
     lateinit var audiences: Audiences
 
@@ -108,12 +100,12 @@ class Plop : State, SuspendingJavaPlugin() {
         // Load messages
         messageSource = MessageSource(plugin)
         messageSource.load()
-        designHandler = DesignHandler(plugin)
+        designHandler = DesignService(plugin)
 
         // Load configs initially to get all necessary data
         plugin.slF4JLogger.info("Initiating config manager")
-        configHandler = ConfigHandler(plugin)
-        configHandler.load()
+        configService = ConfigService(plugin)
+        configService.load()
         plugin.slF4JLogger.info("Finished loading config manager")
 
         DB = HikariManager(plugin)
@@ -121,8 +113,8 @@ class Plop : State, SuspendingJavaPlugin() {
 
         // Get instance of hooks
         plugin.slF4JLogger.info("Hooking into other plugins")
-        hookHandler = HookHandler(plugin)
-        hookHandler.load()
+        hookService = HookService(plugin)
+        hookService.load()
 
         // Load the two parts of the plugin
         plugin.slF4JLogger.info("Initiating plots")

@@ -2,22 +2,16 @@ package com.brinkmc.plop.shared.gui.shop.access.owner
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shop.shop.Shop
-import com.brinkmc.plop.shop.shop.ShopType
+import com.brinkmc.plop.shop.dto.Shop
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.ChestInterface
 import com.noxcrew.interfaces.interfaces.buildChestInterface
-import com.noxcrew.interfaces.properties.InterfaceProperty
-import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.ChestInterfaceView
 import com.noxcrew.interfaces.view.InterfaceView
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import org.bukkit.Location
 import org.bukkit.Material
-import org.bukkit.block.Chest
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 

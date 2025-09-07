@@ -2,10 +2,10 @@ package com.brinkmc.plop.shared.gui.shop.init
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.util.design.enums.ItemKey
-import com.brinkmc.plop.shared.util.design.enums.MessageKey
+import com.brinkmc.plop.shared.design.enums.ItemKey
+import com.brinkmc.plop.shared.design.enums.MessageKey
 import com.brinkmc.plop.shop.Shops
-import com.brinkmc.plop.shop.shop.Shop
+import com.brinkmc.plop.shop.dto.Shop
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.ChestInterfaceBuilder
@@ -131,7 +131,7 @@ class MenuShopCreate(override val plugin: Plop): Addon {
             pane[2, 3] = when {
                 stage == ShopStage.ITEM_SELECTION -> {
                     StaticElement(drawable(
-                        BaseItems.BAD.get("shop.create.fill-item.name", "shop.create.fill-item.desc")
+                        messages.getItem(ItemKey.BAD, "shop.create.fill-item.name", "shop.create.fill-item.desc")
                     ))
                 }
                 shop.buyPrice == -1.0f -> {

@@ -1,11 +1,11 @@
 package com.brinkmc.plop.shared.hook.listener
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.base.Plot
+import com.brinkmc.plop.plot.dto.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.util.design.enums.MessageKey
-import com.brinkmc.plop.shared.util.design.enums.SoundKey
+import com.brinkmc.plop.shared.design.enums.MessageKey
+import com.brinkmc.plop.shared.design.enums.SoundKey
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority

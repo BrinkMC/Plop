@@ -1,8 +1,8 @@
 package com.brinkmc.plop.shared.hook.api
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.base.Plot
-import com.brinkmc.plop.plot.plot.modifier.PlotOwner
+import com.brinkmc.plop.plot.dto.Plot
+import com.brinkmc.plop.plot.dto.modifier.PlotOwner
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
@@ -59,7 +59,7 @@ class WorldGuard(override val plugin: Plop): Addon, State {
         return worldGuardRegionContainer.get(bukkitWorld.localWorld())?.regions?.get(uuid.toString())
     }
 
-    fun getRegions(location: Location): Set<ProtectedRegion?>? {
+    fun getRegions(location: Location): Set<ProtectedRegion?> {
         return worldGuardRegionContainer.createQuery().getApplicableRegions(location.localLocation()).regions
     }
 

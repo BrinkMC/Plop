@@ -2,6 +2,7 @@ package com.brinkmc.plop.shop.controller.gui.customer
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
+import com.brinkmc.plop.shared.base.Gui
 import com.brinkmc.plop.shared.design.enums.ItemKey
 import com.brinkmc.plop.shared.design.enums.MessageKey
 import com.brinkmc.plop.shared.util.CoroutineUtils.async
@@ -20,10 +21,7 @@ class BuyFromShopGui(override val plugin: Plop): ShopGui {
 
 
 
-    override suspend fun inventory(vararg args: Any): ChestInterface = buildChestInterface {
-        val player = args[0] as Player
-
-        val shopId = shopAccessService.getViewedShop(player.uniqueId) ?: return@buildChestInterface
+    private suspend fun inventory(vararg args: Any): ChestInterface = buildChestInterface {
 
         setupBackButton()
         setupIncrementButtons()
@@ -32,7 +30,8 @@ class BuyFromShopGui(override val plugin: Plop): ShopGui {
         return@buildChestInterface
     }
 
-    suspend fun ChestInterfaceBuilder.setupConfirmButton() {
+
+    private suspend fun ChestInterfaceBuilder.setupConfirmButton() {
         withTransform { pane, view ->
             val playerId = view.player.uniqueId
             val shopId = shopAccessService.getViewedShop(playerId) ?: return@withTransform
@@ -42,11 +41,18 @@ class BuyFromShopGui(override val plugin: Plop): ShopGui {
                     getConfirmButton()
                 )
             ) { _ ->
-                shopTransactionService.checkTransaction(playerId, shopId, shopAccessService.getTotal(playerId), )
+                val status = shopTransactionService.initialiseBuyTransaction(playerId, shopId)
+
             }
 
         }
     }
 
+
+    suspend fun open(player: Player, view: InterfaceView? = null, vararg args: Any): InterfaceView {
+        return plugin.asyncScope {
+            inventory(player, *args).open(player, view)
+        }
+    }
 
 }

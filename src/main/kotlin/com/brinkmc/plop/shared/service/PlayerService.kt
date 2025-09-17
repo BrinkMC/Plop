@@ -6,6 +6,7 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.sksamuel.aedile.core.asLoadingCache
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import java.util.UUID
 
@@ -22,6 +23,11 @@ class PlayerService(override val plugin: Plop): Addon, State {
     fun clearCache(player: Player) {
         locations.invalidate(player)
     }
+
+    fun getPlayer(playerId: UUID): Player? {
+        return Bukkit.getPlayer(playerId)
+    }
+
 
     override suspend fun load() { }
 

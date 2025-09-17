@@ -23,6 +23,7 @@ import com.brinkmc.plop.shared.db.HikariManager
 import com.brinkmc.plop.shared.service.HookService
 import com.brinkmc.plop.shared.hook.api.PlayerTracker
 import com.brinkmc.plop.shared.service.DesignService
+import com.brinkmc.plop.shared.service.EconomyService
 import com.brinkmc.plop.shared.service.MenuService
 import com.brinkmc.plop.shared.service.PlayerService
 import com.brinkmc.plop.shop.Shops
@@ -61,11 +62,14 @@ internal interface Addon {
     val hookService: HookService
         get() = plugin.hookService
 
-    val designService: DesignService
+    val messages: DesignService
         get() = plugin.designService
 
     val playerService: PlayerService
         get() = plugin.playerService
+
+    val economyService: EconomyService
+        get() = plugin.economyService
 
 
     // Plot handlers

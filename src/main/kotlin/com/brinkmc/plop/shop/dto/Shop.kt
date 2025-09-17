@@ -9,8 +9,8 @@ import java.sql.Timestamp
 import java.util.UUID
 
 data class Shop(
-    private val _id: UUID,
-    private val _location: Location,
+    val id: UUID,
+    val location: Location,
 
     private var _shopType: ShopType,
     private var _item: ItemStack,
@@ -25,8 +25,6 @@ data class Shop(
     private val mutex = Mutex()
 
     // Thread-safe getters
-    val id: UUID get() = _id
-    val location: Location get() = _location
 
     val shopType: ShopType get() = _shopType
     val item: ItemStack get() = _item.clone()
@@ -82,16 +80,8 @@ data class Shop(
         _quantity -= amount
     }
 
-    // Thread-safe snapshot
-    suspend fun getSnapshot(): Shop = mutex.withLock {
-        copy(
-            _location = _location.clone(),
-            _item = _item.clone()
-        )
-    }
-
-    suspend fun addTransaction(playerId: UUID, amount: Int, type: ShopType) = mutex.withLock {
-        _transaction.add(ShopTransaction(Timestamp(System.currentTimeMillis()), playerId, amount, type ))
+    suspend fun addTransaction(playerId: UUID, amount: Int, cost: Double) = mutex.withLock {
+        _transaction.add(ShopTransaction(Timestamp(System.currentTimeMillis()), playerId, amount, cost ))
     }
 }
 

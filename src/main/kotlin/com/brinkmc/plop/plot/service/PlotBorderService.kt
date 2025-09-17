@@ -15,7 +15,10 @@ class PlotBorderService(override val plugin: Plop): State, Addon {
     private lateinit var borderAPI: WorldBorderApi
 
     override suspend fun load() {
-        borderAPI = WorldBorderApi.getInstance()
+        borderAPI = server.servicesManager.getRegistration<WorldBorderApi?>(WorldBorderApi::class.java)?.provider ?: run {
+            logger.error("Failed to get WorldBorderAPI")
+            return
+        }
     }
 
     override suspend fun kill() {
@@ -30,7 +33,7 @@ class PlotBorderService(override val plugin: Plop): State, Addon {
         }
 
         val plotId = playerService.getPlotId(player)
-        val previewInstance = plotPreviewService.getPreview(player)
+        val previewInstance = plotPreviewService.getPreview(playerId)
 
         val potentialPreview = plotPreviewService.getPreview(player)
         if (potentialPreview != null) { // Check if player is in a preview

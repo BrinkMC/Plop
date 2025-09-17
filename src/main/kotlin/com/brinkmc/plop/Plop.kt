@@ -20,6 +20,7 @@ import com.brinkmc.plop.shared.hologram.HologramHandler
 import com.brinkmc.plop.shared.service.HookService
 import com.brinkmc.plop.shared.service.DesignService
 import com.brinkmc.plop.shared.design.MessageSource
+import com.brinkmc.plop.shared.service.EconomyService
 import com.brinkmc.plop.shared.service.MenuService
 import com.brinkmc.plop.shared.service.PlayerService
 import com.brinkmc.plop.shop.Shops
@@ -59,6 +60,7 @@ class Plop : State, SuspendingJavaPlugin() {
     val hookService: HookService = HookService(plugin)
     val designService: DesignService = DesignService(plugin)
     val playerService: PlayerService = PlayerService(plugin)
+    val economyService: EconomyService = EconomyService(plugin)
 
     lateinit var menuHandler: MenuHandler
     lateinit var hologramHandler: HologramHandler

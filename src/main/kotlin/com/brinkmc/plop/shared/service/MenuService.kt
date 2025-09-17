@@ -40,12 +40,7 @@ class MenuService(override val plugin: Plop): Addon, State {
         }
     }
 
-    internal suspend fun open(player: Player, gui: Gui, view: InterfaceView? = null, vararg args: Any): InterfaceView {
-        val inv = gui.inventory(player)
-        return plugin.asyncScope {
-            inventory.open(player, view)
-        }
-    }
+    internal
 
     override suspend fun kill() {
         TODO("Not yet implemented")

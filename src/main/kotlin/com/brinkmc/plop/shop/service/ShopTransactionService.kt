@@ -11,6 +11,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.bukkit.entity.Player
 import java.util.UUID
+import kotlin.text.compareTo
+import kotlin.times
 
 class ShopTransactionService(override val plugin: Plop): Addon, State {
 
@@ -25,18 +27,11 @@ class ShopTransactionService(override val plugin: Plop): Addon, State {
         TODO("Not yet implemented")
     }
 
-    // Amount as in amount of bundles being purchased
-    private suspend fun shopHasStock(shopId: UUID, playerId: UUID): Boolean {
-        val selectedTotal: Int = shopAccessService.getTotal(playerId) ?: return false
-        val shopQuantity: Int = shopService.getShopQuantity(shopId) ?: return false
-        return shopQuantity >= selectedTotal
-    }
-
     private suspend fun shopHasBalance(shopId: UUID, playerId: UUID): Boolean {
-        val shopBalance = shopService.getShopBalance(shopId) ?: return false
+        val shopOwnerId = shopService.getShopOwnerId(shopId) ?: return false
+        val shopBalance = economyService.getBalance(shopOwnerId) ?: return false
         val shopPrice = shopService.getShopPrice(shopId) ?: return false
         val selectedTotal: Int = shopAccessService.getTotal(playerId) ?: return false
-
         return shopPrice * selectedTotal <= shopBalance
     }
 
@@ -46,22 +41,113 @@ class ShopTransactionService(override val plugin: Plop): Addon, State {
         return selectedTotal > shopSellLimit
     }
 
+    private suspend fun playerHasBalance(shopId: UUID, playerId: UUID): Boolean {
+        val playerBalance = economyService.getBalance(playerId) ?: return false
+        val shopPrice = shopService.getShopPrice(shopId) ?: return false
+        val selectedTotal: Int = shopAccessService.getTotal(playerId) ?: return false
+        return shopPrice * selectedTotal <= playerBalance
+    }
+
+    private suspend fun shopHasStock(shopId: UUID, playerId: UUID): Boolean {
+        val selectedTotal: Int = shopAccessService.getTotal(playerId) ?: return false
+        val shopQuantity: Int = shopService.getShopQuantity(shopId) ?: return false
+        return shopQuantity >= selectedTotal
+    }
+
     private suspend fun playerHasStock(shopId: UUID, playerId: UUID): Boolean {
         val shopItem = shopService.getShopItem(shopId) ?: return false
         val selectedTotal = shopAccessService.getTotal(playerId) ?: return false
-
         val totalPlayerStock = BukkitUtils.countItemsInInventory(playerId, shopItem) ?: return false
-
         return totalPlayerStock >= (selectedTotal * shopItem.amount)
     }
 
-    private suspend fun playerHasBalance(shopId: UUID, playerId: UUID): Boolean {
-        val playerBalance = playerService.getBalance(playerId) ?: return false
+    suspend fun initialiseBuyTransaction(playerId: UUID, shopId: UUID): TransactionResult = mutex.withLock {
+        if (!shopHasStock(shopId, playerId)) {
+            return TransactionResult.SHOP_INSUFFICIENT_STOCK
+        }
+        if (!playerHasBalance(shopId, playerId)) {
+            return TransactionResult.PLAYER_INSUFFICIENT_BALANCE
+        }
 
-        val shopPrice = shopService.getShopPrice(shopId) ?: return false
-        val selectedTotal: Int = shopAccessService.getTotal(playerId) ?: return false
+        val shopPrice = shopService.getShopPrice(shopId) ?: return TransactionResult.FAILURE
+        val shopQuantity = shopService.getShopQuantity(shopId) ?: return TransactionResult.FAILURE
+        val shopOwnerId = shopService.getShopOwnerId(shopId) ?: return TransactionResult.FAILURE
+        val shopItem = shopService.getShopItem(shopId) ?: return TransactionResult.FAILURE
+        val selectedTotal = shopAccessService.getTotal(playerId) ?: return TransactionResult.FAILURE
+        val totalPrice = shopPrice * selectedTotal
+        val player = playerService.getPlayer(playerId) ?: return TransactionResult.FAILURE
 
-        return shopPrice * selectedTotal <= playerBalance
+        if (!economyService.withdrawBalance(playerId, totalPrice)) return TransactionResult.FAILURE
+        if (!economyService.depositBalance(shopOwnerId, totalPrice)) {
+            economyService.depositBalance(playerId, totalPrice) // rollback
+            return TransactionResult.FAILURE
+        }
+
+        for (i in 0 until selectedTotal) {
+            val result = player.inventory.addItem(shopItem)
+            if (result.isNotEmpty()) {
+                economyService.depositBalance(playerId, totalPrice)
+                economyService.withdrawBalance(shopOwnerId, totalPrice)
+                for (j in 0 until i) {
+                    player.inventory.removeItemAnySlot(shopItem)
+                }
+                return TransactionResult.FAILURE
+            }
+        }
+
+        shopService.setShopQuantity(shopId, shopQuantity - selectedTotal)
+        shopService.addTransaction(shopId, playerId, selectedTotal, totalPrice)
+        return TransactionResult.SUCCESS
+    }
+
+    suspend fun initialiseSellTransaction(playerId: UUID, shopId: UUID): TransactionResult = mutex.withLock {
+        if (shopSellLimitReached(shopId, playerId)) {
+            return TransactionResult.BUY_LIMIT_REACHED
+        }
+        if (!playerHasStock(shopId, playerId)) {
+            return TransactionResult.PLAYER_INSUFFICIENT_STOCK
+        }
+        if (!shopHasBalance(shopId, playerId)) {
+            return TransactionResult.SHOP_INSUFFICIENT_BALANCE
+        }
+
+        val shopPrice = shopService.getShopPrice(shopId) ?: return TransactionResult.FAILURE
+        val shopOwnerId = shopService.getShopOwnerId(shopId) ?: return TransactionResult.FAILURE
+        val shopBalance = economyService.getBalance(shopOwnerId) ?: return TransactionResult.FAILURE
+        val shopItem = shopService.getShopItem(shopId) ?: return TransactionResult.FAILURE
+        val selectedTotal = shopAccessService.getTotal(playerId) ?: return TransactionResult.FAILURE
+        val totalPrice = shopPrice * selectedTotal
+        val player = playerService.getPlayer(playerId) ?: return TransactionResult.FAILURE
+
+        for (i in 0 until selectedTotal) {
+            val removed = player.inventory.removeItemAnySlot(shopItem)
+            if (removed.isNotEmpty()) {
+                for (j in 0 until i) {
+                    player.inventory.addItem(shopItem)
+                }
+                return TransactionResult.FAILURE
+            }
+        }
+
+        if (!economyService.withdrawBalance(shopOwnerId, totalPrice)) {
+            for (i in 0 until selectedTotal) {
+                player.inventory.addItem(shopItem)
+            }
+            return TransactionResult.FAILURE
+        }
+
+        if (!economyService.depositBalance(playerId, totalPrice)) {
+            economyService.depositBalance(shopOwnerId, totalPrice)
+            for (i in 0 until selectedTotal) {
+                player.inventory.addItem(shopItem)
+            }
+            return TransactionResult.FAILURE
+        }
+
+        val shopQuantity = shopService.getShopQuantity(shopId) ?: 0
+        shopService.setShopQuantity(shopId, shopQuantity + selectedTotal)
+        shopService.addTransaction(shopId, playerId, selectedTotal, totalPrice)
+        return TransactionResult.SUCCESS
     }
 
 //    private fun checkTransaction(player: Player, shop: Shop, amount: Int, type: ShopType): TransactionResult {

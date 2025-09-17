@@ -18,8 +18,6 @@ internal interface Gui: Addon {
         )
     }
 
-    suspend fun inventory(vararg args: Any): Any
-
     fun ChestInterfaceBuilder.setupBackButton() {
         withTransform { pane, view ->
             pane[4, 4] = StaticElement(

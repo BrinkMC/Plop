@@ -20,27 +20,37 @@ class ShopAccessService(override val plugin: Plop): Addon, State {
         TODO("Not yet implemented")
     }
 
-    fun setViewedShop(playerId: UUID, shopId: UUID) {
-        playerToShopTracker[playerId] = ShopAccess(shopId, 1, 0)
-    }
-
-    fun getViewedShop(playerId: UUID): UUID? {
-        return playerToShopTracker[playerId]?.id
-    }
-
-    suspend fun cycleMultiplier(playerId: UUID) {
-        val access = playerToShopTracker[playerId] ?: return
-        access.cycleMultiplier()
-    }
-
-    suspend fun getMultiplier(playerId: UUID): Int? {
+    private suspend fun getMultiplier(playerId: UUID): Int? {
         val access = playerToShopTracker[playerId] ?: return null
         return access.multiplier
     }
 
-    suspend fun setTotal(playerId: UUID, total: Int) {
+    private suspend fun setTotal(playerId: UUID, total: Int) {
         val access = playerToShopTracker[playerId] ?: return
         access.setTotal(total)
+    }
+
+
+    private suspend fun getLimit(playerId: UUID, shopId: UUID): Int? {
+        return when (shopService.getShopType(shopId)) {
+            ShopType.BUY -> {
+                shopService.getShopQuantity(shopId)
+            }
+
+            ShopType.SELL -> {
+                BukkitUtils.countItemsInInventory(playerId, shopService.getShopItem(shopId)) ?: return null
+            }
+
+            else -> {
+                0
+            }
+        }
+    }
+
+    // Public
+    fun updateAccessShop(playerId: UUID, shopId: UUID) {
+        val shopAccess = ShopAccess(shopId, 1, 0)
+        playerToShopTracker[playerId] = shopAccess
     }
 
     suspend fun getTotal(playerId: UUID): Int? {
@@ -48,19 +58,39 @@ class ShopAccessService(override val plugin: Plop): Addon, State {
         return access.total
     }
 
-    suspend fun getLimit(playerId: UUID, shopId: UUID): Int? {
-        return when (shopService.getShopType(shopId)) {
-            ShopType.BUY -> {
-                shopService.getShopQuantity(shopId)
-            }
-            ShopType.SELL -> {
-                BukkitUtils.countItemsInInventory(playerId, shopService.getShopItem(shopId)) ?: return null
-            }
-            else -> {
-                0
-            }
-        }
+    fun getViewedShop(playerId: UUID): UUID? {
+        return playerToShopTracker[playerId]?.id
     }
 
+    suspend fun increment(playerId: UUID): Boolean { // succeeded or failed
+        val shopId = shopAccessService.getViewedShop(playerId) ?: return false
 
+        val total = getTotal(playerId) ?: return false
+        val multiplier = getMultiplier(playerId) ?: return false
+        val limit = getLimit(playerId, shopId) ?: return false
+
+        if (total + multiplier > limit) {
+            return false
+        }
+
+        setTotal(playerId, total + multiplier)
+        return true
+    }
+
+    suspend fun decrement(playerId: UUID): Boolean { // succeeded or failed
+        val total = getTotal(playerId) ?: return false
+        val multiplier = getMultiplier(playerId) ?: return false
+
+        if (total - multiplier < 0) {
+            return false
+        }
+
+        setTotal(playerId, total - multiplier)
+        return true
+    }
+
+    suspend fun cycleMultiplier(playerId: UUID) {
+        val access = playerToShopTracker[playerId] ?: return
+        access.cycleMultiplier()
+    }
 }

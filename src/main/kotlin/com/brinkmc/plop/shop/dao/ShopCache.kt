@@ -21,9 +21,24 @@ class ShopCache(override val plugin: Plop): Addon, State {
         .expireAfterAccess(30.minutes)
         .asLoadingCache<UUID, Shop?> {
             plugin.asyncScope {
-                databaseHandler.loadShop(it)
+                val shop = databaseHandler.loadShop(it) ?: return@asyncScope null
+
+                val plotId = plotService.getPlotIdFromLocation(shop.location) ?: return@asyncScope shop
+                locationCache.invalidate(plotId) // Invalidate the location cache for this plotId, as a shop has been loaded for it
+
+                shop
             }
         } // SHOP ID -> SHOP
+
+    private val locationCache = Caffeine.newBuilder()
+        .expireAfterAccess(30.minutes)
+        .asLoadingCache<UUID, List<UUID>> {
+            plugin.asyncScope {
+                getShops().filter {
+                    it.value?.location != null && plotService.getPlotIdFromLocation(it.value!!.location) == it
+                }.map { it.key }
+            }
+        }
 
     override suspend fun load() {
         plugin.async { cacheSave() }// Get the task going
@@ -40,8 +55,13 @@ class ShopCache(override val plugin: Plop): Addon, State {
         }
     }
 
-    suspend fun getShops(): Map<UUID, Shop?> {
+    private suspend fun getShops(): Map<UUID, Shop?> {
         return shopMap.asMap()
+    }
+
+    suspend fun getShops(plotId: UUID) : List<Shop> {
+        val shopIds = locationCache.get(plotId)
+        return shopIds.mapNotNull { getShop(it) }
     }
 
     suspend fun getShop(shopId: UUID): Shop? {

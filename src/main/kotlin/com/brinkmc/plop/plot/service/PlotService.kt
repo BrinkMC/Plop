@@ -9,25 +9,24 @@ import com.brinkmc.plop.shared.hook.api.Locals.world
 import com.brinkmc.plop.shared.util.LocationString.fullString
 import com.brinkmc.plop.plot.constant.PlotType
 import com.brinkmc.plop.shop.dto.Shop
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.yannicklamprecht.worldborder.api.WorldBorderApi
+import com.sksamuel.aedile.core.asCache
+import com.sksamuel.aedile.core.asLoadingCache
+import com.sksamuel.aedile.core.expireAfterAccess
 import org.bukkit.Location
 import org.bukkit.World
 import java.util.*
+import kotlin.time.Duration.Companion.minutes
 
 class PlotService(override val plugin: Plop): Addon, State  {
 
     private val plotCache: PlotCache = PlotCache(plugin) // Cache of all plots
-    private val locationCache: HashMap<String, UUID> = hashMapOf()
 
      // Late init as it is not available on startup
 
     override suspend fun load() { plugin.syncScope {
         plotCache.load()
-
-        borderAPI = server.servicesManager.getRegistration<WorldBorderApi?>(WorldBorderApi::class.java)?.provider ?: run {
-            logger.error("Failed to get WorldBorderAPI")
-            return@syncScope
-        }
     }}
 
 
@@ -65,38 +64,9 @@ class PlotService(override val plugin: Plop): Addon, State  {
         return getPlot(playerId) != null
     }
 
-    suspend fun getPlotIdFromLocation(location: Location): UUID? { return plugin.asyncScope {
-        val locationKey = location.fullString(false)
-        val cachedPlotId = locationCache[locationKey]
-        if (cachedPlotId != null) {
-            return@asyncScope cachedPlotId
-        }
-
-        val worldGuardRegions = plugin.hookService.worldGuard.getRegions(location)
-
-        if (worldGuardRegions.size != 1) {
-            return@asyncScope null
-        }
-        val regionIdString = worldGuardRegions.first()?.id ?: return@asyncScope null
-        val plotId = UUID.fromString(regionIdString)
-
-        locationCache[locationKey] = plotId
-        return@asyncScope plotId
-    } }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    suspend fun getPlotIdFromLocation(location: Location): UUID? {
+        return plotCache.getPlotId(location)
+    }
 
     suspend fun addPlot(plot: Plot) {
         plotCache.addPlot(plot)

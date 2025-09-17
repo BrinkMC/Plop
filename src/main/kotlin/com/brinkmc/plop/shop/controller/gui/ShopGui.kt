@@ -56,13 +56,8 @@ internal interface ShopGui: Gui {
 
     suspend fun ChestInterfaceBuilder.setupIncrementButtons() {
         withTransform { pane, view ->
-
-            val total = shopAccessService.getTotal(view.player.uniqueId) ?: 0
-            val multiplier = shopAccessService.getMultiplier(view.player.uniqueId) ?: 1
-
-            val shopId = shopAccessService.getViewedShop(view.player.uniqueId) ?: return@withTransform
-
-            val limit = shopAccessService.getLimit(view.player.uniqueId, shopId) ?: 0
+            val playerId = view.player.uniqueId
+            val shopId = shopAccessService.getViewedShop(playerId) ?: return@withTransform
             val shopType = shopService.getShopType(shopId) ?: return@withTransform
 
             pane[0, 2] = StaticElement(
@@ -71,22 +66,25 @@ internal interface ShopGui: Gui {
                 )
             ) { _ ->
                 plugin.async {
-                    if (total + multiplier > limit) {
-                        when (shopType) {
-                            ShopType.BUY  -> {
-                                messages.sendMiniMessage(view.player, MessageKey.SHOP_INSUFFICIENT_STOCK)
-                            }
-                            ShopType.SELL -> {
-                                messages.sendMiniMessage(view.player, MessageKey.SHOP_PLAYER_INSUFFICIENT_STOCK)
-                            }
+                    when (shopAccessService.increment(playerId)) {
+                        true -> { // Successfully incremented
+                            messages.sendMiniMessage(view.player, MessageKey.SHOP_INCREMENT_UP)
+                            messages.sendSound(view.player, SoundKey.SUCCESS)
                         }
-                        messages.sendSound(view.player, SoundKey.FAILURE)
-                        return@async
-                    }
 
-                    shopAccessService.setTotal(view.player.uniqueId, total + multiplier)
-                    messages.sendMiniMessage(view.player, MessageKey.SHOP_INCREMENT_UP)
-                    messages.sendSound(view.player, SoundKey.SUCCESS)
+                        false -> { // Failed to increment
+                            when (shopType) {
+                                ShopType.BUY -> {
+                                    messages.sendMiniMessage(view.player, MessageKey.SHOP_INSUFFICIENT_STOCK)
+                                }
+
+                                ShopType.SELL -> {
+                                    messages.sendMiniMessage(view.player, MessageKey.SHOP_PLAYER_INSUFFICIENT_STOCK)
+                                }
+                            }
+                            messages.sendSound(view.player, SoundKey.FAILURE)
+                        }
+                    }
                     view.redrawComplete()
                 }
             }
@@ -108,22 +106,18 @@ internal interface ShopGui: Gui {
                 )
             ) { _ ->
                 plugin.async {
-                    if (total - multiplier < 0) {
-                        when (shopType) {
-                            ShopType.BUY  -> {
-                                messages.sendMiniMessage(view.player, MessageKey.SHOP_BELOW_ZERO)
-                            }
-                            ShopType.SELL -> {
-                                messages.sendMiniMessage(view.player, MessageKey.SHOP_BELOW_ZERO)
-                            }
+                    when (shopAccessService.decrement(playerId)) {
+                        true -> { // Successfully decremented
+                            messages.sendMiniMessage(view.player, MessageKey.SHOP_INCREMENT_DOWN)
+                            messages.sendSound(view.player, SoundKey.SUCCESS)
                         }
-                        messages.sendSound(view.player, SoundKey.FAILURE)
-                        return@async
-                    }
 
-                    shopAccessService.setTotal(view.player.uniqueId, total - multiplier)
-                    messages.sendMiniMessage(view.player, MessageKey.SHOP_INCREMENT_DOWN)
-                    messages.sendSound(view.player, SoundKey.SUCCESS)
+                        false -> { // Failed to decrement
+                            messages.sendMiniMessage(view.player, MessageKey.SHOP_BELOW_ZERO)
+                            messages.sendSound(view.player, SoundKey.FAILURE)
+                            return@async
+                        }
+                    }
                     view.redrawComplete()
                 }
             }

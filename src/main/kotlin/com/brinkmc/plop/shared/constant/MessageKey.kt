@@ -1,4 +1,4 @@
-package com.brinkmc.plop.shared.design.enums
+package com.brinkmc.plop.shared.constant
 
 enum class MessageKey(val key: String) {
 

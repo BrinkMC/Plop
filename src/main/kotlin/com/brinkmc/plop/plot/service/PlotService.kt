@@ -8,12 +8,21 @@ import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hook.api.Locals.world
 import com.brinkmc.plop.shared.util.LocationString.fullString
 import com.brinkmc.plop.plot.constant.PlotType
+import com.brinkmc.plop.plot.dto.modifier.PlotClaim
+import com.brinkmc.plop.plot.dto.modifier.PlotFactory
+import com.brinkmc.plop.plot.dto.modifier.PlotFueler
+import com.brinkmc.plop.plot.dto.modifier.PlotNexus
+import com.brinkmc.plop.plot.dto.modifier.PlotShop
+import com.brinkmc.plop.plot.dto.modifier.PlotSize
+import com.brinkmc.plop.plot.dto.modifier.PlotTotem
+import com.brinkmc.plop.plot.dto.modifier.PlotVisit
 import com.brinkmc.plop.shop.dto.Shop
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.yannicklamprecht.worldborder.api.WorldBorderApi
 import com.sksamuel.aedile.core.asCache
 import com.sksamuel.aedile.core.asLoadingCache
 import com.sksamuel.aedile.core.expireAfterAccess
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.Location
 import org.bukkit.World
 import java.util.*
@@ -32,6 +41,11 @@ class PlotService(override val plugin: Plop): Addon, State  {
 
     override suspend fun kill() {
         plotCache.kill()
+    }
+
+    suspend fun getPlotWorld(plotId: UUID): World {
+        val plot = plotCache.getPlot(plotId) ?: throw RuntimeException("Plot not found")
+        return getPlotWorld(plot.type)
     }
 
     fun getPlotWorld(plotType: PlotType): World {
@@ -55,6 +69,8 @@ class PlotService(override val plugin: Plop): Addon, State  {
         return plotCache.getPlot(plotId)
     }
 
+    // Public functions
+
     suspend fun hasGuildPlot(playerId: UUID): Boolean {
         val guild = hookService.guilds.getGuildFromPlayer(playerId)?.id ?: return false
         return getPlot(guild) != null
@@ -75,4 +91,75 @@ class PlotService(override val plugin: Plop): Addon, State  {
     suspend fun deletePlot(plot: Plot) {
         plotCache.deletePlot(plot)
     }
+
+    // Getters
+
+    suspend fun getPlotOwnerDisplayName(plotId: UUID): String? {
+        val plotType = getPlotType(plotId) ?: return null
+        return when (plotType) {
+            PlotType.PERSONAL -> {
+                // Player id is same as plot id
+                val owner = playerService.getDisplayName(plotId) ?: return null
+                PlainTextComponentSerializer.plainText().serialize(owner)
+            }
+            PlotType.GUILD -> hookService.guilds.getGuild(plotId)?.name
+        }
+    }
+
+    suspend fun getPlotType(plotId: UUID): PlotType? {
+        val plot = getPlot(plotId) ?: return null
+        return plot.type
+    }
+
+    suspend fun getPlotMembers(plotId: UUID): List<UUID?> {
+        val plot = getPlot(plotId) ?: return emptyList()
+        return when (plot.type) {
+            PlotType.PERSONAL -> listOf(plot.id)
+            PlotType.GUILD -> hookService.guilds.getGuild(plot.id)?.members?.map { it.uuid } ?: emptyList()
+        }
+    }
+
+    suspend fun getPlotNexus(plotId: UUID): PlotNexus? {
+        val plot = getPlot(plotId) ?: return null
+        return plot.nexus
+    }
+
+    suspend fun getPlotClaim(plotId: UUID): PlotClaim? {
+        val plot = getPlot(plotId) ?: return null
+        return plot.claim
+    }
+
+    suspend fun getPlotVisit(plotId: UUID): PlotVisit? {
+        val plot = getPlot(plotId) ?: return null
+        return plot.visit
+    }
+
+    suspend fun getPlotSize(plotId: UUID): PlotSize? {
+        val plot = getPlot(plotId) ?: return null
+        return plot.size
+    }
+
+    suspend fun getPlotFactory(plotId: UUID): PlotFactory? {
+        val plot = getPlot(plotId) ?: return null
+        return plot.factory
+    }
+
+    suspend fun getPlotShop(plotId: UUID): PlotShop? {
+        val plot = getPlot(plotId) ?: return null
+        return plot.shop
+    }
+
+    suspend fun getPlotTotem(plotId: UUID): PlotTotem? {
+        val plot = getPlot(plotId) ?: return null
+        return plot.totem
+    }
+
+    suspend fun getPlotFueler(plotId: UUID): PlotFueler? {
+        val plot = getPlot(plotId) ?: return null
+        return plot.fueler
+    }
+
+
+
+
 }

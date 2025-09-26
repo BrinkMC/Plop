@@ -3,47 +3,25 @@ package com.brinkmc.plop.plot.dto.modifier
 import java.sql.Timestamp
 
 data class PlotVisit(
-    private var visitable: Boolean = true, // Is plot visitable
-    private var level: Int,
-    private var currentVisits: Int,
-    private val historicalVisits: MutableList<Timestamp> = mutableListOf()
+    private var _visitable: Boolean = true, // Is plot visitable
+    private var _level: Int,
+    private var _currentVisits: Int,
+
+    val historicalVisits: MutableList<Timestamp> = mutableListOf()
 ) {
-    fun isVisitable(): Boolean {
-        return visitable
+    val level get() = _level
+    val visitable get() = _visitable
+    val currentVisits get() = _currentVisits
+
+    fun setLevel(level: Int) {
+        _level = level
     }
 
     fun setVisitable(visitable: Boolean) {
-        this.visitable = visitable
+        _visitable = visitable
     }
 
-    fun getLevel(): Int {
-        return level
-    }
-
-    fun upgradeLevel() {
-        level++
-    }
-
-    fun getCurrentVisits(): Int {
-        return currentVisits
-    }
-
-    private fun incrementVisits() {
-        currentVisits++
-    }
-
-    fun decrementVisits() {
-        if (currentVisits > 0) {
-            currentVisits--
-        }
-    }
-
-    fun getHistoricalVisits(): List<Timestamp> {
-        return historicalVisits
-    }
-
-    fun addVisit(timestamp: Timestamp) {
-        incrementVisits()
-        historicalVisits.add(timestamp)
+    fun setCurrentVisits(currentVisits: Int) {
+        _currentVisits = currentVisits
     }
 }

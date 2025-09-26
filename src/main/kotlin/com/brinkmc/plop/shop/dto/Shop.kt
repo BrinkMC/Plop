@@ -10,7 +10,7 @@ import java.util.UUID
 
 data class Shop(
     val id: UUID,
-    val location: Location,
+    val location: String,
 
     private var _shopType: ShopType,
     private var _item: ItemStack,

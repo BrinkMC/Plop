@@ -1,21 +1,14 @@
 package com.brinkmc.plop.shop.controller.gui
 
-import com.brinkmc.plop.Plop
-import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.Gui
-import com.brinkmc.plop.shared.design.enums.ItemKey
-import com.brinkmc.plop.shared.design.enums.MessageKey
-import com.brinkmc.plop.shared.design.enums.SoundKey
+import com.brinkmc.plop.shared.constant.ItemKey
+import com.brinkmc.plop.shared.constant.MessageKey
+import com.brinkmc.plop.shared.constant.SoundKey
 import com.brinkmc.plop.shared.util.CoroutineUtils.async
 import com.brinkmc.plop.shop.constant.ShopType
-import com.brinkmc.plop.shop.dto.Shop
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.ChestInterfaceBuilder
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
 internal interface ShopGui: Gui {

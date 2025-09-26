@@ -25,41 +25,33 @@ class PlotShopService(override val plugin: Plop): Addon, State {
 
     // Getters
 
-    fun getHighestLevel(plotType: PlotType): Int {
-        return when (plotType) {
-            PlotType.GUILD -> guildLevels.size
-            PlotType.PERSONAL -> personalLevels.size
+    suspend fun checkShopLimit(plotId: UUID): Boolean {
+        val shopLimit = getShopLimit(plotId) ?: return false
+        val shopCount = getPlotShopCount(plotId)
+        return shopCount < shopLimit // Return true if under the limit
+    }
+
+    suspend fun getPlotShopCount(plotId: UUID) = shopService.getShopCount(plotId)
+
+    suspend fun getShopLimit(plotId: UUID): Int? {
+        val plotShop = plotService.getPlotShop(plotId) ?: return null
+        val plotType = plotService.getPlotType(plotId) ?: return null
+        return when(plotType) {
+            PlotType.GUILD -> guildLevels[plotShop.level].value
+            PlotType.PERSONAL -> personalLevels[plotShop.level].value
         }
     }
 
-    fun getLevel(plotType: PlotType, level: Int): Level? {
-        return when (plotType) {
-            PlotType.GUILD -> guildLevels.getOrNull(level)
-            PlotType.PERSONAL -> personalLevels.getOrNull(level)
-        }
-    }
+    suspend fun getMaximumShopLimit(plotId: UUID): Int? {
+        val plotType = plotService.getPlotType(plotId) ?: return null
 
-    fun getShopLimit(plotId: UUID): Int {
         return when (plotType) {
-            PlotType.GUILD -> guildLevels[level].value ?: -1
-            PlotType.PERSONAL -> personalLevels[level].value ?: -1
-        }
-    }
-
-    fun getShopCount(plotId: UUID): Int {
-        shopService.
-    }
-
-    fun getMaximumShopLimit(plotType: PlotType) : Int {
-        return when (plotType) {
-            PlotType.GUILD -> guildLevels.last().value ?: -1
-            PlotType.PERSONAL -> personalLevels.last().value ?: -1
+            PlotType.GUILD -> guildLevels.last().value
+            PlotType.PERSONAL -> personalLevels.last().value
         }
     }
 
     // Setters
 
-    fun upgradePlot(plot: Plot) {
-        plot.shop.level += 1
-    }
+
 }

@@ -2,13 +2,11 @@ package com.brinkmc.plop.plot.dto.modifier
 
 
 data class PlotSize(
-    private var level: Int
+    private var _level: Int
 ) {
-    fun getLevel(): Int {
-        return level
-    }
+    val level get() = _level
 
-    fun upgradeLevel() {
-        level++
+    fun setLevel(level: Int) {
+        _level = level
     }
 }

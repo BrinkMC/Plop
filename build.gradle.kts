@@ -64,8 +64,8 @@ dependencies {
 
     // Coroutine implementation
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
-    implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-api","2.20.0")
-    implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-core","2.20.0")
+    implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-api","2.22.0")
+    implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-core","2.22.0")
     implementation("com.noxcrew.interfaces", "interfaces", "2.0.0") {
         exclude(group = "com.google.guava")
     }
@@ -75,7 +75,7 @@ dependencies {
     implementation("org.spongepowered", "configurate-extra-kotlin")
 
     implementation("com.zaxxer", "HikariCP", "6.2.1")
-    implementation("com.sksamuel.aedile", "aedile-core", "2.0.3")
+    implementation("com.sksamuel.aedile", "aedile-core", "3.0.1")
     implementation("org.bstats", "bstats-bukkit", "3.0.2")
 }
 

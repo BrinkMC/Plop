@@ -1,13 +1,11 @@
 package com.brinkmc.plop.plot.dto.modifier
 
 data class PlotShop(
-    private var level: Int
+    private var _level: Int
 ) {
-    fun getLevel(): Int {
-        return level
-    }
+    val level: Int get() = _level
 
-    fun upgradeLevel() {
-        level++
+    fun setLevel(level: Int) {
+        _level = level
     }
 }

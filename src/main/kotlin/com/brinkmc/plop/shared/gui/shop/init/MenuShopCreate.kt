@@ -2,8 +2,8 @@ package com.brinkmc.plop.shared.gui.shop.init
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.design.enums.ItemKey
-import com.brinkmc.plop.shared.design.enums.MessageKey
+import com.brinkmc.plop.shared.constant.ItemKey
+import com.brinkmc.plop.shared.constant.MessageKey
 import com.brinkmc.plop.shop.Shops
 import com.brinkmc.plop.shop.dto.Shop
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable

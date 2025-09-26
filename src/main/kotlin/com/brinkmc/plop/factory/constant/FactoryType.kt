@@ -1,6 +1,8 @@
 package com.brinkmc.plop.factory.constant
 
-enum class FactoryType { // Types of shop
+import com.brinkmc.plop.shared.item.enum.TrackedItemKey
+
+enum class FactoryType: TrackedItemKey { // Types of shop
     PLANTER,
     HARVESTER,
     PLACER,

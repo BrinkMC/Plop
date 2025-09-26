@@ -15,18 +15,16 @@ import com.brinkmc.plop.shared.command.processors.GeneralSuggestionProcessor
 import com.brinkmc.plop.shared.command.utils.PlotTypeParser
 import com.brinkmc.plop.shared.service.ConfigService
 import com.brinkmc.plop.shared.db.HikariManager
-import com.brinkmc.plop.shared.service.MenuHandler
 import com.brinkmc.plop.shared.hologram.HologramHandler
 import com.brinkmc.plop.shared.service.HookService
 import com.brinkmc.plop.shared.service.DesignService
 import com.brinkmc.plop.shared.design.MessageSource
+import com.brinkmc.plop.shared.item.ItemService
 import com.brinkmc.plop.shared.service.EconomyService
 import com.brinkmc.plop.shared.service.MenuService
 import com.brinkmc.plop.shared.service.PlayerService
 import com.brinkmc.plop.shop.Shops
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
-import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
-import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.google.gson.Gson
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack
@@ -56,21 +54,18 @@ class Plop : State, SuspendingJavaPlugin() {
     // Shared services
 
     val menuService: MenuService = MenuService(plugin)
+    val hologramService: HologramService = HologramService(plugin)
     val configService: ConfigService = ConfigService(plugin)
     val hookService: HookService = HookService(plugin)
     val designService: DesignService = DesignService(plugin)
     val playerService: PlayerService = PlayerService(plugin)
     val economyService: EconomyService = EconomyService(plugin)
-
-    lateinit var menuHandler: MenuHandler
-    lateinit var hologramHandler: HologramHandler
-    lateinit var audiences: Audiences
-
+    val itemService: ItemService = ItemService(plugin)
 
     // Private components for plop use only
     private lateinit var commandManager: PaperCommandManager<CommandSourceStack>
     private lateinit var annotationParser: AnnotationParser<CommandSourceStack>
-    private lateinit var messageSource: MessageSource
+    private val messageSource: MessageSource = MessageSource(plugin)
 
 
 
@@ -100,9 +95,8 @@ class Plop : State, SuspendingJavaPlugin() {
         } // I can't believe I have to do this
 
         // Load messages
-        messageSource = MessageSource(plugin)
         messageSource.load()
-        designHandler = DesignService(plugin)
+        designService.load()
 
         // Load configs initially to get all necessary data
         plugin.slF4JLogger.info("Initiating config manager")

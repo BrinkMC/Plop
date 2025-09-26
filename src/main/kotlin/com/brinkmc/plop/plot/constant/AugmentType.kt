@@ -1,4 +1,4 @@
-package com.brinkmc.plop.factory.constant
+package com.brinkmc.plop.plot.constant
 
 enum class AugmentType { // Types of shop
     SPEED, // Increase speed of the factory type action

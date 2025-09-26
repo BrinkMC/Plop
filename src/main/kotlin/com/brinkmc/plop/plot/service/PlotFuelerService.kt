@@ -1,11 +1,14 @@
 package com.brinkmc.plop.plot.service
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.constant.PlotType
 import com.brinkmc.plop.plot.dto.Plot
-import com.brinkmc.plop.plot.plot.base.PlotType
+import com.brinkmc.plop.plot.dto.modifier.PlotFueler
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.config.serialisers.Level
+import java.util.UUID
+import kotlin.text.get
 
 class PlotFuelerService(override val plugin: Plop): Addon, State {
 
@@ -13,8 +16,8 @@ class PlotFuelerService(override val plugin: Plop): Addon, State {
     private val personalLevels = mutableListOf<Level>()
 
     override suspend fun load() {
-        plotConfig.getFuelerLevels(PlotType.GUILD).let { guildLevels.addAll(it) } // Add all guild fueler levels
-        plotConfig.getFuelerLevels(PlotType.PERSONAL).let { personalLevels.addAll(it) }
+        configService.plotConfig.getFuelerLevels(PlotType.GUILD).let { guildLevels.addAll(it) } // Add all guild fueler levels
+        configService.plotConfig.getFuelerLevels(PlotType.PERSONAL).let { personalLevels.addAll(it) }
 
 
         // Start redstone timer per plot to update fueler amount
@@ -27,37 +30,35 @@ class PlotFuelerService(override val plugin: Plop): Addon, State {
 
     // Getters
 
-    fun getHighestLevel(plotType: PlotType): Int {
+    private suspend fun getPlotFueler(plotId: UUID): PlotFueler? {
+        val plotFueler = plotService.getPlotFueler(plotId) ?: return null
+        return plotFueler
+    }
+
+    suspend fun getFuelerLevel(plotId: UUID): Int? {
+        val plotFueler = getPlotFueler(plotId) ?: return null
+        val plotType = plotService.getPlotType(plotId) ?: return null
         return when (plotType) {
-            PlotType.GUILD -> guildLevels.size
-            PlotType.PERSONAL -> personalLevels.size
+            PlotType.GUILD -> guildLevels[plotFueler.level].value
+            PlotType.PERSONAL -> personalLevels[plotFueler.level].value
         }
     }
 
-    fun getLevel(plotType: PlotType, level: Int): Level? {
-        return when (plotType) {
-            PlotType.GUILD -> guildLevels.getOrNull(level)
-            PlotType.PERSONAL -> personalLevels.getOrNull(level)
-        }
-    }
+    suspend fun getMaximumFuelerLevel(plotId: UUID): Int? {
+        val plotType = plotService.getPlotType(plotId) ?: return null
 
-    fun getCurrentFuelerLimit(plotType: PlotType, level: Int): Int {
         return when (plotType) {
-            PlotType.GUILD -> guildLevels[level].value ?: -1
-            PlotType.PERSONAL -> personalLevels[level].value ?: -1
-        }
-    }
-
-    fun getMaximumFuelerLimit(plotType: PlotType) : Int {
-        return when (plotType) {
-            PlotType.GUILD -> guildLevels.last().value ?: -1
-            PlotType.PERSONAL -> personalLevels.last().value ?: -1
+            PlotType.GUILD -> guildLevels.last().value
+            PlotType.PERSONAL -> personalLevels.last().value
         }
     }
 
     // Setters
 
-    fun upgradePlot(plot: Plot) {
-        plot.fueler.level += 1
+    suspend fun upgradeFuelerLimit(plotId: UUID) {
+        val plotFueler = getPlotFueler(plotId) ?: return
+        val plotType = plotService.getPlotType(plotId) ?: return
+
+        plotFueler.setLevel(plotFueler.level + 1)
     }
 }

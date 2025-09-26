@@ -4,6 +4,7 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.CoroutineUtils.async
+import com.brinkmc.plop.shared.util.LocationString.toLocation
 import com.brinkmc.plop.shop.dto.Shop
 import com.brinkmc.plop.shop.dao.DatabaseShop
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -22,8 +23,9 @@ class ShopCache(override val plugin: Plop): Addon, State {
         .asLoadingCache<UUID, Shop?> {
             plugin.asyncScope {
                 val shop = databaseHandler.loadShop(it) ?: return@asyncScope null
+                val location = shop.location.toLocation() ?: return@asyncScope null
 
-                val plotId = plotService.getPlotIdFromLocation(shop.location) ?: return@asyncScope shop
+                val plotId = plotService.getPlotIdFromLocation(location) ?: return@asyncScope shop
                 locationCache.invalidate(plotId) // Invalidate the location cache for this plotId, as a shop has been loaded for it
 
                 shop
@@ -35,7 +37,8 @@ class ShopCache(override val plugin: Plop): Addon, State {
         .asLoadingCache<UUID, List<UUID>> {
             plugin.asyncScope {
                 getShops().filter {
-                    it.value?.location != null && plotService.getPlotIdFromLocation(it.value!!.location) == it
+                    val location = it.value?.location?.toLocation()!!
+                    it.value?.location != null && plotService.getPlotIdFromLocation(location) == it
                 }.map { it.key }
             }
         }
@@ -81,6 +84,7 @@ class ShopCache(override val plugin: Plop): Addon, State {
     suspend fun deleteShop(shop: Shop) {
         plugin.asyncScope {
             shopMap.invalidate(shop.id) // Deletes the plot from the cache
+            locationCache.invalidate(shop.id)
             databaseHandler.deleteShop(shop) // Deletes the plot from the database
         }
     }

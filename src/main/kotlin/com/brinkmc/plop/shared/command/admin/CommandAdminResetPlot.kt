@@ -4,7 +4,7 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.Command
-import com.brinkmc.plop.shared.design.enums.MessageKey
+import com.brinkmc.plop.shared.constant.MessageKey
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Argument

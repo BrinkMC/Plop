@@ -1,4 +1,4 @@
-package com.brinkmc.plop.shared.design.enums
+package com.brinkmc.plop.shared.constant
 
 import net.kyori.adventure.key.Key
 

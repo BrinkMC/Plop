@@ -1,4 +1,4 @@
-package com.brinkmc.plop.shared.design.enums
+package com.brinkmc.plop.shared.constant
 
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack

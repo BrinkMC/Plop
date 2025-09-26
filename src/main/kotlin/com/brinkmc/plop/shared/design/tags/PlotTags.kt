@@ -7,29 +7,36 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import java.util.UUID
 
 class PlotTags(override val plugin: Plop, val miniMessage: MiniMessage) : Addon {
 
-    fun all(plot: Plot?): TagResolver {
-        if (plot == null) {
+    fun all(plotId: UUID?): TagResolver {
+        if (plotId == null) {
             return TagResolver.resolver()
         }
 
+        val resolvers = listOfNotNull(
+            nameTag(plotId),
+            shopLevelTag(plotId)
+        )
+
         return TagResolver.resolver(
-            nameTag(plot),
-            shopLevelTag(plot)
+            resolvers
         )
 
     }
 
-    private fun nameTag(plot: Plot): TagResolver {
+    private suspend fun nameTag(plotId: UUID): TagResolver? {
+        val plotOwnerName = plotService.getPlotOwnerDisplayName(plotId) ?: return null
         return Placeholder.component(
             "plot_owner",
-            miniMessage.deserialize(plot.owner.getName())
+            miniMessage.deserialize(plotOwnerName)
         )
     }
 
-    private fun shopLevelTag(plot: Plot): TagResolver {
+    private fun shopLevelTag(plotId: UUID): TagResolver? {
+        val plotShopLevel = plotShopService.getShopLevel(plotId) ?: return null
         return Placeholder.component(
             "plot_shop_level",
             Component.text(plot.shop.level)

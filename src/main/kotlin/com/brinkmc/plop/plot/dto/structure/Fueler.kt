@@ -1,5 +1,6 @@
 package com.brinkmc.plop.plot.dto.structure
 
+import com.brinkmc.plop.factory.dto.Augment
 import com.brinkmc.plop.plot.constant.FuelerType
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
@@ -12,7 +13,8 @@ data class Fueler(
     private val location: String,
     private var _item: ItemStack,
     private var _quantity: Int,
-    private var _active: Boolean
+    private var _active: Boolean,
+    private var _augments: List<Augment>, // two slots?
 ) {
     fun getId(): UUID {
         return id

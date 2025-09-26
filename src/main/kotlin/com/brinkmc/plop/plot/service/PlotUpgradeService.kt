@@ -4,7 +4,7 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.dto.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.design.enums.MessageKey
+import com.brinkmc.plop.shared.constant.MessageKey
 import org.bukkit.entity.Player
 
 class PlotUpgradeService(override val plugin: Plop): Addon, State {

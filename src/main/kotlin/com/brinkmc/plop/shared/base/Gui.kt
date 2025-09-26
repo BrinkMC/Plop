@@ -1,7 +1,7 @@
 package com.brinkmc.plop.shared.base
 
-import com.brinkmc.plop.shared.design.enums.ItemKey
-import com.brinkmc.plop.shared.design.enums.MessageKey
+import com.brinkmc.plop.shared.constant.ItemKey
+import com.brinkmc.plop.shared.constant.MessageKey
 import com.brinkmc.plop.shared.util.CoroutineUtils.async
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement

@@ -3,7 +3,7 @@ package com.brinkmc.plop.shared.command.admin
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.Command
-import com.brinkmc.plop.shared.design.enums.MessageKey
+import com.brinkmc.plop.shared.constant.MessageKey
 import org.incendo.cloud.paper.util.sender.Source
 import org.bukkit.entity.Player
 import org.incendo.cloud.annotations.Argument

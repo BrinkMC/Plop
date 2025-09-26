@@ -1,9 +1,9 @@
 package com.brinkmc.plop.shared.hook.api
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.constant.PlotType
 import com.brinkmc.plop.plot.dto.Plot
 import com.brinkmc.plop.plot.dto.modifier.PlotOwner
-import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hook.api.Locals.localLocation
@@ -29,16 +29,12 @@ import java.util.UUID
 class WorldGuard(override val plugin: Plop): Addon, State {
 
     private lateinit var worldGuardAPI: WorldGuard
+
     private val worldGuardPlatform: WorldGuardPlatform
         get() = worldGuardAPI.platform
+
     private val worldGuardRegionContainer: RegionContainer
         get() = worldGuardPlatform.regionContainer
-
-    private val personalPlotWorld: com.sk89q.worldedit.world.World?
-        get() = Bukkit.getWorld(plotConfig.getPlotWorld(PlotType.PERSONAL))?.localWorld()
-
-    private val guildPlotWorld: com.sk89q.worldedit.world.World?
-        get() = Bukkit.getWorld(plotConfig.getPlotWorld(PlotType.GUILD))?.localWorld()
 
     override suspend fun load() {
         worldGuardAPI = WorldGuard.getInstance()
@@ -68,36 +64,18 @@ class WorldGuard(override val plugin: Plop): Addon, State {
     }
 
     fun getPlotRegions(plotType: PlotType): Map<String, ProtectedRegion> {
-        return when (plotType) {
-            PlotType.PERSONAL -> getPersonalPlotRegions()
-            PlotType.GUILD -> getGuildPlotRegions()
-        }
-    }
-
-    private fun getPersonalPlotRegions(): Map<String, ProtectedRegion> {
-        return worldGuardRegionContainer.get(personalPlotWorld)?.regions ?: mapOf()
-    }
-
-    private fun getGuildPlotRegions(): Map<String, ProtectedRegion> {
-        return worldGuardRegionContainer.get(guildPlotWorld)?.regions ?: mapOf()
+        val world = plotService.getPlotWorld(plotType)
+        val worldGuardWorld = world.localWorld()
+        return worldGuardRegionContainer.get(worldGuardWorld)?.regions ?: mapOf()
     }
 
     // Create a region to claim around the new plot, the plot has uuid as its name
-    suspend fun createRegion(uuid: UUID) {
-        val plot = plots.handler.getPlotById(uuid) ?: run {
-            logger.error("Critical problem in creating a region, plot doesn't exist")
-            return
-        }
+    suspend fun createRegion(plotId: UUID) {
+        val world = plotService.getPlotWorld(plotId)
+        val centre = plotClaimService.getPlotCentre(plotId) ?: return
 
-        val plotWorld = plotConfig.getPlotWorld(plot.type)?.world() ?: run {
-            logger.error("No such world exists")
-            return
-        }
-
-        val owner = plot.owner
-
-        val min = BlockVector3.at(plot.claim.centre.blockX - plot.size.max, plotWorld.minHeight, plot.claim.centre.blockZ - plot.size.max)
-        val max = BlockVector3.at(plot.claim.centre.blockX + plot.size.max - 1, plotWorld.maxHeight, plot.claim.centre.blockZ + plot.size.max - 1) // Define region size and location
+        val min = BlockVector3.at(centre.blockX - plot.size.max, plotWorld.minHeight, centre.blockZ - plot.size.max)
+        val max = BlockVector3.at(centre.blockX + plot.size.max - 1, plotWorld.maxHeight, centre.blockZ + plot.size.max - 1) // Define region size and location
 
         syncScope {
             val domain = DefaultDomain()
@@ -140,7 +118,7 @@ class WorldGuard(override val plugin: Plop): Addon, State {
         }
     }
 
-    fun addMember(plot: Plot, player: Player) {
+    fun addMember(plotId: UUID, playerId: UUID) {
         val region = getRegion(plotConfig.getPlotWorld(plot.type), plot.plotId) ?: run {
             logger.error("Critical problem in adding a member, region doesn't exist")
             return
@@ -153,7 +131,7 @@ class WorldGuard(override val plugin: Plop): Addon, State {
         region.owners = domain
     }
 
-    fun removeMember(plot: Plot, player: OfflinePlayer) {
+    fun removeMember(plotId: UUID, playerId: UUID) {
         val region = getRegion(plotConfig.getPlotWorld(plot.type), plot.plotId) ?: run {
             logger.error("Critical problem in removing a member, region doesn't exist")
             return

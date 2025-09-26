@@ -8,75 +8,73 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.entity.Player
+import java.util.UUID
 
 class ShopTags(override val plugin: Plop, val miniMessage: MiniMessage) : Addon {
 
-    suspend fun all(shop: Shop?, player: Player?): TagResolver {
-        if (shop == null) {
+    suspend fun all(shopId: UUID?, playerId: UUID?): TagResolver {
+        if (shopId == null) {
             return TagResolver.resolver()
         }
 
-        if (player == null) {
-            return TagResolver.resolver(
-                nameTag(shop),
-                itemTag(shop),
-                quantityTag(shop),
-                priceTag(shop),
-            )
-        }
-
-        return TagResolver.resolver(
-            nameTag(shop),
-            itemTag(shop),
-            quantityTag(shop),
-            priceTag(shop),
-            totalTag(player),
-            multiplierTag(player)
+        val resolvers = listOfNotNull(
+            nameTag(shopId),
+            itemTag(shopId),
+            quantityTag(shopId),
+            priceTag(shopId),
+            if (playerId != null) totalTag(playerId) else null,
+            if (playerId != null) multiplierTag(playerId) else null
         )
-
+        return TagResolver.resolver(
+            resolvers
+        )
     }
 
-    private suspend fun totalTag(player: Player): TagResolver {
-        val multiplier = shopAccessService.getTotal(player.uniqueId) ?: 0
+    private suspend fun totalTag(playerId: UUID): TagResolver? {
+        val multiplier = shopAccessService.getTotal(playerId) ?: return null
         return Placeholder.component(
             "total",
             Component.text(multiplier)
         )
     }
 
-    private suspend fun multiplierTag(player: Player): TagResolver {
-        val multiplier = shopAccessService.getMultiplier(player.uniqueId) ?: 1
+    private suspend fun multiplierTag(playerId: UUID): TagResolver? {
+        val multiplier = shopAccessService.getMultiplier(playerId) ?: return null
         return Placeholder.component(
             "multiplier",
             Component.text(multiplier)
         )
     }
 
-    private suspend fun nameTag(shop: Shop): TagResolver {
+    private suspend fun nameTag(shopId: UUID): TagResolver? {
+        val shopOwner = shopService.getShopOwnerDisplayName(shopId) ?: return null
         return Placeholder.component(
             "shop_owner",
-            miniMessage.deserialize(plotService.getPlotFromLocation(shop.location)?.owner?.getName() ?: "")
+            miniMessage.deserialize(shopOwner)
         )
     }
 
-    private fun itemTag(shop: Shop): TagResolver {
+    private suspend fun itemTag(shopId: UUID): TagResolver? {
+        val shopItemName = shopService.getShopItem(shopId)?.displayName() ?: return null
         return Placeholder.component(
             "shop_item",
-            shop.item.displayName()
+            shopItemName
         )
     }
 
-    private fun quantityTag(shop: Shop): TagResolver {
+    private suspend fun quantityTag(shopId: UUID): TagResolver? {
+        val shopQuantity = shopService.getShopQuantity(shopId) ?: return null
         return Placeholder.component(
             "shop_quantity",
-            Component.text(shop.quantity)
+            Component.text(shopQuantity)
         )
     }
 
-    private fun priceTag(shop: Shop): TagResolver {
+    private suspend fun priceTag(shopId: UUID): TagResolver? {
+        val shopPrice = shopService.getShopPrice(shopId) ?: return null
         return Placeholder.component(
             "shop_price",
-            Component.text(shop.price)
+            Component.text(shopPrice)
         )
     }
 }

@@ -18,7 +18,7 @@ class EconomyService(override val plugin: Plop): Addon, State {
 
     override suspend fun kill() {}
 
-    fun getBalance(id: UUID): Double {
+    fun getBalance(id: UUID): Double? {
         // Identify whether it's player OR guild
         // Return balance
         val player = plugin.server.getPlayer(id)
@@ -32,7 +32,7 @@ class EconomyService(override val plugin: Plop): Addon, State {
             return guild.balance
         }
 
-        return 0.0
+        return null
     }
 
     fun withdrawBalance(id: UUID, amount: Double): Boolean {

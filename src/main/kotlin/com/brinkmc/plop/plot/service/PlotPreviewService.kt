@@ -6,7 +6,6 @@ import com.brinkmc.plop.plot.constant.PreviewResult
 import com.brinkmc.plop.plot.dto.PlotPreview
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.design.enums.MessageKey
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.event.player.PlayerTeleportEvent
@@ -28,13 +27,16 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
 
     override suspend fun kill() {
         for (preview in previews) {
-            preview.value.returnTeleport()
-            preview.value.interfaceView?.close()
-            preview.value.returnInventory()
+            val playerId = preview.key
+            returnTeleport(playerId)
+            menuService.previewHotbar.close(playerId)
+            returnInventory(playerId)
         }
 
         previews.clear()
     }
+
+    // Combined checks
 
     private suspend fun guildChecks(playerId: UUID): PreviewResult {
         // Guild checks
@@ -57,15 +59,39 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
         return PreviewResult.SUCCESS
     }
 
+
+    // Getters
+
     private fun getPreview(playerId: UUID): PlotPreview? {
         return previews[playerId]
     }
+
+    fun getPreviewPlot(playerId: UUID): Location? {
+        val preview = getPreview(playerId) ?: return null
+        return preview.previewPlot.value.toLocation()
+    }
+
+    fun getPlotType(playerId: UUID): PlotType {
+        return if (getPreview(playerId)?.world == configService.plotConfig.personalConfig.personalPlotWorld) {
+            PlotType.PERSONAL
+        } else {
+            PlotType.GUILD
+        }
+    }
+
+    // Setters
+
+    fun setPreviewPlot(playerId: UUID, preview: PlotPreview) {
+        previews[playerId] = preview
+    }
+
+    // Actions
 
     private suspend fun nextPlot(playerId: UUID) {
         val preview = getPreview(playerId) ?: return
         toggleFree(playerId, true)
 
-        val nextPlot = preview.previewPlot.next ?: return
+        val nextPlot = plotLayoutService.getNextFreePlot(preview.previewPlot, getPlotType(playerId))
         preview.setPreviewPlot(nextPlot)
         toggleFree(playerId, false)
     }
@@ -74,14 +100,9 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
         val preview = getPreview(playerId) ?: return
         toggleFree(playerId, true)
 
-        val previousPlot = preview.previewPlot.prev ?: return
+        val previousPlot = plotLayoutService.getPreviousFreePlot(preview.previewPlot, getPlotType(playerId))
         preview.setPreviewPlot(previousPlot)
         toggleFree(playerId, false)
-    }
-
-    fun getPreviewPlot(playerId: UUID): Location? {
-        val preview = getPreview(playerId) ?: return null
-        return preview.previewPlot.value.toLocation()
     }
 
     fun toggleFree(playerId: UUID, free: Boolean) {
@@ -91,31 +112,20 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
 
     fun returnTeleport(playerId: UUID) {
         val preview = getPreview(playerId) ?: return
-        val player = playerService.getPlayer(playerId) ?: return
-        player.teleportAsync(preview.savedLocation, PlayerTeleportEvent.TeleportCause.PLUGIN)
+        playerService.teleport(playerId, preview.savedLocation, PlayerTeleportEvent.TeleportCause.PLUGIN)
     }
 
     fun returnInventory(playerId: UUID) {
         val preview = getPreview(playerId) ?: return
-        val player = playerService.getPlayer(playerId) ?: return
-        player.inventory.contents = preview.savedInventory
+        playerService.setInventory(playerId, preview.savedInventory)
     }
 
     fun teleportToPlot(playerId: UUID) {
         val previewPlot = getPreviewPlot(playerId) ?: return
         val location = previewPlot.clone().add(0.0, 1.0, 0.0)
 
-        val player = playerService.getPlayer(playerId) ?: return
-        player.teleportAsync(location, PlayerTeleportEvent.TeleportCause.COMMAND)
+        playerService.teleport(playerId, location, PlayerTeleportEvent.TeleportCause.COMMAND)
         toggleFree(playerId, false)
-    }
-
-    fun getPlotType(playerId: UUID): PlotType {
-        return if (getPreview(playerId)?.world == configService.plotConfig.personalConfig.personalPlotWorld) {
-            PlotType.PERSONAL
-        } else {
-            PlotType.GUILD
-        }
     }
 
     suspend fun startPreview(playerId: UUID, vararg args: Any): PreviewResult {
@@ -140,7 +150,7 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
 
         val openPlot = plotLayoutService.getFirstFree(type)
 
-        val interfaceView = menuService.previewHotbar.open(player)
+        val interfaceView = menuService.previewHotbar.open(playerId)
 
         val plotPreview = PlotPreview(
             playerId,
@@ -151,6 +161,7 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
             interfaceView
         )
 
+        setPreviewPlot(playerId, plotPreview)
         toggleFree(playerId, false)
         teleportToPlot(playerId)
 
@@ -204,16 +215,15 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
 
     suspend fun endPreview(playerId: UUID, teleport: Boolean): Boolean {
         val preview = getPreview(playerId) ?: return false
-        val player = playerService.getPlayer(playerId) ?: return false
 
         preview.interfaceView.close() // Close interface
-        if (teleport) { returnTeleport(playerId) }
+        if (teleport) {
+            returnTeleport(playerId)
+        }
         returnInventory(playerId)
         toggleFree(playerId, true)
 
-        player.allowFlight = false
-        player.isFlying = false
-
+        playerService.allowFlight(playerId, false)
         // Finally remove preview
         previews.remove(playerId)
         return true
@@ -221,47 +231,40 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
 
     suspend fun claimPlot(playerId: UUID): Boolean {
         val preview = getPreview(playerId) ?: return false
+        val plotType = getPlotType(playerId)
 
-        when (getPlotType(playerId)) {
-            PlotType.PERSONAL -> {
-                plotService.createPersonalPlot(playerId, preview.previewPlot.value.toLocation())
-            }
-
-            PlotType.GUILD -> {
-                plotService.createGuildPlot(playerId, preview.previewPlot.value.toLocation())
-            }
-        }
+        plotClaimService.createPlot(playerId, plotType, preview.previewPlot.value)
 
         endPreview(playerId, false)
-    }
-
-
-    suspend fun claimPlot(player: UUID) {
-        val previewInstance = previews[player] // Get preview
-        val bukkitPlayer = player.player()
-
-        if (previewInstance == null) {
-            logger.error("No such preview")
-            return
-        }
-
-        when (previewInstance.type) {
-            PlotType.PERSONAL -> {
-                personalPreviewHandler.openPlots.remove(previewInstance.viewPlot)
-            }
-
-            PlotType.GUILD -> {
-                guildPlotLayoutStrategy.openPlots.remove(previewInstance.viewPlot)
-            }
-        }
-
-        previewInstance.interfaceView?.close()
-        previewInstance.returnInventory()
-        bukkitPlayer?.allowFlight = false
-        bukkitPlayer?.isFlying = false
-        previews.remove(player) // Remove from map
+        return true
     }
 }
+
+//    suspend fun claimPlot(player: UUID) {
+//        val previewInstance = previews[player] // Get preview
+//        val bukkitPlayer = player.player()
+//
+//        if (previewInstance == null) {
+//            logger.error("No such preview")
+//            return
+//        }
+//
+//        when (previewInstance.type) {
+//            PlotType.PERSONAL -> {
+//                personalPreviewHandler.openPlots.remove(previewInstance.viewPlot)
+//            }
+//
+//            PlotType.GUILD -> {
+//                guildPlotLayoutStrategy.openPlots.remove(previewInstance.viewPlot)
+//            }
+//        }
+//
+//        previewInstance.interfaceView?.close()
+//        previewInstance.returnInventory()
+//        bukkitPlayer?.allowFlight = false
+//        bukkitPlayer?.isFlying = false
+//        previews.remove(player) // Remove from map
+//    }
 
 
 //    suspend fun nextPlot(player: UUID) {
@@ -317,4 +320,3 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
 //
 //        previewInstance.teleportToViewPlot() // Update player logic
 //    }
-}

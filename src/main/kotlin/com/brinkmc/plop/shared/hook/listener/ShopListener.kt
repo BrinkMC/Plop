@@ -3,8 +3,8 @@ package com.brinkmc.plop.shared.hook.listener
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.design.enums.MessageKey
-import com.brinkmc.plop.shared.design.enums.SoundKey
+import com.brinkmc.plop.shared.constant.MessageKey
+import com.brinkmc.plop.shared.constant.SoundKey
 import com.brinkmc.plop.shop.dto.Shop
 import org.bukkit.Material
 import org.bukkit.block.BlockFace

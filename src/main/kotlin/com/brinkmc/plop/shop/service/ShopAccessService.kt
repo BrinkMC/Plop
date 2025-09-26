@@ -20,16 +20,14 @@ class ShopAccessService(override val plugin: Plop): Addon, State {
         TODO("Not yet implemented")
     }
 
-    private suspend fun getMultiplier(playerId: UUID): Int? {
-        val access = playerToShopTracker[playerId] ?: return null
-        return access.multiplier
-    }
-
     private suspend fun setTotal(playerId: UUID, total: Int) {
         val access = playerToShopTracker[playerId] ?: return
         access.setTotal(total)
     }
 
+    fun getOpenAccess(shopId: UUID): List<ShopAccess> {
+        return playerToShopTracker.values.filter { it.id == shopId }
+    }
 
     private suspend fun getLimit(playerId: UUID, shopId: UUID): Int? {
         return when (shopService.getShopType(shopId)) {
@@ -53,9 +51,14 @@ class ShopAccessService(override val plugin: Plop): Addon, State {
         playerToShopTracker[playerId] = shopAccess
     }
 
-    suspend fun getTotal(playerId: UUID): Int? {
+    fun getTotal(playerId: UUID): Int? {
         val access = playerToShopTracker[playerId] ?: return null
         return access.total
+    }
+
+    fun getMultiplier(playerId: UUID): Int? {
+        val access = playerToShopTracker[playerId] ?: return null
+        return access.multiplier
     }
 
     fun getViewedShop(playerId: UUID): UUID? {

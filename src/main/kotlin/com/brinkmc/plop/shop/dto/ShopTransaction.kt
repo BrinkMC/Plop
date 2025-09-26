@@ -5,8 +5,8 @@ import java.sql.Timestamp
 import java.util.UUID
 
 data class ShopTransaction(
-    private val timestamp: Timestamp, // Primary key
-    private val playerId: UUID,
-    private val amount: Int,
-    private val cost: Double,
+    val timestamp: Timestamp, // Primary key
+    val playerId: UUID,
+    val amount: Int,
+    val cost: Double,
 )

@@ -5,31 +5,19 @@ import com.brinkmc.plop.plot.constant.TotemType
 import org.bukkit.Location
 
 data class PlotTotem(
-    private var level: Int,
-    private val totems: MutableList<Totem>,
-    private var enableLightning: Boolean
+    val totems: MutableList<Totem>,
+
+    private var _level: Int,
+    private var _enableLightning: Boolean
 ) {
-    fun getLevel(): Int {
-        return level
+    val level get() = _level
+    val enableLightning get() = _enableLightning
+
+    fun setLevel(level: Int) {
+        _level = level
     }
 
-    fun upgradeLevel() {
-        level++
-    }
-
-    fun getTypes(): List<TotemType> {
-        return totems.map { it.getTotemType() }
-    }
-
-    fun getTotems(): List<Totem> {
-        return totems
-    }
-
-    fun addTotem(type: TotemType, location: Location) {
-        totems.add(Totem(type, location))
-    }
-
-    fun removeTotem(type: TotemType, location: Location) {
-        totems.removeIf { it.getTotemType() == type && it.getLocation() == location }
+    fun setEnableLightning(enable: Boolean) {
+        _enableLightning = enable
     }
 }

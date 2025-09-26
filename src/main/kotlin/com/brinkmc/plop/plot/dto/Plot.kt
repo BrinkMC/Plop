@@ -27,7 +27,7 @@ data class Plot(
     private var _totem: PlotTotem,
     private var _fueler: PlotFueler,
     private var _nexus: PlotNexus,
-    private var _owner: PlotOwner,
+    //private var _owner: PlotOwner,
 ) {
     private val mutex = Mutex()
 
@@ -40,7 +40,7 @@ data class Plot(
     val shop: PlotShop get() = _shop
     val totem: PlotTotem get() = _totem
     val fueler: PlotFueler get() = _fueler
-    val owner: PlotOwner get() = _owner
+    //val owner: PlotOwner get() = _owner
 
     // Thread-safe setters
     suspend fun setClaim(claim: PlotClaim) = mutex.withLock {

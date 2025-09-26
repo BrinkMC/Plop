@@ -6,6 +6,7 @@ import com.brinkmc.plop.factory.service.FactoryActionService
 import com.brinkmc.plop.factory.service.FactoryAugmentService
 import com.brinkmc.plop.factory.service.FactoryService
 import com.brinkmc.plop.plot.Plots
+import com.brinkmc.plop.plot.service.PlotBorderService
 import com.brinkmc.plop.plot.service.PlotClaimService
 import com.brinkmc.plop.plot.service.PlotFactoryService
 import com.brinkmc.plop.plot.service.PlotFuelerService
@@ -22,6 +23,7 @@ import com.brinkmc.plop.shared.service.ConfigService
 import com.brinkmc.plop.shared.db.HikariManager
 import com.brinkmc.plop.shared.service.HookService
 import com.brinkmc.plop.shared.hook.api.PlayerTracker
+import com.brinkmc.plop.shared.item.ItemService
 import com.brinkmc.plop.shared.service.DesignService
 import com.brinkmc.plop.shared.service.EconomyService
 import com.brinkmc.plop.shared.service.MenuService
@@ -71,6 +73,8 @@ internal interface Addon {
     val economyService: EconomyService
         get() = plugin.economyService
 
+    val itemService: ItemService
+        get() = plugin.itemService
 
     // Plot handlers
     val plots: Plots
@@ -112,6 +116,8 @@ internal interface Addon {
     val plotLayoutService: PlotLayoutService
         get() = plugin.plots.plotLayoutService
 
+    val plotBorderService: PlotBorderService
+        get() = plugin.plots.plotBorderService
 
     // Shop handlers
     val shops: Shops

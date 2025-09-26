@@ -1,8 +1,8 @@
 package com.brinkmc.plop.plot.service
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.preview.Direction
-import com.brinkmc.plop.plot.preview.StringLocation
+import com.brinkmc.plop.plot.constant.Direction
+import com.brinkmc.plop.plot.constant.StringLocation
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hook.api.Locals.world
@@ -12,16 +12,14 @@ import com.brinkmc.plop.shared.util.type.Node
 import com.brinkmc.plop.plot.constant.PlotType
 import org.bukkit.Location
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.management.RuntimeErrorException
 
 class PlotLayoutService(override val plugin: Plop) : State, Addon {
 
     val openPlots = mutableMapOf<PlotType, LinkedList<StringLocation>>() // x:y:z format to OpenPlot
 
-
     override suspend fun load() {
         for (plotType in PlotType.entries) {
-            openPlots[plotType] = LinkedList<StringLocation>()
+            openPlots[plotType] = LinkedList()
             generateOpenPositions(plotType)
         }
     }

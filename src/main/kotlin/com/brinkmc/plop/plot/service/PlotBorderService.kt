@@ -27,7 +27,7 @@ class PlotBorderService(override val plugin: Plop): State, Addon {
 
     fun updateBorder(playerId: UUID) { plugin.async {
         // Update player tracker for handy information
-        val player = Bukkit.getPlayer(playerId) ?: run {
+        val player = playerService.getPlayer(playerId) ?: run {
             logger.error("Failed to send fake border to player $playerId")
             return@async
         }

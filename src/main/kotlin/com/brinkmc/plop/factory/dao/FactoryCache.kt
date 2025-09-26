@@ -5,6 +5,7 @@ import com.brinkmc.plop.factory.dto.Factory
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.CoroutineUtils.async
+import com.brinkmc.plop.shared.util.LocationString.toLocation
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.sksamuel.aedile.core.asLoadingCache
 import com.sksamuel.aedile.core.expireAfterAccess
@@ -24,9 +25,27 @@ class FactoryCache(override val plugin: Plop): Addon, State {
         .expireAfterAccess(30.minutes)
         .asLoadingCache<UUID, Factory?> {
             plugin.asyncScope {
-                databaseHandler.loadFactory(it)
+                val factory = databaseHandler.loadFactory(it) ?: return@asyncScope null
+                val location = factory.location.toLocation() ?: return@asyncScope null
+
+                val plotId = plotService.getPlotIdFromLocation(location) ?: return@asyncScope factory
+                locationCache.invalidate(plotId) // Invalidate the location cache for this plotId, as a factory has been loaded for it
+
+                factory
             }
         }
+
+    private val locationCache = Caffeine.newBuilder()
+        .expireAfterAccess(30.minutes)
+        .asLoadingCache<UUID, List<UUID>> {
+            plugin.asyncScope {
+                getFactories().filter {
+                    val location = it.value?.location?.toLocation()!! // Let's hope no errors happen here
+                    it.value?.location != null && plotService.getPlotIdFromLocation(location) == it
+                }.map { it.key }
+            }
+        }
+
 
     override suspend fun load() {
         plugin.async { cacheSave() } // Get the task going
@@ -43,6 +62,15 @@ class FactoryCache(override val plugin: Plop): Addon, State {
         }
     }
 
+    suspend fun getFactories(): Map<UUID, Factory?> {
+        return factoryMap.asMap()
+    }
+
+    suspend fun getFactories(plotId: UUID): List<Factory> {
+        val factoryIds = locationCache.get(plotId)
+        return factoryIds.mapNotNull { getFactory(it) }
+    }
+
     suspend fun getFactory(id: UUID): Factory? {
         return factoryMap.get(id)
     }
@@ -57,9 +85,10 @@ class FactoryCache(override val plugin: Plop): Addon, State {
         }
     }
 
-    suspend fun  deleteFactory(factory: Factory) {
+    suspend fun deleteFactory(factory: Factory) {
         plugin.asyncScope {
             factoryMap.invalidate(factory.id) // Deletes the plot from the cache
+            locationCache.invalidate(factory.id)
             databaseHandler.deleteFactory(factory) // Deletes the plot from the database
         }
     }

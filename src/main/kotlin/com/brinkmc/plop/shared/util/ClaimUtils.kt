@@ -1,14 +1,10 @@
 package com.brinkmc.plop.shared.util
 
-import com.brinkmc.plop.plot.preview.Direction
+import com.brinkmc.plop.plot.constant.Direction
 import org.bukkit.HeightMap
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Block
-import com.brinkmc.plop.shared.util.CoroutineUtils
-import org.bukkit.Bukkit
-import org.bukkit.entity.Player
-import java.util.UUID
 
 /*
 Credit to Andross for the code, and HawkFalcon for commissioning it

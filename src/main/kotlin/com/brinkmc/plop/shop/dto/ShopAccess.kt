@@ -5,7 +5,7 @@ import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 
 data class ShopAccess(
-    val id: UUID,
+    val id: UUID, // Shop id
 
     // Buying/Selling things
     private var _multiplier: Int?,

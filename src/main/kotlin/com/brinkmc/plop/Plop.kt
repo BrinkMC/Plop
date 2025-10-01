@@ -13,16 +13,11 @@ import com.brinkmc.plop.shared.command.plot.nexus.CommandPlotVisitToggle
 import com.brinkmc.plop.shared.command.plot.preview.CommandPlotPreview
 import com.brinkmc.plop.shared.command.processors.GeneralSuggestionProcessor
 import com.brinkmc.plop.shared.command.utils.PlotTypeParser
-import com.brinkmc.plop.shared.service.ConfigService
 import com.brinkmc.plop.shared.db.HikariManager
-import com.brinkmc.plop.shared.hologram.HologramHandler
-import com.brinkmc.plop.shared.service.HookService
-import com.brinkmc.plop.shared.service.DesignService
 import com.brinkmc.plop.shared.design.MessageSource
+import com.brinkmc.plop.shared.hologram.HologramHandler
 import com.brinkmc.plop.shared.item.ItemService
-import com.brinkmc.plop.shared.service.EconomyService
-import com.brinkmc.plop.shared.service.MenuService
-import com.brinkmc.plop.shared.service.PlayerService
+import com.brinkmc.plop.shared.service.*
 import com.brinkmc.plop.shop.Shops
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
 import com.google.gson.Gson
@@ -30,14 +25,16 @@ import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
-import net.kyori.adventure.audience.Audiences
+import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
+import org.bukkit.entity.LivingEntity
 import org.incendo.cloud.annotations.AnnotationParser
 import org.incendo.cloud.bukkit.parser.PlayerParser
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.kotlin.coroutines.annotations.installCoroutineSupport
 import org.incendo.cloud.paper.PaperCommandManager
 import java.io.File
+import java.util.*
 
 
 class Plop : State, SuspendingJavaPlugin() {
@@ -176,6 +173,15 @@ class Plop : State, SuspendingJavaPlugin() {
 
     fun getFile(fileName: String): File {
         return File(plugin.dataFolder, fileName)
+    }
+
+    fun getFirstLivingEntity(): LivingEntity? {
+        for (world in Bukkit.getWorlds()) {
+            for (entity in world.livingEntities) {
+                return entity
+            }
+        }
+        return null
     }
 
     fun plopMessageSource(): MessageSource {

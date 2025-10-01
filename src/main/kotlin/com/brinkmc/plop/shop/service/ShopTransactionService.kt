@@ -6,7 +6,6 @@ import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.BukkitUtils
 import com.brinkmc.plop.shop.constant.TransactionResult
 import com.brinkmc.plop.shop.dto.Shop
-import com.brinkmc.plop.shop.dto.ShopType
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.bukkit.entity.Player
@@ -75,7 +74,6 @@ class ShopTransactionService(override val plugin: Plop): Addon, State {
         val shopItem = shopService.getShopItem(shopId) ?: return TransactionResult.FAILURE
         val selectedTotal = shopAccessService.getTotal(playerId) ?: return TransactionResult.FAILURE
         val totalPrice = shopPrice * selectedTotal
-        val player = playerService.getPlayer(playerId) ?: return TransactionResult.FAILURE
 
         if (!economyService.withdrawBalance(playerId, totalPrice)) return TransactionResult.FAILURE
         if (!economyService.depositBalance(shopOwnerId, totalPrice)) {
@@ -84,12 +82,12 @@ class ShopTransactionService(override val plugin: Plop): Addon, State {
         }
 
         for (i in 0 until selectedTotal) {
-            val result = player.inventory.addItem(shopItem)
-            if (result.isNotEmpty()) {
+            val result = playerService.addToInventory(playerId, shopItem)
+            if (!result) {
                 economyService.depositBalance(playerId, totalPrice)
                 economyService.withdrawBalance(shopOwnerId, totalPrice)
                 for (j in 0 until i) {
-                    player.inventory.removeItemAnySlot(shopItem)
+                    playerService.removeItemFromInventory(playerId, shopItem)
                 }
                 return TransactionResult.FAILURE
             }
@@ -117,13 +115,12 @@ class ShopTransactionService(override val plugin: Plop): Addon, State {
         val shopItem = shopService.getShopItem(shopId) ?: return TransactionResult.FAILURE
         val selectedTotal = shopAccessService.getTotal(playerId) ?: return TransactionResult.FAILURE
         val totalPrice = shopPrice * selectedTotal
-        val player = playerService.getPlayer(playerId) ?: return TransactionResult.FAILURE
 
         for (i in 0 until selectedTotal) {
-            val removed = player.inventory.removeItemAnySlot(shopItem)
-            if (removed.isNotEmpty()) {
+            val removed = playerService.removeItemFromInventory(playerId, shopItem)
+            if (!removed) {
                 for (j in 0 until i) {
-                    player.inventory.addItem(shopItem)
+                    playerService.addToInventory(playerId, shopItem)
                 }
                 return TransactionResult.FAILURE
             }
@@ -131,7 +128,7 @@ class ShopTransactionService(override val plugin: Plop): Addon, State {
 
         if (!economyService.withdrawBalance(shopOwnerId, totalPrice)) {
             for (i in 0 until selectedTotal) {
-                player.inventory.addItem(shopItem)
+                playerService.addToInventory(playerId, shopItem)
             }
             return TransactionResult.FAILURE
         }
@@ -139,7 +136,7 @@ class ShopTransactionService(override val plugin: Plop): Addon, State {
         if (!economyService.depositBalance(playerId, totalPrice)) {
             economyService.depositBalance(shopOwnerId, totalPrice)
             for (i in 0 until selectedTotal) {
-                player.inventory.addItem(shopItem)
+                playerService.addToInventory(playerId, shopItem)
             }
             return TransactionResult.FAILURE
         }

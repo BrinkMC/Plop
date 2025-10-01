@@ -1,6 +1,6 @@
 package com.brinkmc.plop.plot.dto
 
-import com.brinkmc.plop.plot.constant.StringLocation
+import com.brinkmc.plop.shared.constant.StringLocation
 import com.brinkmc.plop.shared.util.type.Node
 import com.noxcrew.interfaces.view.InterfaceView
 import kotlinx.coroutines.sync.Mutex

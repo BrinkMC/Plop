@@ -6,6 +6,7 @@ import com.brinkmc.plop.plot.dto.modifier.PlotOwner
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.constant.ItemKey
 import com.brinkmc.plop.shared.constant.MessageKey
+import com.brinkmc.plop.shared.constant.ServiceResult
 import com.brinkmc.plop.shared.constant.SoundKey
 import com.brinkmc.plop.shared.design.tags.PlayerTags
 import com.brinkmc.plop.shared.design.tags.PlotTags
@@ -37,6 +38,18 @@ class DesignService(override val plugin: Plop): Addon {
 
     suspend fun getItem(itemStack: ItemStack, name: MessageKey, description: MessageKey, playerId: UUID? = null, shopId: UUID? = null, plotId: UUID? = null, vararg args: TagResolver): ItemStack {
         return itemStack.name(name, playerId, shopId, plotId, *args).description(description, playerId, shopId, plotId, *args).clone()
+    }
+
+    suspend fun resolveSuccess(playerId: UUID, success: ServiceResult.Success) {
+        success.messageKey?.let { sendMiniMessage(playerId, it) }
+        success.soundKey?.let { sendSound(playerId, it) }
+        success.action?.let { it() }
+    }
+
+    suspend fun resolveFailure(playerId: UUID, failure: ServiceResult.Failure) {
+        failure.messageKey?.let { sendMiniMessage(playerId, it) }
+        failure.soundKey?.let { sendSound(playerId, it) }
+        failure.action?.let { it() }
     }
 
     suspend fun sendMiniMessage(playerId: UUID, message: MessageKey, shopId: UUID? = null, plotId: UUID? = null, vararg args: TagResolver) {
@@ -79,37 +92,46 @@ class DesignService(override val plugin: Plop): Addon {
 
     // All possible iteration of deserialisation methods which are possible
 
-    private suspend  fun deserialise(key: MessageKey, playerId: UUID?, shopId: UUID? = null, plotId: UUID? = null, vararg args: TagResolver): Component {
+    private suspend fun deserialise(key: MessageKey, playerId: UUID?, plotId: UUID? = null, shopId: UUID? = null, factoryId: UUID? = null, vararg args: TagResolver): Component {
         return miniMessage.deserialize(
             plopMessageSource.findMessage(key) ?: key.toString(),
-            getTags(playerId, shopId, plotId),
+            getTags(playerId, plotId, shopId, factoryId),
             *args
         )
     }
 
-    private suspend fun getTags(playerId: UUID?, shopId: UUID? = null, plotId: UUID? = null): TagResolver {
-        return TagResolver.resolver(
-            playerTags.all(playerId),
-            shopTags.all(shopId, playerId),
-            plotTags.all(plotId)
+    suspend fun deserialiseString(message: String, playerId: UUID, plotId: UUID? = null, shopId: UUID? = null, factoryId: UUID? = null, vararg args: TagResolver): Component {
+        return miniMessage.deserialize(
+            message,
+            getTags(playerId, plotId, shopId, factoryId),
+            *args
         )
     }
 
-    private fun resolveTags(string: String, tags: TagResolver): String { // Resolve tags and then un-resolve LOL
-        return miniMessage.serialize(miniMessage.deserialize(string, tags))
+    private suspend fun getTags(playerId: UUID?, plotId: UUID? = null, shopId: UUID? = null, factoryId: UUID? = null): TagResolver {
+        return TagResolver.resolver(
+            playerTags.all(playerId),
+            shopTags.all(playerId, shopId),
+            plotTags.all(plotId),
+            factoryTags.all(playerId, factoryId)
+        )
+    }
+
+    suspend fun resolveTags(string: String, playerId: UUID?, plotId: UUID? = null, shopId: UUID? = null, factoryId: UUID? = null): String { // Resolve tags and then un-resolve LOL
+        return miniMessage.serialize(miniMessage.deserialize(string, getTags(playerId,plotId,shopId,factoryId)))
     }
 
     // Item stack
-    private suspend fun ItemStack.name(name: MessageKey, playerId: UUID?, shopId: UUID? = null, plotId: UUID? = null, vararg args: TagResolver): ItemStack {
+    private suspend fun ItemStack.name(name: MessageKey, playerId: UUID?, plotId: UUID? = null, shopId: UUID? = null, factoryId: UUID? = null, vararg args: TagResolver): ItemStack {
         itemMeta = itemMeta.also { meta ->
-            meta.displayName(deserialise(name, playerId = playerId, shopId = shopId, plotId = plotId, args = args))
+            meta.displayName(deserialise(name, playerId = playerId, shopId = shopId, plotId = plotId, factoryId = factoryId, args = args))
         }
         return this
     }
 
-    private suspend fun ItemStack.description(description: MessageKey, playerId: UUID?, shopId: UUID? = null, plotId: UUID? = null, vararg args: TagResolver): ItemStack {
+    private suspend fun ItemStack.description(description: MessageKey, playerId: UUID?, plotId: UUID? = null, shopId: UUID? = null, factoryId: UUID? = null, vararg args: TagResolver): ItemStack {
         itemMeta = itemMeta.also { meta ->
-            meta.lore(listOf(deserialise(description, playerId = playerId, shopId = shopId, plotId = plotId, args = args)))
+            meta.lore(listOf(deserialise(description, playerId = playerId, shopId = shopId, plotId = plotId, factoryId = factoryId, args = args)))
         }
         return this
     }

@@ -1,4 +1,4 @@
-package com.brinkmc.plop.plot.constant
+package com.brinkmc.plop.shared.constant
 
 import org.bukkit.Bukkit
 import org.bukkit.Location

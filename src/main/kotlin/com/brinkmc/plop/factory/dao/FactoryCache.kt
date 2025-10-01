@@ -12,6 +12,7 @@ import com.sksamuel.aedile.core.expireAfterAccess
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.bukkit.Location
 import java.util.UUID
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -73,6 +74,14 @@ class FactoryCache(override val plugin: Plop): Addon, State {
 
     suspend fun getFactory(id: UUID): Factory? {
         return factoryMap.get(id)
+    }
+
+    suspend fun getFactory(location: Location): Factory? {
+        // Get factories in plot and then filter from there
+        val plotId = plotService.getPlotIdFromLocation(location) ?: return null
+        return getFactories(plotId).firstOrNull {
+            it.location.toLocation() == location
+        }
     }
 
     suspend fun addFactory(factory: Factory) {

@@ -3,6 +3,7 @@ package com.brinkmc.plop.plot.controller.gui.preview
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
+import com.brinkmc.plop.shared.base.Gui
 import com.brinkmc.plop.shared.util.Cooldown
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
@@ -15,7 +16,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import kotlin.time.Duration.Companion.seconds
 
-class PreviewHotbar(override val plugin: Plop): Addon {
+class PreviewHotbar(override val plugin: Plop): Addon, Gui {
     // Requires a cooldown
 
 

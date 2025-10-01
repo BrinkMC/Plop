@@ -1,7 +1,7 @@
 package com.brinkmc.plop.factory.dto
 
 import com.brinkmc.plop.factory.constant.FactoryType
-import com.brinkmc.plop.plot.constant.StringLocation
+import com.brinkmc.plop.shared.constant.StringLocation
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.bukkit.Location

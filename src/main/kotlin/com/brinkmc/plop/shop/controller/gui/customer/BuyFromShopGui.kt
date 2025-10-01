@@ -1,6 +1,7 @@
 package com.brinkmc.plop.shop.controller.gui.customer
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.shared.util.CoroutineUtils.async
 import com.brinkmc.plop.shop.controller.gui.ShopGui
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
@@ -34,8 +35,9 @@ class BuyFromShopGui(override val plugin: Plop): ShopGui {
                     getConfirmButton()
                 )
             ) { _ ->
-                val status = shopTransactionService.initialiseBuyTransaction(playerId, shopId)
-
+                plugin.async {
+                    val status = shopTransactionService.initialiseBuyTransaction(playerId, shopId)
+                }
             }
 
         }

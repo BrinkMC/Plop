@@ -2,7 +2,7 @@ package com.brinkmc.plop.plot.service
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.constant.PlotType
-import com.brinkmc.plop.plot.constant.StringLocation
+import com.brinkmc.plop.shared.constant.StringLocation
 import com.brinkmc.plop.plot.dto.Plot
 import com.brinkmc.plop.plot.dto.modifier.*
 import com.brinkmc.plop.plot.dto.structure.Nexus
@@ -26,38 +26,6 @@ class PlotClaimService(override val plugin: Plop): Addon, State {
 
     override suspend fun kill() { }
 
-
-    suspend fun performTeleportCountdown(playerId: UUID, seconds: Int = 5, location: Location): Boolean {
-        val player = playerService.getPlayer(playerId) ?: return false
-        val previousLoc = player.location.clone()
-
-        withTimer(seconds) { secondsLeft ->
-            val timeLeftPlaceholder = arrayOf(Placeholder.component("timeLeft", Component.text(secondsLeft)))
-            messages.sendMiniMessage(player, MessageKey.TELEPORT_IN_PROGRESS, args = timeLeftPlaceholder)
-
-            if (player.location.x.roundToInt() != previousLoc.x.roundToInt() ||
-                player.location.y.roundToInt() != previousLoc.y.roundToInt() ||
-                player.location.z.roundToInt() != previousLoc.z.roundToInt()) {
-                return@withTimer true
-            }
-
-            messages.sendSound(player, SoundKey.CLICK)
-            return@withTimer false
-        }.fold(
-            onSuccess = {
-                messages.sendSound(player, SoundKey.TELEPORT)
-                messages.sendMiniMessage(player, MessageKey.TELEPORT_COMPLETE)
-                player.teleportAsync(location)
-                return true
-            },
-            onInterrupted = {
-                messages.sendSound(player, SoundKey.FAILURE)
-                messages.sendMiniMessage(player, MessageKey.TELEPORT_INTERRUPTED)
-                return false
-            }
-        )
-    }
-
     suspend fun createPlot(playerId: UUID, plotType: PlotType, stringLocation: StringLocation) {
         val location = stringLocation.toLocation()
 
@@ -73,8 +41,8 @@ class PlotClaimService(override val plugin: Plop): Addon, State {
             }
             PlotType.GUILD -> {
                 hookService.guilds.getGuildFromPlayer(playerId)?.id ?: run {
-                    messages.sendMiniMessage(player, MessageKey.NO_GUILD)
-                    messages.sendSound(player, SoundKey.FAILURE)
+                    messages.sendMiniMessage(playerId, MessageKey.NO_GUILD)
+                    messages.sendSound(playerId, SoundKey.FAILURE)
                     return
                 }
             }
@@ -88,24 +56,22 @@ class PlotClaimService(override val plugin: Plop): Addon, State {
             PlotSize(0),
             PlotFactory(0),
             PlotShop(0),
-            PlotTotem(0, mutableListOf(), true),
+            PlotTotem(mutableListOf(),0 , true),
             PlotFueler(0, null),
             PlotNexus(mutableListOf<Nexus>()),
         )
 
         plotService.addPlot(newPlot) // Register new plot in handler
-        performTeleportCountdown(playerId, 5, newPlot.claim.home) // Teleport player to the new schematic
+        playerService.performTeleportCountdown(playerId, 5, newPlot.claim.home) // Teleport player to the new schematic
 
         // Hooks
         hookService.worldGuard.createRegion(plotId)
-        plotNexusService.placeNexus(plotId)
 
         // Teleport player to the new schematic
-        player.teleportAsync(newPlot.claim.home)
-        messages.sendMiniMessage(player, MessageKey.PLOT_CREATED)
-        messages.sendSound(player, SoundKey.SUCCESS)
+        messages.sendMiniMessage(playerId, MessageKey.PLOT_CREATED)
+        messages.sendSound(playerId, SoundKey.SUCCESS)
 
-        plotBorderService.updateBorder(playerId)
+
 
     }
 

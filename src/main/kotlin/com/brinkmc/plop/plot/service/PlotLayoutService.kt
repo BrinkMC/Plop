@@ -2,7 +2,7 @@ package com.brinkmc.plop.plot.service
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.constant.Direction
-import com.brinkmc.plop.plot.constant.StringLocation
+import com.brinkmc.plop.shared.constant.StringLocation
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hook.api.Locals.world

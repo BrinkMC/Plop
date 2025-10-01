@@ -33,14 +33,8 @@ class MenuService(override val plugin: Plop): Addon, State {
     val previewHotbar = PreviewHotbar(plugin)
 
     override suspend fun load() {
-        listOf(
-            buyFromShopGui
-        ).forEach {
-            it = it::class.constructors.first().call(plugin)
-        }
-    }
 
-    internal
+    }
 
     override suspend fun kill() {
         TODO("Not yet implemented")

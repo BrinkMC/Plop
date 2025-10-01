@@ -2,10 +2,11 @@ package com.brinkmc.plop.plot.service
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.constant.PlotType
-import com.brinkmc.plop.plot.constant.PreviewResult
 import com.brinkmc.plop.plot.dto.PlotPreview
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shared.constant.MessageKey
+import com.brinkmc.plop.shared.constant.ServiceResult
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.event.player.PlayerTeleportEvent
@@ -38,27 +39,30 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
 
     // Combined checks
 
-    private suspend fun guildChecks(playerId: UUID): PreviewResult {
+    private suspend fun guildChecks(playerId: UUID): ServiceResult {
         // Guild checks
         val guild = hookService.guilds.getGuildFromPlayer(playerId)
         val guildMaster = guild?.guildMaster?.uuid
         val guildSize = guild?.size ?: 0
         val minGuildSize = configService.plotConfig.guildConfig.minSize
 
-        if (plotService.hasGuildPlot(playerId)) return PreviewResult.GUILD_HAS_PLOT
-        if (guild == null) return PreviewResult.NO_GUILD
-        if (guildMaster == playerId) return PreviewResult.NOT_GUILD_MASTER
-        if (guildSize < minGuildSize) return PreviewResult.GUILD_TOO_SMALL
+        if (plotService.hasGuildPlot(playerId)) return ServiceResult.Failure(MessageKey.HAS_PLOTS_GUILD)
+        if (guild == null) return ServiceResult.Failure(MessageKey.NO_GUILD)
+        if (guildMaster == playerId) return ServiceResult.Failure(MessageKey.NOT_GUILD_MASTER)
+        if (guildSize < minGuildSize) return ServiceResult.Failure(MessageKey.GUILD_TOO_SMALL) // Guild too small
 
-        return PreviewResult.SUCCESS
+        return ServiceResult.Success()
     }
 
-    private suspend fun personalChecks(playerId: UUID): PreviewResult {
+    private suspend fun personalChecks(playerId: UUID): ServiceResult {
         // Personal checks
-        if (plotService.hasPersonalPlot(playerId)) return PreviewResult.PLAYER_HAS_PLOT
-        return PreviewResult.SUCCESS
+        if (plotService.hasPersonalPlot(playerId)) return ServiceResult.Failure(MessageKey.HAS_PLOTS_PERSONAL)
+        return ServiceResult.Success()
     }
 
+    fun isInPreview(playerId: UUID): Boolean {
+        return previews.containsKey(playerId)
+    }
 
     // Getters
 
@@ -71,11 +75,17 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
         return preview.previewPlot.value.toLocation()
     }
 
-    fun getPlotType(playerId: UUID): PlotType {
-        return if (getPreview(playerId)?.world == configService.plotConfig.personalConfig.personalPlotWorld) {
-            PlotType.PERSONAL
-        } else {
-            PlotType.GUILD
+    fun getPlotType(playerId: UUID): PlotType? {
+        return when (getPreview(playerId)?.world) {
+            configService.plotConfig.personalConfig.personalPlotWorld -> {
+                PlotType.PERSONAL
+            }
+            configService.plotConfig.guildConfig.guildPlotWorld -> {
+                PlotType.GUILD
+            }
+            else -> {
+                null
+            }
         }
     }
 
@@ -89,18 +99,20 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
 
     private suspend fun nextPlot(playerId: UUID) {
         val preview = getPreview(playerId) ?: return
+        val plotType = getPlotType(playerId) ?: return
         toggleFree(playerId, true)
 
-        val nextPlot = plotLayoutService.getNextFreePlot(preview.previewPlot, getPlotType(playerId))
+        val nextPlot = plotLayoutService.getNextFreePlot(preview.previewPlot, plotType)
         preview.setPreviewPlot(nextPlot)
         toggleFree(playerId, false)
     }
 
     private suspend fun previousPlot(playerId: UUID) {
         val preview = getPreview(playerId) ?: return
+        val plotType = getPlotType(playerId) ?: return
         toggleFree(playerId, true)
 
-        val previousPlot = plotLayoutService.getPreviousFreePlot(preview.previewPlot, getPlotType(playerId))
+        val previousPlot = plotLayoutService.getPreviousFreePlot(preview.previewPlot, plotType)
         preview.setPreviewPlot(previousPlot)
         toggleFree(playerId, false)
     }
@@ -128,8 +140,8 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
         toggleFree(playerId, false)
     }
 
-    suspend fun startPreview(playerId: UUID, vararg args: Any): PreviewResult {
-        val player = Bukkit.getPlayer(playerId) ?: return PreviewResult.PLAYER_OFFLINE
+    suspend fun startPreview(playerId: UUID, vararg args: Any): ServiceResult {
+        val player = Bukkit.getPlayer(playerId) ?: return ServiceResult.Failure()
 
         // get plot type from args
         val type = if (args.isNotEmpty() && args[0] is PlotType) {
@@ -140,11 +152,11 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
 
         // Guild check
         val guildCheck = guildChecks(playerId)
-        if (guildCheck != PreviewResult.SUCCESS) return guildCheck
+        if (guildCheck != ServiceResult.Success(MessageKey.STARTED_PREVIEW)) return guildCheck
 
         // Personal checks
         val personalCheck = personalChecks(playerId)
-        if (personalCheck != PreviewResult.SUCCESS) return personalCheck
+        if (personalCheck != ServiceResult.Success(MessageKey.STARTED_PREVIEW)) return personalCheck
 
         val world = plotService.getPlotWorld(type).name
 
@@ -165,7 +177,7 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
         toggleFree(playerId, false)
         teleportToPlot(playerId)
 
-        return PreviewResult.SUCCESS
+        return ServiceResult.Success(MessageKey.STARTED_PREVIEW)
     }
 
     suspend fun cyclePreview(playerId: UUID, forward: Boolean) {
@@ -186,11 +198,12 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
 
     suspend fun switchPreviewType(playerId: UUID): Boolean {
         val preview = getPreview(playerId) ?: return false
-        val newPlot = when (getPlotType(playerId)) {
+        val plotType = getPlotType(playerId) ?: return false
+        val newPlot = when (plotType) {
             PlotType.PERSONAL -> {
                 // Do checks for guild
                 val guildCheck = guildChecks(playerId)
-                if (guildCheck != PreviewResult.SUCCESS) {
+                if (guildCheck !is ServiceResult.Success) {
                     return false
                 }
                 plotLayoutService.getFirstFree(PlotType.GUILD)
@@ -199,7 +212,7 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
             PlotType.GUILD -> {
                 // Do checks for personal
                 val personalCheck = personalChecks(playerId)
-                if (personalCheck != PreviewResult.SUCCESS) {
+                if (personalCheck !is ServiceResult.Success) {
                     return false
                 }
                 plotLayoutService.getFirstFree(PlotType.PERSONAL)
@@ -231,7 +244,7 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
 
     suspend fun claimPlot(playerId: UUID): Boolean {
         val preview = getPreview(playerId) ?: return false
-        val plotType = getPlotType(playerId)
+        val plotType = getPlotType(playerId) ?: return false
 
         plotClaimService.createPlot(playerId, plotType, preview.previewPlot.value)
 

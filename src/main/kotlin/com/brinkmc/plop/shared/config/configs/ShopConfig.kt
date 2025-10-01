@@ -16,6 +16,6 @@ data class ShopConfig(
         "TEXT:<red>Shop - <owner>",
         "TEXT: Price <price> | Available <available>",
         "TEXT: Sell Price <price>",
-        "ITEM:<item>"
+        "TEXT:<shopItem>"
     ),
 )

@@ -8,7 +8,7 @@ sealed class ServiceResult {
     ) : ServiceResult()
 
     data class Failure(
-        val messageKey: MessageKey,
+        val messageKey: MessageKey? = null,
         val soundKey: SoundKey? = null,
         val action: (() -> Unit)? = null
     ) : ServiceResult()

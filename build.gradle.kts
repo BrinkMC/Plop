@@ -38,10 +38,10 @@ dependencies {
     compileOnly("com.github.MilkBowl", "VaultAPI", "1.7.1")
     compileOnly("me.clip", "placeholderapi", "2.11.6")
     compileOnly("me.glaremasters", "guilds", "3.5.7.0")
-    compileOnly("io.lumine", "Mythic-Dist", "5.7.2")
+    compileOnly("io.lumine", "Mythic-Dist", "5.10.0-SNAPSHOT")
     compileOnly("com.github.yannicklamprecht:worldborderapi:1.217.0:dev") // Weird import
     compileOnly("com.github.retrooper", "packetevents-spigot", "2.7.0")
-    compileOnly("de.oliver", "FancyHolograms", "2.4.2")
+    compileOnly("de.oliver", "FancyHolograms", "2.7.0")
 
 
     compileOnly("com.sk89q.worldguard", "worldguard-core", "7.0.15-SNAPSHOT")

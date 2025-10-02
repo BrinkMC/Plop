@@ -4,7 +4,7 @@ import com.brinkmc.plop.plot.dto.structure.Nexus
 import org.bukkit.Location
 
 data class PlotNexus(
-    private val nexus: MutableList<Nexus>
+    val nexus: MutableList<Nexus>
 ) {
     fun addNexus(nexus: Nexus) {
         this.nexus.add(nexus)

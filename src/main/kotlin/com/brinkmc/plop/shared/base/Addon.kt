@@ -3,13 +3,11 @@ package com.brinkmc.plop.shared.base
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.factory.Factories
 import com.brinkmc.plop.factory.service.FactoryActionService
-import com.brinkmc.plop.factory.service.FactoryAugmentService
 import com.brinkmc.plop.factory.service.FactoryService
 import com.brinkmc.plop.plot.Plots
 import com.brinkmc.plop.plot.service.PlotBorderService
 import com.brinkmc.plop.plot.service.PlotClaimService
 import com.brinkmc.plop.plot.service.PlotFactoryService
-import com.brinkmc.plop.plot.service.PlotFuelerService
 import com.brinkmc.plop.plot.service.PlotLayoutService
 import com.brinkmc.plop.plot.service.PlotNexusService
 import com.brinkmc.plop.plot.service.PlotPreviewService
@@ -26,6 +24,7 @@ import com.brinkmc.plop.shared.hook.api.PlayerTracker
 import com.brinkmc.plop.shared.item.ItemService
 import com.brinkmc.plop.shared.service.DesignService
 import com.brinkmc.plop.shared.service.EconomyService
+import com.brinkmc.plop.shared.service.HologramService
 import com.brinkmc.plop.shared.service.MenuService
 import com.brinkmc.plop.shared.service.PlayerService
 import com.brinkmc.plop.shop.Shops
@@ -76,6 +75,9 @@ internal interface Addon {
     val itemService: ItemService
         get() = plugin.itemService
 
+    val hologramService: HologramService
+        get() = plugin.hologramService
+
     // Plot handlers
     val plots: Plots
         get() = plugin.plots
@@ -109,9 +111,6 @@ internal interface Addon {
 
     val plotNexusService: PlotNexusService
         get() = plugin.plots.plotNexusService
-
-    val plotFuelerService: PlotFuelerService
-        get() = plugin.plots.plotFuelerService
 
     val plotLayoutService: PlotLayoutService
         get() = plugin.plots.plotLayoutService
@@ -147,8 +146,5 @@ internal interface Addon {
 
     val factoryActionService: FactoryActionService
         get() = plugin.factories.factoryActionService
-
-    val factoryAugmentService: FactoryAugmentService
-        get() = plugin.factories.factoryAugmentService
 
 }

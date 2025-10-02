@@ -1,6 +1,7 @@
 package com.brinkmc.plop.plot
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.constant.PlotType
 import com.brinkmc.plop.plot.service.*
 import com.brinkmc.plop.plot.service.PlotNexusService
 import com.brinkmc.plop.plot.plot.base.PlotType
@@ -29,13 +30,13 @@ class Plots(override val plugin: Plop): Addon, State {
         logger.info("Loading Plots...")
 
         // Create worlds on main thread
-        syncScope {
+        plugin.syncScope {
 
-            val personalWorldName = plotConfig.getPlotWorld(PlotType.PERSONAL)
-            val guildWorldName = plotConfig.getPlotWorld(PlotType.GUILD)
+            val personalWorldName = configService.plotConfig.getPlotWorld(PlotType.PERSONAL)
+            val guildWorldName = configService.plotConfig.getPlotWorld(PlotType.GUILD)
 
-            val personalWorldGen = plotConfig.getPlotWorldGenerator(PlotType.PERSONAL)
-            val guildWorldGen = plotConfig.getPlotWorldGenerator(PlotType.GUILD)
+            val personalWorldGen = configService.plotConfig.getPlotWorldGenerator(PlotType.PERSONAL)
+            val guildWorldGen = configService.plotConfig.getPlotWorldGenerator(PlotType.GUILD)
 
             server.createWorld(
                 WorldCreator(personalWorldName)
@@ -52,48 +53,36 @@ class Plots(override val plugin: Plop): Addon, State {
             // Register / load worlds on server
         }
 
-        plotService = PlotService(plugin)
-        visitorService = PlotVisitService(plugin)
-        upgradeService = PlotUpgradeService(plugin)
-        previewService = PlotPreviewService(plugin)
-        totemService = PlotTotemService(plugin)
-        factoryService = PlotFactoryService(plugin)
-        claimService = PlotClaimService(plugin)
-        shopService = PlotShopService(plugin)
-        sizeService = PlotSizeService(plugin)
-        nexusService = PlotNexusService(plugin)
-        fuelerService = PlotFuelerService(plugin)
-
         listOf(
             plotService,
-            visitorService,
-            upgradeService,
-            previewService,
-            totemService,
-            factoryService,
-            claimService,
-            shopService,
-            sizeService,
-            nexusService,
-            fuelerService
-        ).forEach { Service -> (Service as State).load() }
+            plotVisitService,
+            plotUpgradeService,
+            plotPreviewService,
+            plotTotemService,
+            plotFactoryService,
+            plotClaimService,
+            plotShopService,
+            plotSizeService,
+            plotNexusService,
+            plotFuelerService,
+            plotLayoutService,
+        ).forEach { service -> (service as State).load() }
     }
 
     override suspend fun kill() {
         listOf(
             plotService,
-            visitorService,
-            upgradeService,
-            previewService,
-            totemService,
-            factoryService,
-            claimService,
-            shopService,
-            sizeService,
-            nexusService,
-            fuelerService
-        ).forEach { Service -> (Service as State).kill() }
+            plotVisitService,
+            plotUpgradeService,
+            plotPreviewService,
+            plotTotemService,
+            plotFactoryService,
+            plotClaimService,
+            plotShopService,
+            plotSizeService,
+            plotNexusService,
+            plotFuelerService,
+            plotLayoutService,
+        ).forEach { service -> (service as State).kill() }
     }
-
-
 }

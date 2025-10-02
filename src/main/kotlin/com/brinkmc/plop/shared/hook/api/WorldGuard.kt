@@ -3,7 +3,6 @@ package com.brinkmc.plop.shared.hook.api
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.constant.PlotType
 import com.brinkmc.plop.plot.dto.Plot
-import com.brinkmc.plop.plot.dto.modifier.PlotOwner
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hook.api.Locals.localLocation

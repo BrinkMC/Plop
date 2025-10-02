@@ -45,10 +45,6 @@ class VisitListener(override val plugin: Plop): Addon, State, Listener {
         }
     }
 
-    private fun isPlotOwner(plot: Plot, player: Player): Boolean {
-        return plot.owner.isPlayer(player)
-    }
-
     private fun decrementVisitorCount(plot: Plot) {
         plot.visit.currentVisits -= 1
     }

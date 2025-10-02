@@ -50,7 +50,7 @@ class ShopService(override val plugin: Plop): Addon, State {
 
     // Getters
 
-    private suspend fun getShops(plotId: UUID): List<UUID> { // Get all shops which have plotId of some value
+    suspend fun getShops(plotId: UUID): List<UUID> { // Get all shops which have plotId of some value
         return shopCache.getShops(plotId).map { it.id }
     }
 

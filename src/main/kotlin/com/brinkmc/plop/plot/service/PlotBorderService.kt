@@ -41,7 +41,7 @@ class PlotBorderService(override val plugin: Plop): State, Addon {
         }
 
         val plotType = plotService.getPlotType(plotId) ?: return@async // Make sure plot type isn't null
-        val plotCentre = plotClaimService.getCentre(plotId) ?: return@async // Make sure plot centre isn't null
+        val plotCentre = plotClaimService.getPlotCentre(plotId) ?: return@async // Make sure plot centre isn't null
         val plotSize = plotSizeService.getPlotSize(plotId) ?: return@async // Make sure plot size isn't null
 
         playerService.setBorder(playerId, plotType, plotCentre, false, plotSize)

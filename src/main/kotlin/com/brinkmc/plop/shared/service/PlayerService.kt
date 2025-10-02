@@ -13,6 +13,7 @@ import com.brinkmc.plop.shared.util.withTimer
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.yannicklamprecht.worldborder.api.WorldBorderApi
 import com.sksamuel.aedile.core.asLoadingCache
+import de.oliver.fancyholograms.api.hologram.Hologram
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
@@ -174,6 +175,18 @@ class PlayerService(override val plugin: Plop): Addon, State {
     fun playSound(playerId: UUID, sound: Sound) {
         val player = getOfflinePlayer(playerId).player ?: return
         player.playSound(sound)
+    }
+
+    // Holograms
+
+    fun showHologram(playerId: UUID, hologram: Hologram) {
+        val player = getOfflinePlayer(playerId).player ?: return
+        hologram.forceShowHologram(player)
+    }
+
+    fun hideHologram(playerId: UUID, hologram: Hologram) {
+        val player = getOfflinePlayer(playerId).player ?: return
+        hologram.forceHideHologram(player)
     }
 
     // custom actions

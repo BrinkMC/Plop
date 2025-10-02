@@ -92,6 +92,11 @@ class PlotService(override val plugin: Plop): Addon, State  {
         plotCache.deletePlot(plot)
     }
 
+    suspend fun isPlotMember(plotId: UUID, playerId: UUID): Boolean {
+        val members = getPlotMembers(plotId)
+        return playerId in members
+    }
+
     // Getters
 
     suspend fun getPlotOwnerDisplayName(plotId: UUID): String? {
@@ -153,13 +158,4 @@ class PlotService(override val plugin: Plop): Addon, State  {
         val plot = getPlot(plotId) ?: return null
         return plot.totem
     }
-
-    suspend fun getPlotFueler(plotId: UUID): PlotFueler? {
-        val plot = getPlot(plotId) ?: return null
-        return plot.fueler
-    }
-
-
-
-
 }

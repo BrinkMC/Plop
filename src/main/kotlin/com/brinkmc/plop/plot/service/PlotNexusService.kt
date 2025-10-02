@@ -1,14 +1,17 @@
 package com.brinkmc.plop.plot.service
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.constant.NexusResult
 import com.brinkmc.plop.plot.constant.PlotItems
 import com.brinkmc.plop.plot.dto.modifier.PlotNexus
 import com.brinkmc.plop.plot.dto.structure.Nexus
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shared.constant.MessageKey
 import com.brinkmc.plop.shared.constant.PermissionKey
+import com.brinkmc.plop.shared.constant.ServiceResult
+import com.brinkmc.plop.shared.constant.SoundKey
 import com.brinkmc.plop.shared.util.LocationString.fullString
+import com.brinkmc.plop.shared.util.LocationString.toLocation
 import com.sk89q.worldedit.extent.clipboard.Clipboard
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats
 import org.bukkit.Location
@@ -38,8 +41,12 @@ class PlotNexusService(override val plugin: Plop): Addon, State {
 
     // Getters
 
-    private suspend fun getPlotNexus(plotId: UUID): PlotNexus? {
-        return plotService.getPlotNexus(plotId)
+    private suspend fun getPlotNexus(plotId: UUID): PlotNexus? = plotService.getPlotNexus(plotId)
+
+    suspend fun getNexi(plotId: UUID): List<Location?> {
+        val plotNexus = getPlotNexus(plotId) ?: return emptyList()
+
+        return plotNexus.getNexus().map { it.location.toLocation() }
     }
 
     // Setters
@@ -69,23 +76,22 @@ class PlotNexusService(override val plugin: Plop): Addon, State {
 
     // Public
 
-    suspend fun giveNexusBook(playerId: UUID, location: Location): NexusResult {
-        val plotId = plotService.getPlotIdFromLocation(location) ?: return NexusResult.NO_PLOT
-        val plotMembers = plotService.getPlotMembers(plotId)
+    suspend fun giveNexusBook(playerId: UUID, location: Location): ServiceResult {
+        val plotId = plotService.getPlotIdFromLocation(location) ?: return ServiceResult.Failure(MessageKey.NO_PLOT, SoundKey.FAILURE)
 
-        if (playerId !in plotMembers) {
-            return NexusResult.NOT_NEXUS_OWNER // Definitely the owner
+        if (!plotService.isPlotMember(plotId, playerId)) {
+            return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE) // Definitely the owner
         }
 
         if (playerService.hasItem(playerId, getNexusBook())) {
-            return NexusResult.ALREADY_HAS_BOOK
+            return ServiceResult.Failure(MessageKey.ALREADY_OWN_NEXUS_BOOK, SoundKey.FAILURE)
         }
 
         if (!playerService.giveItem(playerId, getNexusBook())) {
-            return NexusResult.FAILED
+            return ServiceResult.Failure(MessageKey.INVENTORY_FULL, SoundKey.FAILURE)
         }
 
-        return NexusResult.SUCCESS
+        return ServiceResult.Success(MessageKey.GIVE_NEXUS_BOOK, SoundKey.SUCCESS)
     }
 
     suspend fun antiNexusBook(playerId: UUID, location: Location) {
@@ -97,12 +103,12 @@ class PlotNexusService(override val plugin: Plop): Addon, State {
         }
     }
 
-    suspend fun nexusInteraction(playerId: UUID, location: Location, action: Action): NexusResult {
-        val plotId = plotService.getPlotIdFromLocation(location) ?: return NexusResult.FAILED
+    suspend fun nexusInteraction(playerId: UUID, location: Location, action: Action): ServiceResult {
+        val plotId = plotService.getPlotIdFromLocation(location) ?: return ServiceResult.Failure()
 
         // Try to check if location block is lectern
         if (!isLectern(location)) {
-            return NexusResult.NOT_LECTERN
+            return ServiceResult.Failure()
         }
 
         val lectern = location.block.state as Lectern
@@ -110,18 +116,17 @@ class PlotNexusService(override val plugin: Plop): Addon, State {
         val item = lectern.inventory.getItem(0)
 
         if (item == null || !isNexusBook(item)) {
-            return NexusResult.NOT_NEXUS_BOOK
+            return ServiceResult.Failure()
         }
 
-        val plotNexus = getPlotNexus(plotId) ?: return NexusResult.FAILED
-        val plotMembers = plotService.getPlotMembers(plotId)
+        val plotNexus = getPlotNexus(plotId) ?: return ServiceResult.Failure()
 
-        if (playerId !in plotMembers) {
-            return NexusResult.NOT_NEXUS_OWNER
+        if (!plotService.isPlotMember(plotId, playerId)) {
+            return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE) // Definitely the owner
         }
 
         if (playerService.hasPermission(playerId, PermissionKey.USE_NEXUS)) {
-            return NexusResult.PERMISSION_DENIED
+            return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE) // Definitely the owner
         }
 
         // Determined allowed to use, now handle action
@@ -139,32 +144,32 @@ class PlotNexusService(override val plugin: Plop): Addon, State {
                 menuService.nexusMenu.open(playerId, plotId)
             }
             else -> {
-                return NexusResult.FAILED
+                return ServiceResult.Failure(MessageKey.UNRECOGNISED_ACTION, SoundKey.FAILURE)
             }
         }
 
-        return NexusResult.SUCCESS
+        return ServiceResult.Success(MessageKey.OPENING_NEXUS, SoundKey.SUCCESS)
     }
 
-    suspend fun createNexus(location: Location, item: ItemStack): NexusResult {
-        val plotId = plotService.getPlotIdFromLocation(location) ?: return NexusResult.NO_PLOT
+    suspend fun createNexus(location: Location, item: ItemStack): ServiceResult {
+        val plotId = plotService.getPlotIdFromLocation(location) ?: return ServiceResult.Failure()
 
         // Try to check if location block is lectern
         if (!isLectern(location)) {
-            return NexusResult.NOT_LECTERN
+            return ServiceResult.Failure()
         }
 
         val lectern = location.block.state as Lectern
 
         // Check if item is a nexus book
         if (!isNexusBook(item)) {
-            return NexusResult.NOT_NEXUS_BOOK
+            return ServiceResult.Failure()
         }
 
         addNexusToPlot(plotId, lectern.block.location)
 
 
-        return NexusResult.SUCCESS
+        return ServiceResult.Success(MessageKey.NEXUS_CREATED, SoundKey.SUCCESS)
     }
 
     suspend fun deleteNexus(location: Location) {
@@ -186,11 +191,11 @@ class PlotNexusService(override val plugin: Plop): Addon, State {
         removeNexusFromPlot(plotId, lectern.block.location)
     }
 
-    val SCHEMATIC_NAME = configService.plotConfig.nexusConfig.schematicName
+    val schematicName = configService.plotConfig.nexusConfig.schematicName
 
     fun getSchematic(): Clipboard? {
         val worldEditDir = server.pluginManager.getPlugin("WorldEdit")!!.dataFolder
-        val schematicFile = File(worldEditDir, "schematics/$SCHEMATIC_NAME.schem")
+        val schematicFile = File(worldEditDir, "schematics/$schematicName.schem")
 
         val format = ClipboardFormats.findByFile(schematicFile)
 

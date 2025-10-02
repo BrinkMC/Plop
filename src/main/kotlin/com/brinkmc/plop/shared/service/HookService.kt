@@ -2,7 +2,7 @@ package com.brinkmc.plop.shared.service
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.hook.api.Display
+import com.brinkmc.plop.shared.hook.api.FancyHologram
 import com.brinkmc.plop.shared.hook.api.Economy
 import com.brinkmc.plop.shared.hook.api.Guilds
 import com.brinkmc.plop.shared.hook.api.MythicMobs
@@ -21,7 +21,7 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority
 import com.noxcrew.interfaces.InterfacesListeners
 
 class HookService(val plugin: Plop): State {
-    val display = Display(plugin)
+    val display = FancyHologram(plugin)
     val guilds = Guilds(plugin)
     val packetEvents = PacketEvents(plugin)
     val mythicMobs = MythicMobs(plugin)

@@ -57,7 +57,6 @@ class PlotClaimService(override val plugin: Plop): Addon, State {
             PlotFactory(0),
             PlotShop(0),
             PlotTotem(mutableListOf(),0 , true),
-            PlotFueler(0, null),
             PlotNexus(mutableListOf<Nexus>()),
         )
 
@@ -98,23 +97,23 @@ class PlotClaimService(override val plugin: Plop): Addon, State {
 
     private suspend fun getPlotClaim(plotId: UUID) = plotService.getPlotClaim(plotId)
 
-    private suspend fun getPlotCentre(plotId: UUID): Location? {
+    suspend fun getPlotCentre(plotId: UUID): Location? {
         return getPlotClaim(plotId)?.centre
     }
 
-    private suspend fun getPlotHome(plotId: UUID): Location? {
+    suspend fun getPlotHome(plotId: UUID): Location? {
         return getPlotClaim(plotId)?.home
     }
 
-    private suspend fun getPlotVisit(plotId: UUID): Location? {
+    suspend fun getPlotVisit(plotId: UUID): Location? {
         return getPlotClaim(plotId)?.visit
     }
 
-    private suspend fun setPlotHome(plotId: UUID, location: Location) {
+    suspend fun setPlotHome(plotId: UUID, location: Location) {
         getPlotClaim(plotId)?.setHome(location)
     }
 
-    private suspend fun setPlotVisit(plotId: UUID, location: Location) {
+    suspend fun setPlotVisit(plotId: UUID, location: Location) {
         getPlotClaim(plotId)?.setVisit(location)
     }
 

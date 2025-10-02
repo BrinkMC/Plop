@@ -5,7 +5,12 @@ import com.brinkmc.plop.plot.dto.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.constant.MessageKey
+import com.brinkmc.plop.shared.constant.PermissionKey
+import com.brinkmc.plop.shared.constant.ServiceResult
+import com.brinkmc.plop.shared.constant.SoundKey
 import org.bukkit.entity.Player
+import java.security.Permission
+import java.util.UUID
 
 class PlotUpgradeService(override val plugin: Plop): Addon, State {
     override suspend fun load() {
@@ -16,13 +21,27 @@ class PlotUpgradeService(override val plugin: Plop): Addon, State {
     override suspend fun kill() { }
 
 
-    suspend fun upgradeSizeLevel(plot: Plot, initiator: Player) { // Validate that they can afford price of new level
-        logger.info("Upgrading plot claim")
+    suspend fun upgradeSizeLevel(plotId: UUID, playerId: UUID): ServiceResult { // Validate that they can afford price of new level
+        logger.info("Attempting to upgrading plot claim for $plotId by $playerId")
 
-        if (plot.size.level == plots.sizeHandler.getHighestLevel(plot.type)) return // Already at max level
+        // Is player the owner of the plot?
+        if (!plotService.isPlotMember(plotId, playerId)) {
+            return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE)
+        }
 
-        // Plots start with level 1 (position 0 in list)
 
+        // Has permission to upgrade
+        if (!playerService.hasPermission(playerId, PermissionKey.UPGRADE_PLOT)) {
+            return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
+        }
+
+        val currentLevel = plotSizeService.getPlotSizeLevel(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+
+        if (!plotSizeService.canUpgradePlotSize(plotId)) {
+            return ServiceResult.Failure(MessageKey.REACHED_MAX_UPGRADE_LEVEL, SoundKey.FAILURE)
+        }
+
+        plotService.get
 
         // Calculate if they can afford it
         val potentialLevel =  plots.sizeHandler.getLevel(plot.type, plot.size.level + 1)
@@ -35,76 +54,5 @@ class PlotUpgradeService(override val plugin: Plop): Addon, State {
         }
 
         plots.sizeHandler.upgradePlot(plot) // Update the plot in the database
-    }
-
-    fun upgradeVisitorLevel(plot: Plot, initiator: Player) {
-        logger.info("Upgrading plot visitor level")
-
-        if (plot.visit.level == plots.visitorHandler.getHighestLevel(plot.type)) return // Already at max level
-
-        // Calculate if they can afford it
-        val potentialLevel = plots.visitorHandler.getLevel(plot.type, plot.size.level + 1)
-
-        // Using the economy API, check if they can afford it
-        if (!plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            initiator.sendMiniMessage(MessageKey.NO_MONEY)
-            return
-        }
-
-        plots.visitorHandler.upgradePlot(plot) // Update the plot in the database
-    }
-
-    fun upgradeShopLevel(plot: Plot, initiator: Player) {
-        logger.info("Upgrading shop limit level")
-
-        if (plot.shop.level == plots.shopHandler.getHighestLevel(plot.type)) return // Already at max level
-
-        // Calculate if they can afford it
-        val potentialLevel = plots.shopHandler.getLevel(plot.type, plot.shop.level + 1)
-
-        // Using the economy API, check if they can afford it
-
-        if (!plot.owner.hasBalance(economy, potentialLevel?.price?.toDouble() ?: 0.0)) {
-            initiator.sendMiniMessage(MessageKey.NO_MONEY)
-            return
-        }
-
-        plots.shopHandler.upgradePlot(plot) // Update the plot in the database
-    }
-
-    fun upgradeFactoryLevel(plot: Plot, initiator: Player) {
-        logger.info("Upgrading factory limit level")
-
-        if (plot.factory.level == plots.factoryHandler.getHighestLevel(plot.type)) return // Already at max level
-
-        // Calculate if they can afford it
-        val potentialLevel = plots.factoryHandler.getLevel(plot.type, plot.factory.level + 1)
-
-        // Using the economy API, check if they can afford it
-
-        if (!plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            initiator.sendMiniMessage(MessageKey.NO_MONEY)
-            return
-        }
-
-        plots.factoryHandler.upgradePlot(plot) // Update the plot in the database
-    }
-
-    fun upgradeTotemLevel(plot: Plot, initiator: Player) {
-        logger.info("Upgrading totem level")
-
-        if (plot.totem.level == plots.totemHandler.getHighestLevel(plot.type)) return // Already at max level
-
-        // Calculate if they can afford it
-        val potentialLevel = plots.totemHandler.getLevel(plot.type, plot.totem.level + 1)
-
-        // Using the economy API, check if they can afford it
-
-        if (!plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            initiator.sendMiniMessage(MessageKey.NO_MONEY)
-            return
-        }
-
-        plots.totemHandler.upgradePlot(plot) // Update the plot in the database
     }
 }

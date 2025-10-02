@@ -83,7 +83,7 @@ class FactoryService(override val plugin: Plop): Addon, State {
         // check if player is a plot owner
         val plotId = plotService.getPlotIdFromLocation(location) ?: return ServiceResult.Failure(MessageKey.NO_PLOT)
 
-        if (!plotService.getPlotMembers(plotId).contains(playerId)) {
+        if (!plotService.isPlotMember(plotId, playerId)) {
             return ServiceResult.Failure(MessageKey.NOT_OWNER)
         }
 

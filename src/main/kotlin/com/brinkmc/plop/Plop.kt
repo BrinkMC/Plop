@@ -20,6 +20,8 @@ import com.brinkmc.plop.shared.item.ItemService
 import com.brinkmc.plop.shared.service.*
 import com.brinkmc.plop.shop.Shops
 import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
+import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
+import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.google.gson.Gson
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack
@@ -93,11 +95,10 @@ class Plop : State, SuspendingJavaPlugin() {
 
         // Load messages
         messageSource.load()
-        designService.load()
+        playerService.load()
 
         // Load configs initially to get all necessary data
         plugin.slF4JLogger.info("Initiating config manager")
-        configService = ConfigService(plugin)
         configService.load()
         plugin.slF4JLogger.info("Finished loading config manager")
 
@@ -106,28 +107,23 @@ class Plop : State, SuspendingJavaPlugin() {
 
         // Get instance of hooks
         plugin.slF4JLogger.info("Hooking into other plugins")
-        hookService = HookService(plugin)
         hookService.load()
 
         // Load the two parts of the plugin
         plugin.slF4JLogger.info("Initiating plots")
-        plots = Plots(plugin)
         plots.load()
         plugin.slF4JLogger.info("Initiating shops")
-        shops = Shops(plugin)
         shops.load()
         plugin.slF4JLogger.info("Initiating factories")
-        factories = Factories(plugin)
         factories.load()
 
         // Load displays
         plugin.slF4JLogger.info("Initiating displays")
-        hologramHandler = HologramHandler(plugin)
-        hologramHandler.load()
+        hologramService.load()
 
         // Enable all menus
         plugin.slF4JLogger.info("Creating menus and hotbars")
-        menuHandler = MenuHandler(plugin)
+        menuService.load()
 
         // Register listener
 

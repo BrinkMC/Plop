@@ -2,9 +2,7 @@ package com.brinkmc.plop.plot.dto
 
 import com.brinkmc.plop.plot.dto.modifier.PlotClaim
 import com.brinkmc.plop.plot.dto.modifier.PlotFactory
-import com.brinkmc.plop.plot.dto.modifier.PlotFueler
 import com.brinkmc.plop.plot.dto.modifier.PlotNexus
-import com.brinkmc.plop.plot.dto.modifier.PlotOwner
 import com.brinkmc.plop.plot.dto.modifier.PlotShop
 import com.brinkmc.plop.plot.dto.modifier.PlotSize
 import com.brinkmc.plop.plot.dto.modifier.PlotTotem
@@ -25,9 +23,7 @@ data class Plot(
     private var _factory: PlotFactory,
     private var _shop: PlotShop,
     private var _totem: PlotTotem,
-    private var _fueler: PlotFueler,
     private var _nexus: PlotNexus,
-    //private var _owner: PlotOwner,
 ) {
     private val mutex = Mutex()
 
@@ -39,8 +35,6 @@ data class Plot(
     val factory: PlotFactory get() = _factory
     val shop: PlotShop get() = _shop
     val totem: PlotTotem get() = _totem
-    val fueler: PlotFueler get() = _fueler
-    //val owner: PlotOwner get() = _owner
 
     // Thread-safe setters
     suspend fun setClaim(claim: PlotClaim) = mutex.withLock {

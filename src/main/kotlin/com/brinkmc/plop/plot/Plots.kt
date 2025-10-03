@@ -4,7 +4,6 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.constant.PlotType
 import com.brinkmc.plop.plot.service.*
 import com.brinkmc.plop.plot.service.PlotNexusService
-import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import org.bukkit.World
@@ -22,7 +21,6 @@ class Plots(override val plugin: Plop): Addon, State {
     override val plotClaimService = PlotClaimService(plugin)
     override val plotShopService = PlotShopService(plugin)
     override val plotSizeService = PlotSizeService(plugin)
-    override val plotFuelerService = PlotFuelerService(plugin)
     override val plotNexusService = PlotNexusService(plugin)
     override val plotLayoutService = PlotLayoutService(plugin)
 
@@ -64,7 +62,6 @@ class Plots(override val plugin: Plop): Addon, State {
             plotShopService,
             plotSizeService,
             plotNexusService,
-            plotFuelerService,
             plotLayoutService,
         ).forEach { service -> (service as State).load() }
     }
@@ -81,7 +78,6 @@ class Plots(override val plugin: Plop): Addon, State {
             plotShopService,
             plotSizeService,
             plotNexusService,
-            plotFuelerService,
             plotLayoutService,
         ).forEach { service -> (service as State).kill() }
     }

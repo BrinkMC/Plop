@@ -184,8 +184,13 @@ class Plop : State, SuspendingJavaPlugin() {
         return this.messageSource
     }
 
-    val namespacedKey: NamespacedKey
-        get() = NamespacedKey(plugin, "plop")
+    fun consoleCommand(command: String, playerId: UUID) {
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+            command
+                .replace("{player_uuid}", playerId.toString())
+                .replace("{player_name}", playerService.getUsername(playerId) ?: "")
+        )
+    }
 
     suspend fun <T> syncScope(block: suspend CoroutineScope.() -> T): T = withContext(plugin.minecraftDispatcher, block)
 

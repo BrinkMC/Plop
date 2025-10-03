@@ -10,7 +10,6 @@ import com.brinkmc.plop.shared.util.LocationString.fullString
 import com.brinkmc.plop.plot.constant.PlotType
 import com.brinkmc.plop.plot.dto.modifier.PlotClaim
 import com.brinkmc.plop.plot.dto.modifier.PlotFactory
-import com.brinkmc.plop.plot.dto.modifier.PlotFueler
 import com.brinkmc.plop.plot.dto.modifier.PlotNexus
 import com.brinkmc.plop.plot.dto.modifier.PlotShop
 import com.brinkmc.plop.plot.dto.modifier.PlotSize

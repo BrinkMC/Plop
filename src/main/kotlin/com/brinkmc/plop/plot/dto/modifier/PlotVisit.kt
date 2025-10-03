@@ -1,17 +1,19 @@
 package com.brinkmc.plop.plot.dto.modifier
 
 import java.sql.Timestamp
+import java.util.UUID
 
 data class PlotVisit(
+
+
     private var _visitable: Boolean = true, // Is plot visitable
     private var _level: Int,
-    private var _currentVisits: Int,
 
+    val currentVisits: List<UUID>,
     val historicalVisits: MutableList<Timestamp> = mutableListOf()
 ) {
     val level get() = _level
     val visitable get() = _visitable
-    val currentVisits get() = _currentVisits
 
     fun setLevel(level: Int) {
         _level = level
@@ -19,9 +21,5 @@ data class PlotVisit(
 
     fun setVisitable(visitable: Boolean) {
         _visitable = visitable
-    }
-
-    fun setCurrentVisits(currentVisits: Int) {
-        _currentVisits = currentVisits
     }
 }

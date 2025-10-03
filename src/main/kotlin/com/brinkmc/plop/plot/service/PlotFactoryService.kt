@@ -7,6 +7,9 @@ import com.brinkmc.plop.plot.dto.modifier.PlotFactory
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.config.serialisers.Level
+import com.brinkmc.plop.shared.constant.MessageKey
+import com.brinkmc.plop.shared.constant.ServiceResult
+import com.brinkmc.plop.shared.constant.SoundKey
 import java.util.UUID
 
 class PlotFactoryService(override val plugin: Plop): Addon, State {
@@ -52,16 +55,60 @@ class PlotFactoryService(override val plugin: Plop): Addon, State {
         }
     }
 
-    suspend fun getPlotFactoryCount(plotId: UUID) = factoryService.getFactoryCount(plotId) 
+    suspend fun getPlotFactoryCount(plotId: UUID) = factoryService.getFactoryCount(plotId)
+
+    suspend fun getPlotFactoryLevel(plotId: UUID): Int? {
+        return getPlotFactory(plotId)?.level
+    }
+
+    suspend fun canUpgradePlotFactory(plotId: UUID): Boolean {
+        val plotType = plotService.getPlotType(plotId) ?: return false
+        val plotFactoryLevel = getPlotFactoryLevel(plotId) ?: return false
+        return when(plotType) {
+            PlotType.GUILD -> plotFactoryLevel < guildLevels.size - 1
+            PlotType.PERSONAL -> plotFactoryLevel < personalLevels.size - 1
+        }
+    }
+
+    suspend fun getCostOfUpgrade(plotId: UUID): Int? {
+        val plotType = plotService.getPlotType(plotId) ?: return null
+        val plotFactoryLevel = getPlotFactoryLevel(plotId) ?: return null
+        return when(plotType) {
+            PlotType.GUILD -> {
+                if (!canUpgradePlotFactory(plotId)) return null
+                guildLevels[plotFactoryLevel + 1].price
+            }
+            PlotType.PERSONAL -> {
+                if (!canUpgradePlotFactory(plotId)) return null
+                personalLevels[plotFactoryLevel + 1].price
+            }
+        }
+    }
 
     // Setters
 
-    suspend fun upgradeFactoryLimit(plotId: UUID) {
+    private suspend fun setPlotFactoryLevel(plotId: UUID, level: Int) {
         val plotFactory = getPlotFactory(plotId) ?: return
-        val plotType = plotService.getPlotType(plotId) ?: return
-
-        plotFactory.setLevel(plotFactory.level + 1)
+        plotFactory.setLevel(level)
     }
 
 
+    suspend fun upgradePlotFactory(plotId: UUID): ServiceResult {
+        val plotType = plotService.getPlotType(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+        val plotFactory = getPlotFactory(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+        return when(plotType) {
+            PlotType.GUILD if(canUpgradePlotFactory(plotId)) -> {
+                setPlotFactoryLevel(plotId, plotFactory.level + 1)
+                ServiceResult.Failure(MessageKey.UPGRADE_SUCCESS, SoundKey.SUCCESS)
+            }
+            PlotType.PERSONAL if (canUpgradePlotFactory(plotId)) -> {
+
+                setPlotFactoryLevel(plotId, plotFactory.level + 1)
+                ServiceResult.Failure(MessageKey.UPGRADE_SUCCESS, SoundKey.SUCCESS)
+            }
+            else -> {
+                ServiceResult.Failure(MessageKey.REACHED_MAX_UPGRADE_LEVEL, SoundKey.FAILURE)
+            }
+        }
+    }
 }

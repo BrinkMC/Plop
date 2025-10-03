@@ -9,6 +9,8 @@ import com.brinkmc.plop.plot.dto.structure.Nexus
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.constant.MessageKey
+import com.brinkmc.plop.shared.constant.PermissionKey
+import com.brinkmc.plop.shared.constant.ServiceResult
 import com.brinkmc.plop.shared.constant.SoundKey
 import com.brinkmc.plop.shared.util.ClaimUtils
 import com.brinkmc.plop.shared.util.fold
@@ -109,16 +111,39 @@ class PlotClaimService(override val plugin: Plop): Addon, State {
         return getPlotClaim(plotId)?.visit
     }
 
-    suspend fun setPlotHome(plotId: UUID, location: Location) {
+    // Actions
+
+    suspend fun setPlotHome(playerId: UUID, location: Location): ServiceResult {
+        val plotId = plotService.getPlotIdFromLocation(location) ?: return ServiceResult.Failure(MessageKey.NO_PLOT, SoundKey.FAILURE)
+
+        if (!plotService.isPlotMember(plotId, playerId)) {
+            return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE)
+        }
+
+        if (!playerService.hasPermission(playerId, PermissionKey.SET_PLOT_HOME)) {
+            return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
+        }
+
         getPlotClaim(plotId)?.setHome(location)
+
+        return ServiceResult.Success(MessageKey.PLOT_SET_HOME, SoundKey.SUCCESS)
     }
 
-    suspend fun setPlotVisit(plotId: UUID, location: Location) {
-        getPlotClaim(plotId)?.setVisit(location)
+    suspend fun setPlotVisit(playerId: UUID, location: Location): ServiceResult {
+        val plotId = plotService.getPlotIdFromLocation(location) ?: return ServiceResult.Failure(MessageKey.NO_PLOT, SoundKey.FAILURE)
+
+        if (!plotService.isPlotMember(plotId, playerId)) {
+            return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE)
+        }
+
+        if (!playerService.hasPermission(playerId, PermissionKey.SET_PLOT_VISIT)) {
+            return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
+        }
+
+        setPlotVisit(plotId, location)
+
+        return ServiceResult.Success(MessageKey.PLOT_SET_VISIT, SoundKey.SUCCESS)
     }
-
-
-
 
 
 

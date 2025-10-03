@@ -22,32 +22,16 @@ class Economy(override val plugin: Plop): Addon, State {
         TODO("Not yet implemented")
     }
 
-    fun hasBalance(player: UUID, amount: Double): Boolean {
-        return economyAPI.has(Bukkit.getOfflinePlayer(player), amount)
-    }
-
     fun hasBalance(player: OfflinePlayer, amount: Double): Boolean {
         return economyAPI.has(player, amount)
-    }
-
-    fun getBalance(player: UUID): Double {
-        return economyAPI.getBalance(Bukkit.getOfflinePlayer(player))
     }
 
     fun getBalance(player: OfflinePlayer): Double {
         return economyAPI.getBalance(player)
     }
 
-    fun deposit(player: UUID, amount: Double): Boolean {
-        return economyAPI.depositPlayer(Bukkit.getOfflinePlayer(player), amount).transactionSuccess()
-    }
-
     fun deposit(player: OfflinePlayer, amount: Double): Boolean {
         return economyAPI.depositPlayer(player, amount).transactionSuccess()
-    }
-
-    fun withdraw(player: UUID, amount: Double): Boolean {
-        return economyAPI.withdrawPlayer(Bukkit.getOfflinePlayer(player), amount).transactionSuccess()
     }
 
     fun withdraw(player: OfflinePlayer, amount: Double): Boolean {

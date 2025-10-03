@@ -1,7 +1,6 @@
 package com.brinkmc.plop.plot.controller.gui.selector
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.plot.base.PlotType
 import com.brinkmc.plop.shared.base.Addon
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement

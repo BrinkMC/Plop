@@ -21,7 +21,7 @@ class PlotUpgradeService(override val plugin: Plop): Addon, State {
     override suspend fun kill() { }
 
 
-    suspend fun upgradeSizeLevel(plotId: UUID, playerId: UUID): ServiceResult { // Validate that they can afford price of new level
+    suspend fun upgradePlotSizeLevel(plotId: UUID, playerId: UUID): ServiceResult { // Validate that they can afford price of new level
         logger.info("Attempting to upgrading plot claim for $plotId by $playerId")
 
         // Is player the owner of the plot?
@@ -41,18 +41,138 @@ class PlotUpgradeService(override val plugin: Plop): Addon, State {
             return ServiceResult.Failure(MessageKey.REACHED_MAX_UPGRADE_LEVEL, SoundKey.FAILURE)
         }
 
-        plotService.get
+        val price = plotSizeService.getCostOfUpgrade(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+        val balance = economyService.getBalance(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
 
         // Calculate if they can afford it
-        val potentialLevel =  plots.sizeHandler.getLevel(plot.type, plot.size.level + 1)
-
-        // Using the economy API, check if they can afford it
-
-        if (!plot.owner.hasBalance(economy, potentialLevel.price?.toDouble() ?: 0.0)) {
-            initiator.sendMiniMessage(MessageKey.NO_MONEY)
-            return
+        if (balance < price) {
+            return ServiceResult.Failure(MessageKey.NO_MONEY, SoundKey.FAILURE)
         }
 
-        plots.sizeHandler.upgradePlot(plot) // Update the plot in the database
+        return plotSizeService.upgradePlotSize(plotId) // Update the plot in the database
+    }
+
+    suspend fun upgradePlotFactoryLevel(plotId: UUID, playerId: UUID): ServiceResult { // Validate that they can afford price of new level
+        logger.info("Attempting to upgrading plot factory for $plotId by $playerId")
+
+        // Is player the owner of the plot?
+        if (!plotService.isPlotMember(plotId, playerId)) {
+            return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE)
+        }
+
+
+        // Has permission to upgrade
+        if (!playerService.hasPermission(playerId, PermissionKey.UPGRADE_PLOT)) {
+            return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
+        }
+
+        val currentLevel = plotFactoryService.getPlotFactoryLevel(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+
+        if (!plotFactoryService.canUpgradePlotFactory(plotId)) {
+            return ServiceResult.Failure(MessageKey.REACHED_MAX_UPGRADE_LEVEL, SoundKey.FAILURE)
+        }
+
+        val price = plotFactoryService.getCostOfUpgrade(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+        val balance = economyService.getBalance(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+
+        // Calculate if they can afford it
+        if (balance < price) {
+            return ServiceResult.Failure(MessageKey.NO_MONEY, SoundKey.FAILURE)
+        }
+
+        return plotFactoryService.upgradePlotFactory(plotId) // Update the plot in the database
+    }
+
+    suspend fun upgradePlotShopLevel(plotId: UUID, playerId: UUID): ServiceResult { // Validate that they can afford price of new level
+        logger.info("Attempting to upgrading plot shop for $plotId by $playerId")
+
+        // Is player the owner of the plot?
+        if (!plotService.isPlotMember(plotId, playerId)) {
+            return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE)
+        }
+
+
+        // Has permission to upgrade
+        if (!playerService.hasPermission(playerId, PermissionKey.UPGRADE_PLOT)) {
+            return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
+        }
+
+        val currentLevel = plotShopService.getPlotShopLevel(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+
+        if (!plotShopService.canUpgradePlotShop(plotId)) {
+            return ServiceResult.Failure(MessageKey.REACHED_MAX_UPGRADE_LEVEL, SoundKey.FAILURE)
+        }
+
+        val price = plotShopService.getCostOfUpgrade(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+        val balance = economyService.getBalance(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+
+        // Calculate if they can afford it
+        if (balance < price) {
+            return ServiceResult.Failure(MessageKey.NO_MONEY, SoundKey.FAILURE)
+        }
+
+        return plotShopService.upgradePlotShop(plotId) // Update the plot in the database
+    }
+
+    suspend fun upgradePlotVisitLevel(plotId: UUID, playerId: UUID): ServiceResult { // Validate that they can afford price of new level
+        logger.info("Attempting to upgrading plot visit for $plotId by $playerId")
+
+        // Is player the owner of the plot?
+        if (!plotService.isPlotMember(plotId, playerId)) {
+            return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE)
+        }
+
+
+        // Has permission to upgrade
+        if (!playerService.hasPermission(playerId, PermissionKey.UPGRADE_PLOT)) {
+            return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
+        }
+
+        val currentLevel = plotVisitService.getPlotVisitLevel(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+
+        if (!plotVisitService.canUpgradePlotVisit(plotId)) {
+            return ServiceResult.Failure(MessageKey.REACHED_MAX_UPGRADE_LEVEL, SoundKey.FAILURE)
+        }
+
+        val price = plotVisitService.getCostOfUpgrade(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+        val balance = economyService.getBalance(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+
+        // Calculate if they can afford it
+        if (balance < price) {
+            return ServiceResult.Failure(MessageKey.NO_MONEY, SoundKey.FAILURE)
+        }
+
+        return plotVisitService.upgradePlotVisit(plotId) // Update the plot in the database
+    }
+
+    suspend fun upgradePlotTotemLevel(plotId: UUID, playerId: UUID): ServiceResult { // Validate that they can afford price of new level
+        logger.info("Attempting to upgrading plot totem for $plotId by $playerId")
+
+        // Is player the owner of the plot?
+        if (!plotService.isPlotMember(plotId, playerId)) {
+            return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE)
+        }
+
+
+        // Has permission to upgrade
+        if (!playerService.hasPermission(playerId, PermissionKey.UPGRADE_PLOT)) {
+            return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
+        }
+
+        val currentLevel = plotTotemService.getPlotTotemLevel(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+
+        if (!plotTotemService.canUpgradeTotemLimit(plotId)) {
+            return ServiceResult.Failure(MessageKey.REACHED_MAX_UPGRADE_LEVEL, SoundKey.FAILURE)
+        }
+
+        val price = plotTotemService.getCostOfUpgrade(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+        val balance = economyService.getBalance(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+
+        // Calculate if they can afford it
+        if (balance < price) {
+            return ServiceResult.Failure(MessageKey.NO_MONEY, SoundKey.FAILURE)
+        }
+
+        return plotTotemService.upgradePlotTotem(plotId) // Update the plot in the database
     }
 }

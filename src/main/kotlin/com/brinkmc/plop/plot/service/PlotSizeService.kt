@@ -7,6 +7,9 @@ import com.brinkmc.plop.plot.dto.modifier.PlotSize
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.config.serialisers.Level
+import com.brinkmc.plop.shared.constant.MessageKey
+import com.brinkmc.plop.shared.constant.ServiceResult
+import com.brinkmc.plop.shared.constant.SoundKey
 import java.util.UUID
 
 class PlotSizeService(override val plugin: Plop): Addon, State {
@@ -67,7 +70,28 @@ class PlotSizeService(override val plugin: Plop): Addon, State {
 
     // Setters
 
-    suspend fun up
+    private suspend fun setPlotSizeLevel(plotId: UUID, level: Int) {
+        val plotSize = getPlotSize(plotId) ?: return
+        plotSize.setLevel(level)
+    }
 
 
+    suspend fun upgradePlotSize(plotId: UUID): ServiceResult {
+        val plotType = plotService.getPlotType(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+        val plotSize = getPlotSize(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+        return when(plotType) {
+            PlotType.GUILD if(canUpgradePlotSize(plotId)) -> {
+                setPlotSizeLevel(plotId, plotSize.level + 1)
+                ServiceResult.Failure(MessageKey.UPGRADE_SUCCESS, SoundKey.SUCCESS)
+            }
+            PlotType.PERSONAL if (canUpgradePlotSize(plotId)) -> {
+
+                setPlotSizeLevel(plotId, plotSize.level + 1)
+                ServiceResult.Failure(MessageKey.UPGRADE_SUCCESS, SoundKey.SUCCESS)
+            }
+            else -> {
+                ServiceResult.Failure(MessageKey.REACHED_MAX_UPGRADE_LEVEL, SoundKey.FAILURE)
+            }
+        }
+    }
 }

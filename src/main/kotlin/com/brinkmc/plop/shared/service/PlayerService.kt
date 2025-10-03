@@ -91,6 +91,11 @@ class PlayerService(override val plugin: Plop): Addon, State {
         return player.displayName()
     }
 
+    fun getUsername(playerId: UUID): String? {
+        val player = getOfflinePlayer(playerId).player ?: return null
+        return player.name
+    }
+
     fun allowFlight(playerId: UUID, allow: Boolean) {
         val player = getOfflinePlayer(playerId).player ?: return
         player.allowFlight = allow

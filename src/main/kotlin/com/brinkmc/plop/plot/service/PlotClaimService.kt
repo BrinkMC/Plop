@@ -28,7 +28,7 @@ class PlotClaimService(override val plugin: Plop): Addon, State {
 
     override suspend fun kill() { }
 
-    suspend fun createPlot(playerId: UUID, plotType: PlotType, stringLocation: StringLocation) {
+    suspend fun createPlot(playerId: UUID, plotType: PlotType, stringLocation: StringLocation): ServiceResult {
         val location = stringLocation.toLocation()
 
         val plotClaim = PlotClaim(
@@ -43,9 +43,7 @@ class PlotClaimService(override val plugin: Plop): Addon, State {
             }
             PlotType.GUILD -> {
                 hookService.guilds.getGuildFromPlayer(playerId)?.id ?: run {
-                    messages.sendMiniMessage(playerId, MessageKey.NO_GUILD)
-                    messages.sendSound(playerId, SoundKey.FAILURE)
-                    return
+                    return ServiceResult.Failure(MessageKey.NO_GUILD, SoundKey.FAILURE)
                 }
             }
         }
@@ -54,7 +52,7 @@ class PlotClaimService(override val plugin: Plop): Addon, State {
             plotId,
             plotType,
             plotClaim,
-            PlotVisit(true, 0, 0, mutableListOf()),
+            PlotVisit(true, 0, listOf(), mutableListOf()),
             PlotSize(0),
             PlotFactory(0),
             PlotShop(0),
@@ -69,9 +67,7 @@ class PlotClaimService(override val plugin: Plop): Addon, State {
         hookService.worldGuard.createRegion(plotId)
 
         // Teleport player to the new schematic
-        messages.sendMiniMessage(playerId, MessageKey.PLOT_CREATED)
-        messages.sendSound(playerId, SoundKey.SUCCESS)
-
+        return ServiceResult.Success(MessageKey.CLAIM_SUCCESS, SoundKey.SUCCESS)
 
 
     }
@@ -116,11 +112,11 @@ class PlotClaimService(override val plugin: Plop): Addon, State {
     suspend fun setPlotHome(playerId: UUID, location: Location): ServiceResult {
         val plotId = plotService.getPlotIdFromLocation(location) ?: return ServiceResult.Failure(MessageKey.NO_PLOT, SoundKey.FAILURE)
 
-        if (!plotService.isPlotMember(plotId, playerId)) {
+        if (!plotService.isPlotOwner(plotId, playerId)) {
             return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE)
         }
 
-        if (!playerService.hasPermission(playerId, PermissionKey.SET_PLOT_HOME)) {
+        if (!playerService.hasPermission(playerId, PermissionKey.PLOT_SET_HOME)) {
             return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
         }
 
@@ -136,7 +132,7 @@ class PlotClaimService(override val plugin: Plop): Addon, State {
             return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE)
         }
 
-        if (!playerService.hasPermission(playerId, PermissionKey.SET_PLOT_VISIT)) {
+        if (!playerService.hasPermission(playerId, PermissionKey.PLOT_SET_VISIT)) {
             return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
         }
 

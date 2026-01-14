@@ -12,6 +12,11 @@ import com.brinkmc.plop.shared.util.fold
 import com.brinkmc.plop.shared.util.withTimer
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.yannicklamprecht.worldborder.api.WorldBorderApi
+import com.noxcrew.interfaces.InterfacesListeners
+import com.noxcrew.interfaces.interfaces.ChestInterface
+import com.noxcrew.interfaces.interfaces.CombinedInterface
+import com.noxcrew.interfaces.interfaces.PlayerInterface
+import com.noxcrew.interfaces.view.InterfaceView
 import com.sksamuel.aedile.core.asLoadingCache
 import de.oliver.fancyholograms.api.hologram.Hologram
 import net.kyori.adventure.sound.Sound
@@ -37,7 +42,7 @@ class PlayerService(override val plugin: Plop): Addon, State {
         plotService.getPlotIdFromLocation(it.location)
     }
 
-    suspend fun getPlotId(playerId: UUID): UUID? {
+    suspend fun getPlotId(playerId: UUID): UUID? { // Get the plot ID the player is currently in
         val player = getOfflinePlayer(playerId).player ?: return null
         return locations.get(player)
     }
@@ -192,6 +197,33 @@ class PlayerService(override val plugin: Plop): Addon, State {
     fun hideHologram(playerId: UUID, hologram: Hologram) {
         val player = getOfflinePlayer(playerId).player ?: return
         hologram.forceHideHologram(player)
+    }
+
+    // Menus
+
+    suspend fun openMenu(inventory: ChestInterface, playerId: UUID, parentView: InterfaceView? = null): InterfaceView? {
+        return plugin.asyncScope {
+            val player = getOfflinePlayer(playerId).player ?: return@asyncScope null
+            inventory.open(player, parentView)
+        }
+    }
+
+    suspend fun openMenu(inventory: PlayerInterface, playerId: UUID, parentView: InterfaceView? = null): InterfaceView? {
+        return plugin.asyncScope {
+            val player = getOfflinePlayer(playerId).player ?: return@asyncScope null
+            inventory.open(player, parentView)
+        }
+    }
+
+    suspend fun openMenu(inventory: CombinedInterface, playerId: UUID, parentView: InterfaceView? = null): InterfaceView? {
+        return plugin.asyncScope {
+            val player = getOfflinePlayer(playerId).player ?: return@asyncScope null
+            inventory.open(player, parentView)
+        }
+    }
+
+    suspend fun closeMenu(playerId: UUID) {
+        InterfacesListeners.INSTANCE.getOpenPlayerInterface(playerId)?.close()
     }
 
     // custom actions

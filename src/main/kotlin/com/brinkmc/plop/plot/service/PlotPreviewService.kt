@@ -7,6 +7,7 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.constant.MessageKey
 import com.brinkmc.plop.shared.constant.ServiceResult
+import com.brinkmc.plop.shared.constant.SoundKey
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.event.player.PlayerTeleportEvent
@@ -152,17 +153,17 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
 
         // Guild check
         val guildCheck = guildChecks(playerId)
-        if (guildCheck != ServiceResult.Success(MessageKey.STARTED_PREVIEW)) return guildCheck
+        if (guildCheck != ServiceResult.Success(MessageKey.PREVIEW_STARTING, SoundKey.TELEPORT)) return guildCheck
 
         // Personal checks
         val personalCheck = personalChecks(playerId)
-        if (personalCheck != ServiceResult.Success(MessageKey.STARTED_PREVIEW)) return personalCheck
+        if (personalCheck != ServiceResult.Success(MessageKey.PREVIEW_STARTING, SoundKey.TELEPORT)) return personalCheck
 
         val world = plotService.getPlotWorld(type).name
 
         val openPlot = plotLayoutService.getFirstFree(type)
 
-        val interfaceView = menuService.previewHotbar.open(playerId)
+        val interfaceView = menuService.previewHotbar.open(playerId, null)
 
         val plotPreview = PlotPreview(
             playerId,
@@ -177,7 +178,7 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
         toggleFree(playerId, false)
         teleportToPlot(playerId)
 
-        return ServiceResult.Success(MessageKey.STARTED_PREVIEW)
+        return ServiceResult.Success(MessageKey.PREVIEW_STARTING)
     }
 
     suspend fun cyclePreview(playerId: UUID, forward: Boolean) {
@@ -226,8 +227,8 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
         return true
     }
 
-    suspend fun endPreview(playerId: UUID, teleport: Boolean): Boolean {
-        val preview = getPreview(playerId) ?: return false
+    suspend fun endPreview(playerId: UUID, teleport: Boolean): ServiceResult {
+        val preview = getPreview(playerId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
 
         preview.interfaceView.close() // Close interface
         if (teleport) {
@@ -239,17 +240,19 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
         playerService.allowFlight(playerId, false)
         // Finally remove preview
         previews.remove(playerId)
-        return true
+        return ServiceResult.Success(MessageKey.PREVIEW_ENDED, SoundKey.SUCCESS)
     }
 
-    suspend fun claimPlot(playerId: UUID): Boolean {
-        val preview = getPreview(playerId) ?: return false
-        val plotType = getPlotType(playerId) ?: return false
+    suspend fun claimPlot(playerId: UUID): ServiceResult {
+        val preview = getPreview(playerId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+        val plotType = getPlotType(playerId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
 
-        plotClaimService.createPlot(playerId, plotType, preview.previewPlot.value)
+        val result = plotClaimService.createPlot(playerId, plotType, preview.previewPlot.value)
 
-        endPreview(playerId, false)
-        return true
+        if (result is ServiceResult.Success) {
+            endPreview(playerId, teleport = false)
+        }
+        return result
     }
 }
 

@@ -9,8 +9,8 @@ import org.incendo.cloud.annotations.Command
 
 internal class CommandPlotSetEntrance(override val plugin: Plop): Addon, Command {
 
-    @Command("plot set entrance")
-    suspend fun setEntrance(
+    @Command("plot set home|entrance")
+    suspend fun setHome(
         sender: CommandSourceStack
     ) {
         val player = getPlayer(sender.sender)
@@ -32,6 +32,6 @@ internal class CommandPlotSetEntrance(override val plugin: Plop): Addon, Command
         }
 
         plot.claim.visit = player.location
-        player.sendMiniMessage(MessageKey.PLOT_SET_ENTRANCE)
+        player.sendMiniMessage(MessageKey.PLOT_SET_HOME)
     }
 }

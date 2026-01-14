@@ -21,6 +21,7 @@ import com.github.yannicklamprecht.worldborder.api.WorldBorderApi
 import com.sksamuel.aedile.core.asCache
 import com.sksamuel.aedile.core.asLoadingCache
 import com.sksamuel.aedile.core.expireAfterAccess
+import me.glaremasters.guilds.guild.GuildRolePerm
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.Location
 import org.bukkit.World
@@ -96,6 +97,11 @@ class PlotService(override val plugin: Plop): Addon, State  {
         return playerId in members
     }
 
+    suspend fun isPlotOwner(plotId: UUID, playerId: UUID): Boolean {
+        val owners = getPlotOwners(plotId)
+        return playerId in owners
+    }
+
     // Getters
 
     suspend fun getPlotOwnerDisplayName(plotId: UUID): String? {
@@ -115,11 +121,25 @@ class PlotService(override val plugin: Plop): Addon, State  {
         return plot.type
     }
 
-    suspend fun getPlotMembers(plotId: UUID): List<UUID?> {
+    suspend fun getPlotMembers(plotId: UUID): List<UUID> {
         val plot = getPlot(plotId) ?: return emptyList()
         return when (plot.type) {
             PlotType.PERSONAL -> listOf(plot.id)
-            PlotType.GUILD -> hookService.guilds.getGuild(plot.id)?.members?.map { it.uuid } ?: emptyList()
+            PlotType.GUILD -> hookService.guilds.getGuild(plot.id)?.members?.map {
+                it.uuid
+            } ?: emptyList()
+        }
+    }
+
+    suspend fun getPlotOwners(plotId: UUID): List<UUID?> {
+        val plot = getPlot(plotId) ?: return emptyList()
+        return when (plot.type) {
+            PlotType.PERSONAL -> listOf(plot.id)
+            PlotType.GUILD -> hookService.guilds.getGuild(plot.id)?.members?.filter {
+                it.role.hasPerm(GuildRolePerm.UPGRADE_GUILD)
+            }?.map {
+                it.uuid
+            } ?: emptyList()
         }
     }
 

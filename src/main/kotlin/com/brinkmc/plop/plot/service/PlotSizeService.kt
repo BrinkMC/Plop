@@ -90,7 +90,7 @@ class PlotSizeService(override val plugin: Plop): Addon, State {
                 ServiceResult.Failure(MessageKey.UPGRADE_SUCCESS, SoundKey.SUCCESS)
             }
             else -> {
-                ServiceResult.Failure(MessageKey.REACHED_MAX_UPGRADE_LEVEL, SoundKey.FAILURE)
+                ServiceResult.Failure(MessageKey.MAX_UPGRADE_REACHED, SoundKey.FAILURE)
             }
         }
     }

@@ -2,15 +2,18 @@ package com.brinkmc.plop.plot.controller.gui.nexus
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
-import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
-import com.noxcrew.interfaces.element.StaticElement
-import com.noxcrew.interfaces.interfaces.buildChestInterface
+import com.brinkmc.plop.shared.base.Gui
 import com.noxcrew.interfaces.view.InterfaceView
-import org.bukkit.Material
-import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
+import java.util.UUID
 
-class UpgradeGui(override val plugin: Plop): Addon {
+class UpgradeMenu(override val plugin: Plop): Addon, Gui {
+    override suspend fun open(
+        playerId: UUID,
+        view: InterfaceView?,
+        vararg args: Any
+    ): InterfaceView {
+        TODO("Not yet implemented")
+    }
 
 
 }

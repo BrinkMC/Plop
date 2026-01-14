@@ -3,6 +3,8 @@ package com.brinkmc.plop.plot.controller.gui.preview
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.Gui
+import com.brinkmc.plop.shared.constant.ItemKey
+import com.brinkmc.plop.shared.constant.MessageKey
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.buildPlayerInterface
@@ -12,12 +14,35 @@ import com.noxcrew.interfaces.view.PlayerInterfaceView
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
+import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 
-class PreviewHotbar(override val plugin: Plop): Addon, Gui {
+ class PreviewHotbar(override val plugin: Plop): Addon, Gui {
     // Requires a cooldown
 
+    private suspend fun getBackwardButton(): ItemStack {
+        return messages.getItem(
+            ItemKey.BACK,
+            MessageKey.MENU_PREVIEW_BACKWARD_NAME,
+            MessageKey.MENU_PREVIEW_BACKWARD_DESC
+        )
+    }
 
+    private suspend fun getForwardButton(): ItemStack {
+        return messages.getItem(
+            ItemKey.BACK,
+            MessageKey.MENU_PREVIEW_FORWARD_NAME,
+            MessageKey.MENU_PREVIEW_FORWARD_DESC
+        )
+    }
+
+     override suspend fun open(
+         playerId: UUID,
+         view: InterfaceView?,
+         vararg args: Any
+     ): InterfaceView {
+         TODO("Not yet implemented")
+     }
 
 
 //    private val cooldownHandle = Cooldown(plugin, 3.seconds)

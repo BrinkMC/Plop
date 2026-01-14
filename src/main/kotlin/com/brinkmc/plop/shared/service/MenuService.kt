@@ -1,36 +1,31 @@
 package com.brinkmc.plop.shared.service
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.plot.controller.gui.nexus.NexusGui
-import com.brinkmc.plop.plot.controller.gui.nexus.PlotLogGui
-import com.brinkmc.plop.plot.controller.gui.nexus.TotemGui
-import com.brinkmc.plop.plot.controller.gui.nexus.UpgradeGui
+import com.brinkmc.plop.plot.controller.gui.nexus.NexusMenu
+import com.brinkmc.plop.plot.controller.gui.nexus.PlotLogMenu
+import com.brinkmc.plop.plot.controller.gui.nexus.TotemMenu
+import com.brinkmc.plop.plot.controller.gui.nexus.UpgradeMenu
 import com.brinkmc.plop.plot.controller.gui.preview.PreviewHotbar
-import com.brinkmc.plop.plot.controller.gui.selector.PlotTypeMenu
-import com.brinkmc.plop.plot.controller.gui.selector.SelectionSelfMenu
-import com.brinkmc.plop.plot.controller.gui.visit.MenuPlotList
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.base.Gui
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.gui.shop.access.MenuShopMain
-import com.brinkmc.plop.shared.gui.shop.access.customer.MenuBuy
-import com.brinkmc.plop.shared.gui.shop.access.customer.MenuSell
-import com.brinkmc.plop.shared.gui.shop.access.owner.MenuShopLogs
-import com.brinkmc.plop.shared.gui.shop.access.owner.MenuShopSettings
-import com.brinkmc.plop.shared.gui.shop.init.MenuShopCreate
-import com.brinkmc.plop.shared.gui.shop.init.item.MenuShopItem
-import com.brinkmc.plop.shared.gui.shop.init.price.MenuShopBuy
-import com.brinkmc.plop.shared.gui.shop.init.price.MenuShopBuyLimit
-import com.brinkmc.plop.shared.gui.shop.init.price.MenuShopSell
-import com.brinkmc.plop.shared.gui.shop.init.stock.MenuShopStock
-import com.brinkmc.plop.shop.controller.gui.customer.BuyFromShopGui
-import com.noxcrew.interfaces.view.InterfaceView
-import org.bukkit.entity.Player
+import com.brinkmc.plop.shared.constant.ServiceResult
+import java.util.UUID
 
 class MenuService(override val plugin: Plop): Addon, State {
 
-    val buyFromShopGui = BuyFromShopGui(plugin)
+    // Shop
+
+    val buyFromShopMenu = BuyFromShopMenu(plugin)
+
+    // Preview
+
     val previewHotbar = PreviewHotbar(plugin)
+
+    // Nexus
+    val nexusMenu = NexusMenu(plugin)
+    val plotLogMenu = PlotLogMenu(plugin)
+    val totemMenu = TotemMenu(plugin)
+    val upgradeMenu = UpgradeMenu(plugin)
 
     override suspend fun load() {
 
@@ -39,5 +34,4 @@ class MenuService(override val plugin: Plop): Addon, State {
     override suspend fun kill() {
         TODO("Not yet implemented")
     }
-
 }

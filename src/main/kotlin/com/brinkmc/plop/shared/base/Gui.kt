@@ -6,15 +6,18 @@ import com.brinkmc.plop.shared.util.CoroutineUtils.async
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.ChestInterfaceBuilder
+import com.noxcrew.interfaces.view.InterfaceView
+import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
+import java.util.UUID
 
 internal interface Gui: Addon {
 
-    suspend fun getBackButton(): ItemStack {
+    private suspend fun getBackButton(): ItemStack {
         return messages.getItem(
             ItemKey.BACK,
-            MessageKey.MENU_BACK_BUTTON_NAME,
-            MessageKey.MENU_BACK_BUTTON_DESC,
+            MessageKey.MENU_BACK_NAME,
+            MessageKey.MENU_BACK_DESC,
         )
     }
 
@@ -31,4 +34,12 @@ internal interface Gui: Addon {
             }
         }
     }
+
+    suspend fun open(playerId: UUID, view: InterfaceView?, vararg args: Any): InterfaceView
+
+    suspend fun close(playerId: UUID) {
+        playerService.closeMenu(playerId)
+    }
+
+
 }

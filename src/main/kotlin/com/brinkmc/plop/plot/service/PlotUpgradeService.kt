@@ -31,14 +31,14 @@ class PlotUpgradeService(override val plugin: Plop): Addon, State {
 
 
         // Has permission to upgrade
-        if (!playerService.hasPermission(playerId, PermissionKey.UPGRADE_PLOT)) {
+        if (!playerService.hasPermission(playerId, PermissionKey.PLOT_UPGRADE)) {
             return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
         }
 
         val currentLevel = plotSizeService.getPlotSizeLevel(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
 
         if (!plotSizeService.canUpgradePlotSize(plotId)) {
-            return ServiceResult.Failure(MessageKey.REACHED_MAX_UPGRADE_LEVEL, SoundKey.FAILURE)
+            return ServiceResult.Failure(MessageKey.MAX_UPGRADE_REACHED, SoundKey.FAILURE)
         }
 
         val price = plotSizeService.getCostOfUpgrade(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
@@ -62,14 +62,14 @@ class PlotUpgradeService(override val plugin: Plop): Addon, State {
 
 
         // Has permission to upgrade
-        if (!playerService.hasPermission(playerId, PermissionKey.UPGRADE_PLOT)) {
+        if (!playerService.hasPermission(playerId, PermissionKey.PLOT_UPGRADE)) {
             return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
         }
 
         val currentLevel = plotFactoryService.getPlotFactoryLevel(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
 
         if (!plotFactoryService.canUpgradePlotFactory(plotId)) {
-            return ServiceResult.Failure(MessageKey.REACHED_MAX_UPGRADE_LEVEL, SoundKey.FAILURE)
+            return ServiceResult.Failure(MessageKey.MAX_UPGRADE_REACHED, SoundKey.FAILURE)
         }
 
         val price = plotFactoryService.getCostOfUpgrade(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
@@ -93,14 +93,14 @@ class PlotUpgradeService(override val plugin: Plop): Addon, State {
 
 
         // Has permission to upgrade
-        if (!playerService.hasPermission(playerId, PermissionKey.UPGRADE_PLOT)) {
+        if (!playerService.hasPermission(playerId, PermissionKey.PLOT_UPGRADE)) {
             return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
         }
 
         val currentLevel = plotShopService.getPlotShopLevel(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
 
         if (!plotShopService.canUpgradePlotShop(plotId)) {
-            return ServiceResult.Failure(MessageKey.REACHED_MAX_UPGRADE_LEVEL, SoundKey.FAILURE)
+            return ServiceResult.Failure(MessageKey.MAX_UPGRADE_REACHED, SoundKey.FAILURE)
         }
 
         val price = plotShopService.getCostOfUpgrade(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
@@ -124,14 +124,14 @@ class PlotUpgradeService(override val plugin: Plop): Addon, State {
 
 
         // Has permission to upgrade
-        if (!playerService.hasPermission(playerId, PermissionKey.UPGRADE_PLOT)) {
+        if (!playerService.hasPermission(playerId, PermissionKey.PLOT_UPGRADE)) {
             return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
         }
 
         val currentLevel = plotVisitService.getPlotVisitLevel(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
 
         if (!plotVisitService.canUpgradePlotVisit(plotId)) {
-            return ServiceResult.Failure(MessageKey.REACHED_MAX_UPGRADE_LEVEL, SoundKey.FAILURE)
+            return ServiceResult.Failure(MessageKey.MAX_UPGRADE_REACHED, SoundKey.FAILURE)
         }
 
         val price = plotVisitService.getCostOfUpgrade(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
@@ -155,14 +155,14 @@ class PlotUpgradeService(override val plugin: Plop): Addon, State {
 
 
         // Has permission to upgrade
-        if (!playerService.hasPermission(playerId, PermissionKey.UPGRADE_PLOT)) {
+        if (!playerService.hasPermission(playerId, PermissionKey.PLOT_UPGRADE)) {
             return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
         }
 
         val currentLevel = plotTotemService.getPlotTotemLevel(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
 
         if (!plotTotemService.canUpgradeTotemLimit(plotId)) {
-            return ServiceResult.Failure(MessageKey.REACHED_MAX_UPGRADE_LEVEL, SoundKey.FAILURE)
+            return ServiceResult.Failure(MessageKey.MAX_UPGRADE_REACHED, SoundKey.FAILURE)
         }
 
         val price = plotTotemService.getCostOfUpgrade(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)

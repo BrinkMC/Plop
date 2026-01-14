@@ -7,8 +7,11 @@ enum class MessageKey(val key: String) {
     NO_PLOT("no_plot"),
 
     // Preview
+    PREVIEW_STARTING("plot.preview.starting"),
     PREVIEW_IN_PROGRESS("plot.preview.in_progress"),
-    NO_PREVIEW("plot.preview.none"),
+    PREVIEW_NONE("plot.preview.none"),
+    PREVIEW_NO_COMMANDS("plot.preview.no_commands"),
+    PREVIEW_ENDED("plot.preview.ended"),
 
 
     // Plot messages
@@ -23,13 +26,16 @@ enum class MessageKey(val key: String) {
     MAX_PLOTS_REACHED("plot.max_plots_reached"),
     HAS_PLOTS_PERSONAL("plot.has_plots.personal"),
     HAS_PLOTS_GUILD("plot.has_plots.guild"),
+    FACTORY_LIMIT("plot.factory.limit"),
+    MAX_UPGRADE_REACHED("plot.upgrade.max_reached"),
 
     // Plot success messages
     CLAIM_SUCCESS("plot.claim.success"),
     DELETE_SUCCESS("plot.delete.success"),
-    PLOT_SET_ENTRANCE("plot.set.entrance"),
-    PLOT_SET_HOME("plot.set.visit"),
+    PLOT_SET_HOME("plot.set.home"),
+    PLOT_SET_VISIT("plot.set.visit"),
     UPGRADE_SUCCESS("plot.upgrade.success"),
+
     PLOT_TOGGLE_VISIT("plot.toggle.visit"),
 
     // Shop messages
@@ -54,6 +60,25 @@ enum class MessageKey(val key: String) {
     NEXUS_BOOK_DESC("nexus.book.desc"),
     NEXUS_BOOK_PRESENT("nexus.book.have"),
     NEXUS_BOOK_GIVEN("nexus.book.given"),
+    NEXUS_OPENING("nexus.opening"),
+    NEXUS_CREATED("nexus.created"),
+
+    // Factory
+
+    FACTORY_PLACE_SUCCESS("factory.place.success"),
+    FACTORY_BREAK_SUCCESS("factory.break.success"),
+
+
+
+
+
+
+
+
+
+
+
+
 
     // GUIs
     MENU_BUY_TITLE("gui.buy_player.title"),
@@ -74,10 +99,20 @@ enum class MessageKey(val key: String) {
     MENU_NEXUS_UPGRADE_DESC("gui.nexus.upgrade.desc"),
     MENU_NEXUS_TOTEM_NAME("gui.nexus.totem.name"),
     MENU_NEXUS_TOTEM_DESC("gui.nexus.totem.desc"),
+    MENU_NEXUS_PLOTLOG_NAME("gui.nexus.plotlog.name"),
+    MENU_NEXUS_PLOTLOG_DESC("gui.nexus.plotlog.desc"),
+
+    MENU_PREVIEW_BACKWARD_NAME("gui.preview.backward.name"),
+    MENU_PREVIEW_BACKWARD_DESC("gui.preview.backward.desc"),
+    MENU_PREVIEW_FORWARD_NAME("gui.preview.forward.name"),
+    MENU_PREVIEW_FORWARD_DESC("gui.preview.forward.desc"),
 
     // General UI Items
     MENU_ERROR_NAME("gui.error.name"),
     MENU_ERROR_DESC("gui.error.desc"),
+
+    MENU_BACK_NAME("gui.back.name"),
+    MENU_BACK_DESC("gui.back.desc"),
 
     MENU_ZERO_AMOUNT_NAME("gui.amount.zero.name"),
     MENU_ZERO_AMOUNT_DESC("gui.amount.zero.desc"),
@@ -105,4 +140,12 @@ enum class MessageKey(val key: String) {
     MENU_LESS_DESC("gui.less.desc"),
 
     PREVIEW_ERROR_GUILD_SMALL("preview.error.guild-too-small"),
+
+
+
+
+    ERROR("error.somethingwentwrong"),
+    INVENTORY_FULL("error.inventory_full"),
+    UNRECOGNISED_ACTION("error.unrecognised_action"),
+
 }

@@ -91,7 +91,7 @@ class FactoryService(override val plugin: Plop): Addon, State {
         val factoryLimit = plotFactoryService.checkFactoryLimit(plotId)
 
         if (!factoryLimit) {
-            return ServiceResult.Failure(MessageKey.TOO_MANY_FACTORIES)
+            return ServiceResult.Failure(MessageKey.FACTORY_LIMIT)
         }
         val factoryId = UUID.randomUUID()
 
@@ -103,7 +103,7 @@ class FactoryService(override val plugin: Plop): Addon, State {
         )
 
         factoryCache.addFactory(factory)
-        return ServiceResult.Success(MessageKey.PLACED_FACTORY_SUCCESS)
+        return ServiceResult.Success(MessageKey.FACTORY_PLACE_SUCCESS)
     }
 
     suspend fun destroyFactory(factoryId: UUID): ServiceResult {
@@ -111,6 +111,6 @@ class FactoryService(override val plugin: Plop): Addon, State {
 
         factoryCache.deleteFactory(factory)
 
-        return ServiceResult.Success(MessageKey.DESTROYED_FACTORY_SUCCESS)
+        return ServiceResult.Success(MessageKey.FACTORY_BREAK_SUCCESS)
     }
 }

@@ -43,10 +43,9 @@ class PlotNexusService(override val plugin: Plop): Addon, State {
 
     private suspend fun getPlotNexus(plotId: UUID): PlotNexus? = plotService.getPlotNexus(plotId)
 
-    suspend fun getNexi(plotId: UUID): List<Location?> {
+    suspend fun getNexusLocations(plotId: UUID): List<Location?> {
         val plotNexus = getPlotNexus(plotId) ?: return emptyList()
-
-        return plotNexus.getNexus().map { it.location.toLocation() }
+        return plotNexus.nexus.map { it.location.toLocation() }
     }
 
     // Setters
@@ -84,14 +83,14 @@ class PlotNexusService(override val plugin: Plop): Addon, State {
         }
 
         if (playerService.hasItem(playerId, getNexusBook())) {
-            return ServiceResult.Failure(MessageKey.ALREADY_OWN_NEXUS_BOOK, SoundKey.FAILURE)
+            return ServiceResult.Failure(MessageKey.NEXUS_BOOK_PRESENT, SoundKey.FAILURE)
         }
 
         if (!playerService.giveItem(playerId, getNexusBook())) {
             return ServiceResult.Failure(MessageKey.INVENTORY_FULL, SoundKey.FAILURE)
         }
 
-        return ServiceResult.Success(MessageKey.GIVE_NEXUS_BOOK, SoundKey.SUCCESS)
+        return ServiceResult.Success(MessageKey.NEXUS_BOOK_GIVEN, SoundKey.SUCCESS)
     }
 
     suspend fun antiNexusBook(playerId: UUID, location: Location) {
@@ -141,14 +140,14 @@ class PlotNexusService(override val plugin: Plop): Addon, State {
             }
             Action.LEFT_CLICK_BLOCK, Action.RIGHT_CLICK_BLOCK -> {
                 // Open nexus menu
-                menuService.nexusMenu.open(playerId, plotId)
+                menuService.nexusMenu.open(playerId, null)
             }
             else -> {
                 return ServiceResult.Failure(MessageKey.UNRECOGNISED_ACTION, SoundKey.FAILURE)
             }
         }
 
-        return ServiceResult.Success(MessageKey.OPENING_NEXUS, SoundKey.SUCCESS)
+        return ServiceResult.Success(MessageKey.NEXUS_OPENING, SoundKey.SUCCESS)
     }
 
     suspend fun createNexus(location: Location, item: ItemStack): ServiceResult {

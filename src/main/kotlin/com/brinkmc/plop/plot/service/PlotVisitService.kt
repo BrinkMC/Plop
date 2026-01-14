@@ -133,6 +133,20 @@ class PlotVisitService(override val plugin: Plop): Addon, State {
         }
     }
 
+    suspend fun togglePlotVisit(playerId: UUID): ServiceResult {
+        val plotId = playerService.getPlotId(playerId) ?: return ServiceResult.Failure(MessageKey.NO_PLOT, SoundKey.FAILURE)
+        val isOwner = plotService.isPlotOwner(plotId, playerId)
+
+        if (!isOwner) {
+            return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE)
+        }
+
+        val plotVisit = getPlotVisit(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+
+        plotVisit.setVisitable(!isVisitingEnabled(plotId))
+        return ServiceResult.Success(MessageKey.PLOT_TOGGLE_VISIT, SoundKey.SUCCESS)
+    }
+
     fun startTracking() {
         if (tracker?.isActive == true) return // Already running
         tracking = true

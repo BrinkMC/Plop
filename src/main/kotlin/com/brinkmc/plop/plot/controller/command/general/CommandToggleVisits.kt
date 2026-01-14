@@ -14,7 +14,8 @@ internal class CommandToggleVisits(override val plugin: Plop): Addon {
     ) {
         val playerId = sender.executor?.uniqueId ?: return // Not a player
 
-        when (val result = plotClaimService.togglePlotVisit(playerId)) {
+
+        when (val result = plotVisitService.togglePlotVisit(playerId)) {
             is ServiceResult.Success -> {
                 messages.resolveSuccess(playerId, result)
                 return

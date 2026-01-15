@@ -51,6 +51,10 @@ data class PlotConfig(
     fun getVisitorLimit(plotType: PlotType): List<Level> {
         return if (plotType == PlotType.GUILD) guildConfig.guildVisitorLimit else personalConfig.personalVisitorLimit
     }
+
+    fun getReturnCommand(plotType: PlotType): String {
+        return if (plotType == PlotType.GUILD) guildConfig.guildReturnCommand else personalConfig.personalReturnCommand
+    }
 }
 
 //    // Get values for the guild plot configuration

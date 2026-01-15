@@ -35,7 +35,7 @@ internal interface Gui: Addon {
         }
     }
 
-    suspend fun open(playerId: UUID, view: InterfaceView?, vararg args: Any): InterfaceView
+    suspend fun open(playerId: UUID, view: InterfaceView?, vararg args: Any): Any?
 
     suspend fun close(playerId: UUID) {
         playerService.closeMenu(playerId)

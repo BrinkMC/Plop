@@ -32,4 +32,6 @@ enum class ItemKey(val item: ItemStack) {
     NEXUS_OVERVIEW(ItemStack(Material.PLAYER_HEAD)),
     NEXUS_UPGRADE(ItemStack(Material.SPLASH_POTION)),
     NEXUS_TOTEM(ItemStack(Material.TOTEM_OF_UNDYING)),
+
+    PLAYER_HEAD(ItemStack(Material.PLAYER_HEAD)),
 }

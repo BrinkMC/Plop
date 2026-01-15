@@ -141,7 +141,10 @@ enum class MessageKey(val key: String) {
 
     PREVIEW_ERROR_GUILD_SMALL("preview.error.guild-too-small"),
 
-
+    MENU_PLOTSELECTION_PERSONAL_NAME("gui.plotselection.personal.name"),
+    MENU_PLOTSELECTION_PERSONAL_DESC("gui.plotselection.personal.desc"),
+    MENU_PLOTSELECTION_GUILD_NAME("gui.plotselection.guild.name"),
+    MENU_PLOTSELECTION_GUILD_DESC("gui.plotselection.guild.desc"),
 
 
     ERROR("error.somethingwentwrong"),

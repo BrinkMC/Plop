@@ -3,16 +3,112 @@ package com.brinkmc.plop.plot.controller.gui.selector
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.plot.constant.PlotType
+import com.brinkmc.plop.shared.base.Gui
+import com.brinkmc.plop.shared.constant.ItemKey
+import com.brinkmc.plop.shared.constant.MessageKey
+import com.brinkmc.plop.shared.util.CoroutineUtils.async
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
+import com.noxcrew.interfaces.interfaces.ChestInterface
+import com.noxcrew.interfaces.interfaces.ChestInterfaceBuilder
 import com.noxcrew.interfaces.interfaces.buildChestInterface
 import com.noxcrew.interfaces.view.InterfaceView
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
+import java.util.UUID
+import java.util.concurrent.CompletableFuture
 
-class PlotTypeMenu(override val plugin: Plop): Addon {
+class PlotTypeMenu(override val plugin: Plop): Addon, Gui {
+
+    private suspend fun getPersonalButton(playerId: UUID, plotId: UUID): ItemStack {
+        return messages.setSkull(
+            messages.getItem(
+                ItemKey.PLAYER_HEAD,
+                MessageKey.MENU_PLOTSELECTION_PERSONAL_NAME,
+                MessageKey.MENU_PLOTSELECTION_PERSONAL_DESC,
+                playerId = playerId,
+                plotId = plotId
+            ),
+            playerId
+        )
+    }
+
+    private suspend fun getGuildButton(playerId: UUID, plotId: UUID): ItemStack {
+        return messages.setSkull(
+            messages.getItem(
+                ItemKey.PLAYER_HEAD,
+                MessageKey.MENU_PLOTSELECTION_GUILD_NAME,
+                MessageKey.MENU_PLOTSELECTION_GUILD_DESC,
+                playerId = playerId,
+                plotId = plotId
+            ),
+            plotId
+        )
+    }
+
+    private suspend fun inventory(vararg args: Any): ChestInterface = buildChestInterface {
+
+        val result = args[0] as CompletableDeferred<PlotType?>
+        val playerId = args[1] as UUID // Selected player
+
+        val personalPlotId = plotService.getPlotId(playerId, PlotType.PERSONAL)
+        val guildPlotId = plotService.getPlotId(playerId, PlotType.GUILD)
+
+
+
+        if (personalPlotId != null) {
+            setupPersonalButton(playerId, personalPlotId)
+        }
+
+        if (guildPlotId != null) {
+            setupGuildButton(playerId, guildPlotId)
+        }
+    }
+
+    fun ChestInterfaceBuilder.setupPersonalButton(playerId: UUID, plotId: UUID) {
+
+    }
+
+    fun ChestInterfaceBuilder.setupGuildButton(playerId: UUID, plotId: UUID) {
+        withTransform { pane, view ->
+            pane[3, 1] = StaticElement(
+                drawable(
+                    getGuildButton(playerId, plotId),
+                )
+            ) { _ ->
+                plugin.async {
+
+                }
+            }
+        }
+    }
+
+    override suspend fun open(playerId: UUID, view: InterfaceView?, vararg args: Any): PlotType? {
+
+        val targetId = args.getOrNull(0) as? UUID ?: return null
+
+        val personalPlotId = plotService.getPlotId(targetId, PlotType.PERSONAL)
+        val guildPlotId = plotService.getPlotId(targetId, PlotType.GUILD)
+
+        if (personalPlotId == null && guildPlotId == null) return null
+        if (personalPlotId == null) return PlotType.GUILD
+        if (guildPlotId == null) return PlotType.PERSONAL
+
+        val result = CompletableDeferred<PlotType?>()
+
+        playerService.openMenu(inventory(result, targetId), playerId, view)!!
+
+        return try {
+            result.await()
+        } catch (e: Exception) {
+            throw Exception("Error awaiting plot type selection", e)
+        }
+    }
 
 }
 //    private val receiverChoice = mutableMapOf<Player, Player>() // Pre-existing information before opening

@@ -11,6 +11,8 @@ enum class PermissionKey(val permission: String) {
     PLOT_TELEPORT_VISIT("plot.teleport.visit"),
     PLOT_UPGRADE("plot.upgrade"),
 
+    GET_NEXUS_BOOK("plot.nexus.book"),
+
 
     // Claim permissions
     PLOT_CLAIM("plot.claim"),

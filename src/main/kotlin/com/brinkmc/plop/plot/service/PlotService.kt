@@ -59,7 +59,7 @@ class PlotService(override val plugin: Plop): Addon, State  {
         ).contains(world)
     }
 
-    private suspend fun getPlots(playerId: UUID): Map<UUID,Plot?> { // Get all shops which have plotId of some value
+    private suspend fun getPlots(playerId: UUID): Map<UUID,Plot?> { // Get all plots which are owned by playerId
         return plotCache.getPlots().filter {
             it.value?.id == playerId || it.value?.id == hookService.guilds.getGuildFromPlayer(playerId)
         }
@@ -82,6 +82,14 @@ class PlotService(override val plugin: Plop): Addon, State  {
 
     suspend fun getPlotIdFromLocation(location: Location): UUID? {
         return plotCache.getPlotId(location)
+    }
+
+    suspend fun getPlotId(playerId: UUID, plotType: PlotType): UUID? {
+        val plots = getPlots(playerId)
+        return plots.entries.firstOrNull {
+            val plot = it.value ?: return@firstOrNull false
+            plot.type == plotType
+        }?.key
     }
 
     suspend fun addPlot(plot: Plot) {

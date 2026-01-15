@@ -1,8 +1,8 @@
 package com.brinkmc.plop.shared.service
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.constant.PlotType
 import com.brinkmc.plop.plot.dto.Plot
-import com.brinkmc.plop.plot.dto.modifier.PlotOwner
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.constant.ItemKey
 import com.brinkmc.plop.shared.constant.MessageKey
@@ -25,19 +25,31 @@ import java.util.UUID
 
 class DesignService(override val plugin: Plop): Addon {
 
-    fun setSkull(itemStack: ItemStack, owner: PlotOwner?): ItemStack {
+    suspend fun setSkull(itemStack: ItemStack, skullOwner: UUID): ItemStack {
+        // Handle Skull
         val meta = itemStack.itemMeta as SkullMeta
-        meta.playerProfile = owner?.getSkull()
-        itemStack.itemMeta = meta
+
+        when (plotService.getPlotType(skullOwner)) {
+            PlotType.PERSONAL -> {
+                playerService.getSkull(skullOwner)
+                meta.playerProfile = playerService.getSkull(skullOwner)
+            }
+            PlotType.GUILD -> {
+                val guild = hookService.guilds.getGuild(skullOwner)
+                val guildSkullMeta = guild?.guildSkull?.itemStack?.itemMeta as SkullMeta
+                meta.playerProfile = guildSkullMeta.playerProfile
+            }
+            else -> return itemStack
+        }
         return itemStack
     }
 
-    suspend fun getItem(itemKey: ItemKey, name: MessageKey, description: MessageKey, playerId: UUID? = null, shopId: UUID? = null, plotId: UUID? = null, vararg args: TagResolver): ItemStack {
-        return itemKey.item.name(name, playerId, shopId, plotId, *args).description(description, playerId, shopId, plotId, *args).clone()
+    suspend fun getItem(itemKey: ItemKey, name: MessageKey, description: MessageKey, playerId: UUID? = null, shopId: UUID? = null, plotId: UUID? = null, factoryId: UUID? = null, vararg args: TagResolver): ItemStack {
+        return getItem(itemKey.item, name, description, playerId, shopId, plotId, factoryId, *args)
     }
 
-    suspend fun getItem(itemStack: ItemStack, name: MessageKey, description: MessageKey, playerId: UUID? = null, shopId: UUID? = null, plotId: UUID? = null, vararg args: TagResolver): ItemStack {
-        return itemStack.name(name, playerId, shopId, plotId, *args).description(description, playerId, shopId, plotId, *args).clone()
+    suspend fun getItem(itemStack: ItemStack, name: MessageKey, description: MessageKey, playerId: UUID? = null, shopId: UUID? = null, plotId: UUID? = null, factoryId: UUID? = null, vararg args: TagResolver): ItemStack {
+        return itemStack.name(name, playerId, shopId, plotId, factoryId, *args).description(description, playerId, shopId, plotId, factoryId, *args).clone()
     }
 
     suspend fun resolveSuccess(playerId: UUID, success: ServiceResult.Success) {

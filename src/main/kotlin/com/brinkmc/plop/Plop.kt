@@ -187,8 +187,8 @@ class Plop : State, SuspendingJavaPlugin() {
     fun consoleCommand(command: String, playerId: UUID) {
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
             command
-                .replace("{player_uuid}", playerId.toString())
-                .replace("{player_name}", playerService.getUsername(playerId) ?: "")
+                .replace("<player_uuid>", playerId.toString())
+                .replace("<player_name>", playerService.getUsername(playerId) ?: "")
         )
     }
 

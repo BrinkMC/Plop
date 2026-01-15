@@ -48,5 +48,8 @@ data class PersonalConfig(
         Level(5, 200),
         Level(10, 400),
         Level(15, 600)
-    )
+    ),
+
+    @Setting("ReturnCommand")
+    val personalReturnCommand: String = "spawn"
 )

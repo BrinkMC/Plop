@@ -75,32 +75,44 @@ class PlotNexusService(override val plugin: Plop): Addon, State {
 
     // Public
 
-    suspend fun giveNexusBook(playerId: UUID, location: Location): ServiceResult {
-        val plotId = plotService.getPlotIdFromLocation(location) ?: return ServiceResult.Failure(MessageKey.NO_PLOT, SoundKey.FAILURE)
-
-        if (!plotService.isPlotMember(plotId, playerId)) {
-            return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE) // Definitely the owner
-        }
-
-        if (playerService.hasItem(playerId, getNexusBook())) {
-            return ServiceResult.Failure(MessageKey.NEXUS_BOOK_PRESENT, SoundKey.FAILURE)
+    // People are buying nexus books!
+    suspend fun giveNexusBook(playerId: UUID, location: Location, checkPerm: Boolean? = true): ServiceResult {
+        if (checkPerm == true && !playerService.hasPermission(playerId, PermissionKey.GET_NEXUS_BOOK)) {
+            return ServiceResult.Failure(MessageKey.NO_PERMISSION, SoundKey.FAILURE)
         }
 
         if (!playerService.giveItem(playerId, getNexusBook())) {
             return ServiceResult.Failure(MessageKey.INVENTORY_FULL, SoundKey.FAILURE)
         }
-
         return ServiceResult.Success(MessageKey.NEXUS_BOOK_GIVEN, SoundKey.SUCCESS)
     }
 
-    suspend fun antiNexusBook(playerId: UUID, location: Location) {
-        plotService.getPlotIdFromLocation(location) ?: run {
-            while (playerService.hasItem(playerId, getNexusBook())) {
-                playerService.removeItem(playerId, getNexusBook())
-            }
-            return
-        }
-    }
+//    suspend fun giveNexusBook(playerId: UUID, location: Location): ServiceResult {
+//        val plotId = plotService.getPlotIdFromLocation(location) ?: return ServiceResult.Failure(MessageKey.NO_PLOT, SoundKey.FAILURE)
+//
+//        if (!plotService.isPlotMember(plotId, playerId)) {
+//            return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE) // Definitely the owner
+//        }
+//
+//        if (playerService.hasItem(playerId, getNexusBook())) {
+//            return ServiceResult.Failure(MessageKey.NEXUS_BOOK_PRESENT, SoundKey.FAILURE)
+//        }
+//
+//        if (!playerService.giveItem(playerId, getNexusBook())) {
+//            return ServiceResult.Failure(MessageKey.INVENTORY_FULL, SoundKey.FAILURE)
+//        }
+//
+//        return ServiceResult.Success(MessageKey.NEXUS_BOOK_GIVEN, SoundKey.SUCCESS)
+//    }
+//
+//    suspend fun antiNexusBook(playerId: UUID, location: Location) {
+//        plotService.getPlotIdFromLocation(location) ?: run {
+//            while (playerService.hasItem(playerId, getNexusBook())) {
+//                playerService.removeItem(playerId, getNexusBook())
+//            }
+//            return
+//        }
+//    }
 
     suspend fun nexusInteraction(playerId: UUID, location: Location, action: Action): ServiceResult {
         val plotId = plotService.getPlotIdFromLocation(location) ?: return ServiceResult.Failure()
@@ -192,7 +204,7 @@ class PlotNexusService(override val plugin: Plop): Addon, State {
 
     val schematicName = configService.plotConfig.nexusConfig.schematicName
 
-    fun getSchematic(): Clipboard? {
+    private fun getSchematic(): Clipboard? {
         val worldEditDir = server.pluginManager.getPlugin("WorldEdit")!!.dataFolder
         val schematicFile = File(worldEditDir, "schematics/$schematicName.schem")
 

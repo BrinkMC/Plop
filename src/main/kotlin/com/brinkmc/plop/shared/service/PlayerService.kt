@@ -7,9 +7,11 @@ import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.constant.MessageKey
 import com.brinkmc.plop.shared.constant.PermissionKey
 import com.brinkmc.plop.shared.constant.SoundKey
+import com.brinkmc.plop.shared.util.CoroutineUtils.async
 import com.brinkmc.plop.shared.util.CoroutineUtils.sync
 import com.brinkmc.plop.shared.util.fold
 import com.brinkmc.plop.shared.util.withTimer
+import com.destroystokyo.paper.profile.PlayerProfile
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.yannicklamprecht.worldborder.api.WorldBorderApi
 import com.noxcrew.interfaces.InterfacesListeners
@@ -165,6 +167,11 @@ class PlayerService(override val plugin: Plop): Addon, State {
         return player.inventory.removeItemAnySlot(item).isEmpty() // If is empty, then was success, therefore true
     }
 
+    fun getSkull(playerId: UUID): PlayerProfile? {
+        val player = getOfflinePlayer(playerId).player ?: return null
+        return player.playerProfile
+    }
+
     // Actions
 
     fun sendMessage(playerId: UUID, message: Component) {
@@ -202,24 +209,18 @@ class PlayerService(override val plugin: Plop): Addon, State {
     // Menus
 
     suspend fun openMenu(inventory: ChestInterface, playerId: UUID, parentView: InterfaceView? = null): InterfaceView? {
-        return plugin.asyncScope {
-            val player = getOfflinePlayer(playerId).player ?: return@asyncScope null
-            inventory.open(player, parentView)
-        }
+        val player = getOfflinePlayer(playerId).player ?: return null
+        return inventory.open(player, parentView)
     }
 
     suspend fun openMenu(inventory: PlayerInterface, playerId: UUID, parentView: InterfaceView? = null): InterfaceView? {
-        return plugin.asyncScope {
-            val player = getOfflinePlayer(playerId).player ?: return@asyncScope null
-            inventory.open(player, parentView)
-        }
+        val player = getOfflinePlayer(playerId).player ?: return null
+        return inventory.open(player, parentView)
     }
 
     suspend fun openMenu(inventory: CombinedInterface, playerId: UUID, parentView: InterfaceView? = null): InterfaceView? {
-        return plugin.asyncScope {
-            val player = getOfflinePlayer(playerId).player ?: return@asyncScope null
-            inventory.open(player, parentView)
-        }
+        val player = getOfflinePlayer(playerId).player ?: return null
+        return inventory.open(player, parentView)
     }
 
     suspend fun closeMenu(playerId: UUID) {

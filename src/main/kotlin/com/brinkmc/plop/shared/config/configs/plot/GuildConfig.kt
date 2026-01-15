@@ -52,5 +52,8 @@ data class GuildConfig(
         Level(10, 300),
         Level(15, 500),
         Level(20, 700)
-    )
+    ),
+
+    @Setting("ReturnCommand")
+    val guildReturnCommand: String = "spawn"
 )

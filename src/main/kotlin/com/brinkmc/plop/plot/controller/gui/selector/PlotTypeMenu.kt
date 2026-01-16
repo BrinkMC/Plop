@@ -6,7 +6,9 @@ import com.brinkmc.plop.plot.constant.PlotType
 import com.brinkmc.plop.shared.base.Gui
 import com.brinkmc.plop.shared.constant.ItemKey
 import com.brinkmc.plop.shared.constant.MessageKey
+import com.brinkmc.plop.shared.constant.ServiceResult
 import com.brinkmc.plop.shared.util.CoroutineUtils.async
+import com.brinkmc.plop.shared.util.DeferredRequest
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
 import com.noxcrew.interfaces.interfaces.ChestInterface
@@ -24,6 +26,8 @@ import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 class PlotTypeMenu(override val plugin: Plop): Addon, Gui {
+
+    val requests = DeferredRequest<UUID, PlotType?>()
 
     private suspend fun getPersonalButton(playerId: UUID, plotId: UUID): ItemStack {
         return messages.setSkull(
@@ -53,8 +57,7 @@ class PlotTypeMenu(override val plugin: Plop): Addon, Gui {
 
     private suspend fun inventory(vararg args: Any): ChestInterface = buildChestInterface {
 
-        val result = args[0] as CompletableDeferred<PlotType?>
-        val playerId = args[1] as UUID // Selected player
+        val playerId = args[0] as UUID // Selected player
 
         val personalPlotId = plotService.getPlotId(playerId, PlotType.PERSONAL)
         val guildPlotId = plotService.getPlotId(playerId, PlotType.GUILD)
@@ -71,7 +74,18 @@ class PlotTypeMenu(override val plugin: Plop): Addon, Gui {
     }
 
     fun ChestInterfaceBuilder.setupPersonalButton(playerId: UUID, plotId: UUID) {
-
+        withTransform { pane, view ->
+            pane[5, 1] = StaticElement(
+                drawable(
+                    getGuildButton(playerId, plotId),
+                )
+            ) { _ ->
+                plugin.async {
+                    requests.fulfill(playerId, PlotType.PERSONAL)
+                    view.close()
+                }
+            }
+        }
     }
 
     fun ChestInterfaceBuilder.setupGuildButton(playerId: UUID, plotId: UUID) {
@@ -82,32 +96,41 @@ class PlotTypeMenu(override val plugin: Plop): Addon, Gui {
                 )
             ) { _ ->
                 plugin.async {
-
+                    requests.fulfill(playerId, PlotType.GUILD)
+                    view.close()
                 }
             }
         }
     }
 
-    override suspend fun open(playerId: UUID, view: InterfaceView?, vararg args: Any): PlotType? {
+    suspend fun request(playerId: UUID, view: InterfaceView?, targetId: UUID): PlotType? {
+        requests.request(playerId)
 
+        playerService.openMenu(inventory(targetId), playerId, view)
+
+        return requests.await(playerId)
+    }
+
+    override suspend fun open(playerId: UUID, view: InterfaceView?, vararg args: Any): InterfaceView? {
         val targetId = args.getOrNull(0) as? UUID ?: return null
 
         val personalPlotId = plotService.getPlotId(targetId, PlotType.PERSONAL)
         val guildPlotId = plotService.getPlotId(targetId, PlotType.GUILD)
 
-        if (personalPlotId == null && guildPlotId == null) return null
-        if (personalPlotId == null) return PlotType.GUILD
-        if (guildPlotId == null) return PlotType.PERSONAL
-
-        val result = CompletableDeferred<PlotType?>()
-
-        playerService.openMenu(inventory(result, targetId), playerId, view)!!
-
-        return try {
-            result.await()
-        } catch (e: Exception) {
-            throw Exception("Error awaiting plot type selection", e)
+        if (personalPlotId == null && guildPlotId == null) {
+            requests.fulfill(playerId, null)
+            return null
         }
+        if (personalPlotId == null) {
+            requests.fulfill(playerId, PlotType.GUILD)
+            return null
+        }
+        if (guildPlotId == null) {
+            requests.fulfill(playerId, PlotType.PERSONAL)
+            return null
+        }
+
+        return playerService.openMenu(inventory(targetId), playerId, view)!!
     }
 
 }

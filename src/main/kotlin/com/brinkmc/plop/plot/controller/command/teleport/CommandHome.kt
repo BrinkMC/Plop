@@ -23,7 +23,7 @@ internal class CommandHome(override val plugin: Plop): Addon {
 
         }
         // Code before
-        menuService.plotTypeMenu.open(playerId, null, playerId)
+        val choice = menuService.plotTypeMenu.request(playerId, null, playerId)
         // Code after
         if (choice == null) { // Check if choice is null
             player.sendMiniMessage(MessageKey.NOT_PLOT)

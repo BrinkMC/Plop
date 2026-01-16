@@ -147,6 +147,14 @@ class PlotVisitService(override val plugin: Plop): Addon, State {
         return ServiceResult.Success(MessageKey.PLOT_TOGGLE_VISIT, SoundKey.SUCCESS)
     }
 
+    // Actions
+
+    fun teleportToHome(playerId: UUID) {
+
+    }
+
+    fun visitP
+
     fun startTracking() {
         if (tracker?.isActive == true) return // Already running
         tracking = true

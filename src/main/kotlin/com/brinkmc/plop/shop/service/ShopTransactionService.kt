@@ -5,13 +5,9 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.BukkitUtils
 import com.brinkmc.plop.shop.constant.TransactionResult
-import com.brinkmc.plop.shop.dto.Shop
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.bukkit.entity.Player
 import java.util.UUID
-import kotlin.text.compareTo
-import kotlin.times
 
 class ShopTransactionService(override val plugin: Plop): Addon, State {
 
@@ -30,12 +26,12 @@ class ShopTransactionService(override val plugin: Plop): Addon, State {
         val shopOwnerId = shopService.getShopOwnerId(shopId) ?: return false
         val shopBalance = economyService.getBalance(shopOwnerId) ?: return false
         val shopPrice = shopService.getShopPrice(shopId) ?: return false
-        val selectedTotal: Int = shopAccessService.getTotal(playerId) ?: return false
+        val selectedTotal: Int = shopQuantityService.getTotal(playerId) ?: return false
         return shopPrice * selectedTotal <= shopBalance
     }
 
     private suspend fun shopSellLimitReached(shopId: UUID, playerId: UUID): Boolean {
-        val selectedTotal: Int = shopAccessService.getTotal(playerId) ?: return true
+        val selectedTotal: Int = shopQuantityService.getTotal(playerId) ?: return true
         val shopSellLimit: Int = shopService.getShopSellLimit(shopId) ?: return true
         return selectedTotal > shopSellLimit
     }
@@ -43,19 +39,19 @@ class ShopTransactionService(override val plugin: Plop): Addon, State {
     private suspend fun playerHasBalance(shopId: UUID, playerId: UUID): Boolean {
         val playerBalance = economyService.getBalance(playerId) ?: return false
         val shopPrice = shopService.getShopPrice(shopId) ?: return false
-        val selectedTotal: Int = shopAccessService.getTotal(playerId) ?: return false
+        val selectedTotal: Int = shopQuantityService.getTotal(playerId) ?: return false
         return shopPrice * selectedTotal <= playerBalance
     }
 
     private suspend fun shopHasStock(shopId: UUID, playerId: UUID): Boolean {
-        val selectedTotal: Int = shopAccessService.getTotal(playerId) ?: return false
+        val selectedTotal: Int = shopQuantityService.getTotal(playerId) ?: return false
         val shopQuantity: Int = shopService.getShopQuantity(shopId) ?: return false
         return shopQuantity >= selectedTotal
     }
 
     private suspend fun playerHasStock(shopId: UUID, playerId: UUID): Boolean {
         val shopItem = shopService.getShopItem(shopId) ?: return false
-        val selectedTotal = shopAccessService.getTotal(playerId) ?: return false
+        val selectedTotal = shopQuantityService.getTotal(playerId) ?: return false
         val totalPlayerStock = BukkitUtils.countItemsInInventory(playerId, shopItem) ?: return false
         return totalPlayerStock >= (selectedTotal * shopItem.amount)
     }
@@ -72,7 +68,7 @@ class ShopTransactionService(override val plugin: Plop): Addon, State {
         val shopQuantity = shopService.getShopQuantity(shopId) ?: return TransactionResult.FAILURE
         val shopOwnerId = shopService.getShopOwnerId(shopId) ?: return TransactionResult.FAILURE
         val shopItem = shopService.getShopItem(shopId) ?: return TransactionResult.FAILURE
-        val selectedTotal = shopAccessService.getTotal(playerId) ?: return TransactionResult.FAILURE
+        val selectedTotal = shopQuantityService.getTotal(playerId) ?: return TransactionResult.FAILURE
         val totalPrice = shopPrice * selectedTotal
 
         if (!economyService.withdrawBalance(playerId, totalPrice)) return TransactionResult.FAILURE
@@ -113,7 +109,7 @@ class ShopTransactionService(override val plugin: Plop): Addon, State {
         val shopOwnerId = shopService.getShopOwnerId(shopId) ?: return TransactionResult.FAILURE
         val shopBalance = economyService.getBalance(shopOwnerId) ?: return TransactionResult.FAILURE
         val shopItem = shopService.getShopItem(shopId) ?: return TransactionResult.FAILURE
-        val selectedTotal = shopAccessService.getTotal(playerId) ?: return TransactionResult.FAILURE
+        val selectedTotal = shopQuantityService.getTotal(playerId) ?: return TransactionResult.FAILURE
         val totalPrice = shopPrice * selectedTotal
 
         for (i in 0 until selectedTotal) {

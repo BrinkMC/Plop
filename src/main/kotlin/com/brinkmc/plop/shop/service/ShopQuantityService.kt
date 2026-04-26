@@ -5,28 +5,24 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.BukkitUtils
 import com.brinkmc.plop.shop.constant.ShopType
-import com.brinkmc.plop.shop.dto.ShopAccess
+import com.brinkmc.plop.shop.dto.ShopQuantity
 import java.util.UUID
 
-class ShopAccessService(override val plugin: Plop): Addon, State {
+class ShopQuantityService(override val plugin: Plop): Addon, State {
 
-    private val playerToShopTracker = hashMapOf<UUID, ShopAccess>()
+    private val playerToShopTracker = hashMapOf<UUID, ShopQuantity>()
 
     override suspend fun load() {
         TODO("Not yet implemented")
     }
 
     override suspend fun kill() {
-        TODO("Not yet implemented")
+        playerToShopTracker.clear()
     }
 
     private suspend fun setTotal(playerId: UUID, total: Int) {
         val access = playerToShopTracker[playerId] ?: return
         access.setTotal(total)
-    }
-
-    fun getOpenAccess(shopId: UUID): List<ShopAccess> {
-        return playerToShopTracker.values.filter { it.id == shopId }
     }
 
     private suspend fun getLimit(playerId: UUID, shopId: UUID): Int? {
@@ -46,9 +42,9 @@ class ShopAccessService(override val plugin: Plop): Addon, State {
     }
 
     // Public
-    fun updateAccessShop(playerId: UUID, shopId: UUID) {
-        val shopAccess = ShopAccess(shopId, 1, 0)
-        playerToShopTracker[playerId] = shopAccess
+    fun setupAccessShop(playerId: UUID, shopId: UUID) {
+        val shopQuantity = ShopQuantity(shopId, 1, 0)
+        playerToShopTracker[playerId] = shopQuantity
     }
 
     fun getTotal(playerId: UUID): Int? {
@@ -66,7 +62,7 @@ class ShopAccessService(override val plugin: Plop): Addon, State {
     }
 
     suspend fun increment(playerId: UUID): Boolean { // succeeded or failed
-        val shopId = shopAccessService.getViewedShop(playerId) ?: return false
+        val shopId = shopQuantityService.getViewedShop(playerId) ?: return false
 
         val total = getTotal(playerId) ?: return false
         val multiplier = getMultiplier(playerId) ?: return false

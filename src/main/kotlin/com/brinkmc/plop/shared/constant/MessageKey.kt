@@ -1,6 +1,19 @@
 package com.brinkmc.plop.shared.constant
 
-enum class MessageKey(val key: String) {
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.minimessage.tag.Tag
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+
+interface Translatable {
+    val key: String
+    val tags: List<TagResolver>
+}
+
+enum class MessageKey(
+    override val key: String,
+    val templates: List<TagKey> = emptyList()
+): Translatable {
 
     NO_PERMISSION("no_permission"),
     NO_MONEY("no_money"), // Only use for plots?
@@ -17,7 +30,7 @@ enum class MessageKey(val key: String) {
     // Plot messages
     NOT_PLOT("plot.no_plot"),
     NOT_OWNER("plot.not-owner"),
-    NOT_VISITABLE("plot.not_visitable"),
+    PLOT_CLOSED("plot.not_visitable"),
     PLOT_FULL("plot.full"),
     TOTEM_LIMIT("plot.totem.limit"),
     NO_GUILD("plot.guild.none"),
@@ -35,6 +48,8 @@ enum class MessageKey(val key: String) {
     PLOT_SET_HOME("plot.set.home"),
     PLOT_SET_VISIT("plot.set.visit"),
     UPGRADE_SUCCESS("plot.upgrade.success"),
+    PLEASE_REMOVE_VISITORS("plot.error.visitors_present"),
+
 
     PLOT_TOGGLE_VISIT("plot.toggle.visit"),
 
@@ -44,7 +59,7 @@ enum class MessageKey(val key: String) {
     PLAYER_INSUFFICIENT_STOCK("shop.purchase.player.insufficient.stock"),
     SHOP_INSUFFICIENT_STOCK("shop.purchase.insufficient.stock"),
     SHOP_BUY_LIMIT_REACHED("shop.purchase.insufficient.buy_limit"),
-
+    PLEASE_DELETE_SHOPS("shop.error.delete_shops"),
     SHOP_PURCHASE_SUCCESSFUL("shop.purchase.successful"),
 
     // Teleport
@@ -52,6 +67,7 @@ enum class MessageKey(val key: String) {
     TELEPORT_INTERRUPTED("plot.teleport.interrupted"),
     TELEPORT_FAILED("plot.teleport.failed"),
     TELEPORT_COMPLETE("plot.teleport.complete"),
+    TELEPORT_CHOOSE_PLOT_TYPE_ERROR("plot.teleport.choose.plottype"),
 
     COOLDOWN("preview.cooldown"),
 
@@ -83,6 +99,10 @@ enum class MessageKey(val key: String) {
     // GUIs
     MENU_BUY_TITLE("gui.buy_player.title"),
 
+    MENU_NEXT_PAGE_NAME("gui.paginated.next.name"),
+    MENU_NEXT_PAGE_DESC("gui.paginated.next.desc"),
+    MENU_PREV_PAGE_NAME("gui.paginated.prev.name"),
+    MENU_PREV_PAGE_DESC("gui.paginated.prev.desc"),
 
     MENU_CREATE_TITLE("gui.create_shop.title"),
     MENU_CREATE_CHOOSE_ITEM_NAME("gui.create_shop.choose_item.name"),
@@ -145,10 +165,41 @@ enum class MessageKey(val key: String) {
     MENU_PLOTSELECTION_PERSONAL_DESC("gui.plotselection.personal.desc"),
     MENU_PLOTSELECTION_GUILD_NAME("gui.plotselection.guild.name"),
     MENU_PLOTSELECTION_GUILD_DESC("gui.plotselection.guild.desc"),
+    MENU_PLOTSELECTION_CLOSED_NAME("gui.plotselection.closed.name"),
+    MENU_PLOTSELECTION_CLOSED_DESC("gui.plotselection.closed.desc"),
 
 
     ERROR("error.somethingwentwrong"),
     INVENTORY_FULL("error.inventory_full"),
     UNRECOGNISED_ACTION("error.unrecognised_action"),
 
+    LOG_CREATE_PLOT_NAME("log.create_plot.name",),
+    LOG_CREATE_PLOT_DESC("log.create_plot.desc"),
+
+    LOG_DELETE_PLOT_NAME("log.delete_plot.name"),
+    LOG_DELETE_PLOT_DESC("log.delete_plot.desc"),
+
+    LOG_PLACE_SHOP_NAME("log.place_shop.name"),
+    LOG_PLACE_SHOP_DESC("log.place_shop.desc"),
+
+    LOG_REMOVE_SHOP_NAME("log.remove_shop.name"),
+    LOG_REMOVE_SHOP_DESC("log.remove_shop.desc",
+        listOf(TagKey.COORDS)
+    );
+
+    override val tags: List<TagResolver> get() = emptyList()
+
+    operator fun invoke(args: Map<TagKey, Any>): MessageInstance {
+        val resolved = templates.map { templateName ->
+            val value = args[templateName] ?: "N/A" // Grab by name?
+            Placeholder.component(templateName.tagName, Component.text(value.toString()))
+        }
+        return MessageInstance(this.key, resolved)
+    }
+
+    operator fun invoke(vararg pairs: Pair<TagKey, Any>): MessageInstance {
+        return invoke(pairs.toMap())
+    }
 }
+
+data class MessageInstance(override val key: String, override val tags: List<TagResolver>): Translatable

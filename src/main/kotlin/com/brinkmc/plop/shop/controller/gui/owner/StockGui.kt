@@ -20,7 +20,7 @@ class StockGui(override val plugin: Plop): Addon {
     }
 
     suspend fun open(player: Player, parentView: InterfaceView? = null): InterfaceView {
-        shopStockService.storeInventory(player)
+        shopInventoryService.storeInventory(player)
 
     }
 }

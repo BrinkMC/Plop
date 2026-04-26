@@ -11,7 +11,7 @@ import java.util.UUID
 
 class PlotTags(override val plugin: Plop, val miniMessage: MiniMessage) : Addon {
 
-    fun all(plotId: UUID?): TagResolver {
+    suspend fun all(plotId: UUID?): TagResolver {
         if (plotId == null) {
             return TagResolver.resolver()
         }
@@ -35,11 +35,11 @@ class PlotTags(override val plugin: Plop, val miniMessage: MiniMessage) : Addon 
         )
     }
 
-    private fun shopLevelTag(plotId: UUID): TagResolver? {
-        val plotShopLevel = plotShopService.getShopLevel(plotId) ?: return null
+    private suspend fun shopLevelTag(plotId: UUID): TagResolver? {
+        val plotShopLevel = plotShopService.getPlotShopLevel(plotId) ?: return null
         return Placeholder.component(
             "plot_shop_level",
-            Component.text(plot.shop.level)
+            Component.text(plotShopLevel)
         )
     }
 }

@@ -2,24 +2,18 @@ package com.brinkmc.plop.plot.service
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.plot.constant.PlotType
-import com.brinkmc.plop.plot.dto.Plot
-import com.brinkmc.plop.plot.dto.modifier.PlotVisit
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.config.serialisers.Level
 import com.brinkmc.plop.shared.constant.MessageKey
 import com.brinkmc.plop.shared.constant.ServiceResult
 import com.brinkmc.plop.shared.constant.SoundKey
-import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.text.get
-import kotlin.text.set
+import kotlin.time.Duration.Companion.milliseconds
 
 class PlotVisitService(override val plugin: Plop): Addon, State {
 
@@ -48,7 +42,7 @@ class PlotVisitService(override val plugin: Plop): Addon, State {
 
     private suspend fun getPlotVisit(plotId: UUID) = plotService.getPlotVisit(plotId)
 
-    suspend fun getPlotVisitorSize(plotId: UUID): Int? {
+    suspend fun getPlotVisitorCount(plotId: UUID): Int? {
         return getPlotVisit(plotId)?.currentVisits?.size
     }
 
@@ -56,6 +50,9 @@ class PlotVisitService(override val plugin: Plop): Addon, State {
         return getPlotVisit(plotId)?.currentVisits?.toList()
     }
 
+    /*
+        * Returns the visitor limit for the plot based on its type and visit level. Returns null if plot visit or type is not found.
+     */
     suspend fun getVisitorLimit(plotId: UUID): Int? {
         val plotVisit = getPlotVisit(plotId) ?: return null
         val plotType = plotService.getPlotType(plotId) ?: return null
@@ -107,6 +104,23 @@ class PlotVisitService(override val plugin: Plop): Addon, State {
         return plotVisit.visitable
     }
 
+    suspend fun canVisit(plotId: UUID): ServiceResult {
+
+        if (!isVisitingEnabled(plotId)) {
+            return ServiceResult.Failure(MessageKey.PLOT_CLOSED, SoundKey.FAILURE)
+        }
+
+        // Maximum number of players compared to players currently in the plot
+        val visitorLimit = getVisitorLimit(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+        val currentVisitors = getPlotVisitorCount(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+        
+        if (visitorLimit >= currentVisitors) {
+            return ServiceResult.Failure(MessageKey.PLOT_FULL, SoundKey.FAILURE)
+        }
+        
+        return ServiceResult.Success()
+    }
+
     // Setters
 
     private suspend fun setPlotVisitLevel(plotId: UUID, level: Int) {
@@ -147,52 +161,112 @@ class PlotVisitService(override val plugin: Plop): Addon, State {
         return ServiceResult.Success(MessageKey.PLOT_TOGGLE_VISIT, SoundKey.SUCCESS)
     }
 
-    // Actions
-
-    fun teleportToHome(playerId: UUID) {
-
+    suspend fun addVisitor(plotId: UUID, visitorId: UUID) {
+        val plotVisit = getPlotVisit(plotId) ?: return
+        plotVisit.addVisitor(visitorId)
+        return
     }
 
-    fun visitP
+    suspend fun removeVisitor(plotId: UUID, visitorId: UUID) {
+        val plotVisit = getPlotVisit(plotId) ?: return
+        plotVisit.removeVisitor(visitorId)
+        return
+    }
+
+    // Actions
+
+    suspend fun teleportToHome(playerId: UUID, plotType: PlotType?): ServiceResult {
+        val request = plotType ?: menuService.plotTypeMenu.request(playerId, null, playerId)
+
+        val plotId = when (request) {
+            PlotType.PERSONAL -> if (plotService.hasPersonalPlot(playerId)) plotService.getPlotId(playerId, PlotType.PERSONAL) else null
+            PlotType.GUILD -> if (plotService.hasGuildPlot(playerId)) plotService.getPlotId(playerId, PlotType.GUILD) else null
+            else -> null
+        }
+
+        if (plotId == null) {
+            return ServiceResult.Failure(MessageKey.TELEPORT_CHOOSE_PLOT_TYPE_ERROR, SoundKey.FAILURE)
+        }
+
+        val plotHomeLocation = plotClaimService.getPlotHome(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+
+        playerService.performTeleportCountdown(playerId, 5, plotHomeLocation)
+        return ServiceResult.Success()
+    }
+
+    suspend fun visitPlot(playerId: UUID, targetId: UUID, plotType: PlotType?): ServiceResult {
+        val request = plotType ?: menuService.plotTypeMenu.request(playerId, null, targetId)
+
+        val plotId = when (request) {
+            PlotType.PERSONAL -> if (plotService.hasPersonalPlot(targetId)) plotService.getPlotId(targetId, PlotType.PERSONAL) else null
+            PlotType.GUILD -> if (plotService.hasGuildPlot(targetId)) plotService.getPlotId(targetId, PlotType.GUILD) else null
+            else -> null
+        }
+
+        if (plotId == null) {
+            return ServiceResult.Failure(MessageKey.TELEPORT_CHOOSE_PLOT_TYPE_ERROR, SoundKey.FAILURE)
+        }
+
+        // Visiting is disabled
+        when (val result = plotVisitService.canVisit(plotId)) {
+            is ServiceResult.Success -> {
+                val plotVisitLocation = plotClaimService.getPlotVisit(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+                playerService.performTeleportCountdown(playerId, 5, plotVisitLocation)
+                return ServiceResult.Success()
+            }
+            is ServiceResult.Failure -> {
+                return result
+            }
+        }
+    }
 
     fun startTracking() {
         if (tracker?.isActive == true) return // Already running
         tracking = true
+
         logger.info("Starting visit tracking task")
         tracker = plugin.launch { plugin.asyncScope {
-            delay(tickDelay.ticks + 20) // Initial delay to allow players to load in
+            delay((tickDelay.ticks + 20).milliseconds) // Initial delay to allow players to load in
+
+            // Loop
             while (tracking) {
-                val plotToPlayerCount = hashMapOf<UUID, Int?>()
-                server.onlinePlayers.forEach { player ->
-                    val plotId = playerService.getPlotId(player.uniqueId) ?: return@forEach
-                    if (plotService.isPlotMember(plotId, player.uniqueId)) return@forEach // Skip if player is a plot member
-                    val plotType = plotService.getPlotType(plotId) ?: return@forEach
 
-                    // Handle enabled visiting
-                    if (!plotVisitService.isVisitingEnabled(plotId)) {
-                        plotToPlayerCount[plotId] = null
-                        // Kick out player if they are on the plot (run command)
-                        plugin.consoleCommand(configService.plotConfig.getReturnCommand(plotType), player.uniqueId)
-                        return@forEach
-                    }
+                val currentPlayers = server.onlinePlayers.toList()
 
-                    // Increment visitor count for the plot
-                    val newCount = (plotToPlayerCount[plotId] ?: 0) + 1
-                    plotToPlayerCount[plotId] = newCount
+                val plotOccupants = currentPlayers.mapNotNull {
+                    val plotId = playerService.getPlotId(it.uniqueId) ?: return@mapNotNull null
+                    if (plotService.isPlotMember(plotId, it.uniqueId)) return@mapNotNull null
 
-                    val visitorLimit = plotVisitService.getVisitorLimit(plotId) ?: return@forEach
-                    if (newCount > visitorLimit) {
-                        plugin.consoleCommand(configService.plotConfig.getReturnCommand(plotType), player.uniqueId) // Kick out player if limit exceeded (run command)
-                        // Kick out player if limit exceeded (run command)
-                        plotToPlayerCount[plotId] = visitorLimit // Set to max limit to avoid further checks
-                        return@forEach
+                    plotId to it.uniqueId
+                }.groupBy({ it.first }, { it.second })
+
+                for ((plotId, occupants) in plotOccupants) {
+                    val isOpen = plotVisitService.isVisitingEnabled(plotId)
+                    val limit = plotVisitService.getVisitorLimit(plotId) ?: -1
+
+                    occupants.forEachIndexed { index, occupant ->
+                        val isOverLimit = limit != -1 && index >= limit
+
+                        if (!isOpen || isOverLimit) {
+                            removeVisitor(plotId, occupant)
+                            ejectPlayer(plotId, occupant)
+                        } else {
+                            addVisitor(plotId, occupant)
+                        }
                     }
                 }
-                // Use plotToPlayerCount as needed here
-                delay(tickDelay.ticks)
+
+                delay(tickDelay.ticks.milliseconds)
             }
         } }
     }
+
+    suspend fun ejectPlayer(plotId: UUID, occupant: UUID): ServiceResult {
+        val command = configService.plotConfig.getReturnCommand(plotService.getPlotType(plotId) ?: return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE))
+        plugin.consoleCommand(command, occupant)
+        return ServiceResult.Success(MessageKey.PLOT_FULL, SoundKey.TELEPORT)
+    }
+
 
     fun stopTracking() {
         tracking = false

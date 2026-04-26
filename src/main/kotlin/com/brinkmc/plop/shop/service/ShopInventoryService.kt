@@ -7,7 +7,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
 
-class ShopStockService(override val plugin: Plop): Addon, State {
+class ShopInventoryService(override val plugin: Plop): Addon, State {
 
     val playerInventorySnapshot = HashMap<UUID, Array<ItemStack?>>()
 

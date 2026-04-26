@@ -9,7 +9,7 @@ import org.incendo.cloud.annotations.Command
 
 internal class CommandGiveNexusBook(override val plugin: Plop): Addon {
 
-    @Command("plop nexus give <player_list>")
+    @Command("plop nexus give <player>")
     suspend fun giveNexusBook(
         sender: CommandSourceStack
     ) {

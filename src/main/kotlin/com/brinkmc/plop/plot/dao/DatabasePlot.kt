@@ -17,11 +17,13 @@ internal class DatabasePlot(override val plugin: Plop): Addon, State {
     override suspend fun kill() {}
 
     suspend fun loadPlot(id: UUID): Plot? = mutex.withLock {
-        val json = DB.query("SELECT * FROM plots WHERE plot_id=?", id.toString()) ?: return null
-        return if (json.next()) {
-            gson.fromJson(json.getString("data"), Plot::class.java)
-        } else {
-            null
+        return@withLock DB.query("SELECT * FROM plots WHERE plot_id=?", id.toString()) { resultSet ->
+            if (resultSet.next()) {
+                val json = resultSet.getString("data")
+                gson.fromJson(json, Plot::class.java)
+            } else {
+                null
+            }
         }
     }
 

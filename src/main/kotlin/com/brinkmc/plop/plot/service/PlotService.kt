@@ -8,6 +8,7 @@ import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.hook.api.Locals.world
 import com.brinkmc.plop.shared.util.LocationString.fullString
 import com.brinkmc.plop.plot.constant.PlotType
+import com.brinkmc.plop.plot.dto.logs.PlotLogs
 import com.brinkmc.plop.plot.dto.modifier.PlotClaim
 import com.brinkmc.plop.plot.dto.modifier.PlotFactory
 import com.brinkmc.plop.plot.dto.modifier.PlotNexus
@@ -96,8 +97,10 @@ class PlotService(override val plugin: Plop): Addon, State  {
         plotCache.addPlot(plot)
     }
 
-    suspend fun deletePlot(plot: Plot) {
+    suspend fun deletePlot(plotId: UUID): Boolean {
+        val plot = getPlot(plotId) ?: return false
         plotCache.deletePlot(plot)
+        return true
     }
 
     suspend fun isPlotMember(plotId: UUID, playerId: UUID): Boolean {
@@ -184,5 +187,10 @@ class PlotService(override val plugin: Plop): Addon, State  {
     suspend fun getPlotTotem(plotId: UUID): PlotTotem? {
         val plot = getPlot(plotId) ?: return null
         return plot.totem
+    }
+
+    suspend fun getPlotLogs(plotId: UUID): PlotLogs? {
+        val plot = getPlot(plotId) ?: return null
+        return plot.logs
     }
 }

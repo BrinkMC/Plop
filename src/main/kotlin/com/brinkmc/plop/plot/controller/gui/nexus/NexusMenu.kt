@@ -1,19 +1,18 @@
 package com.brinkmc.plop.plot.controller.gui.nexus
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.shared.base.Gui
+import com.brinkmc.plop.shared.base.gui.Gui
 import com.brinkmc.plop.shared.constant.ItemKey
 import com.brinkmc.plop.shared.constant.MessageKey
 import com.brinkmc.plop.shared.util.CoroutineUtils.async
 import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
 import com.noxcrew.interfaces.element.StaticElement
-import com.noxcrew.interfaces.interfaces.ChestInterface
-import com.noxcrew.interfaces.interfaces.ChestInterfaceBuilder
+import com.noxcrew.interfaces.interfaces.ContainerInterface
+import com.noxcrew.interfaces.interfaces.ContainerInterfaceBuilder
 import com.noxcrew.interfaces.interfaces.buildChestInterface
 import com.noxcrew.interfaces.view.InterfaceView
-import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
-import java.util.UUID
+import java.util.*
 
 class NexusMenu(override val plugin: Plop): Gui {
 
@@ -47,7 +46,7 @@ class NexusMenu(override val plugin: Plop): Gui {
         )
     }
 
-    private suspend fun inventory(vararg args: Any): ChestInterface = buildChestInterface {
+    private suspend fun inventory(vararg args: Any): ContainerInterface.Simple = buildChestInterface {
 
         //setupBackButton()
         val playerId = args[0] as UUID
@@ -61,7 +60,7 @@ class NexusMenu(override val plugin: Plop): Gui {
         return@buildChestInterface
     }
 
-    fun ChestInterfaceBuilder.setupLogButton(playerId: UUID, plotId: UUID) {
+    fun ContainerInterfaceBuilder.Simple.setupLogButton(playerId: UUID, plotId: UUID) {
         withTransform { pane, view ->
             pane[4, 4] = StaticElement(
                 drawable(
@@ -75,7 +74,7 @@ class NexusMenu(override val plugin: Plop): Gui {
         }
     }
 
-    fun ChestInterfaceBuilder.setupTotemButton(playerId: UUID, plotId: UUID) {
+    fun ContainerInterfaceBuilder.Simple.setupTotemButton(playerId: UUID, plotId: UUID) {
         withTransform { pane, view ->
             pane[4, 5] = StaticElement(
                 drawable(
@@ -89,7 +88,7 @@ class NexusMenu(override val plugin: Plop): Gui {
         }
     }
 
-    fun ChestInterfaceBuilder.setupUpgradeButton(playerId: UUID, plotId: UUID) {
+    fun ContainerInterfaceBuilder.Simple.setupUpgradeButton(playerId: UUID, plotId: UUID) {
         withTransform { pane, view ->
             pane[4, 3] = StaticElement(
                 drawable(

@@ -8,7 +8,6 @@ import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.constant.MessageKey
 import com.brinkmc.plop.shared.constant.ServiceResult
 import com.brinkmc.plop.shared.constant.SoundKey
-import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.event.player.PlayerTeleportEvent
 import java.util.UUID
@@ -141,23 +140,31 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
         toggleFree(playerId, false)
     }
 
-    suspend fun startPreview(playerId: UUID, vararg args: Any): ServiceResult {
-        val player = Bukkit.getPlayer(playerId) ?: return ServiceResult.Failure()
+    suspend fun startPreview(playerId: UUID, vararg args: Any?): ServiceResult {
+
+        val playerLocation = playerService.getLocation(playerId)?.clone() ?: return ServiceResult.Failure(MessageKey.ERROR)
+        val playerInventory = playerService.getInventory(playerId)?.clone() ?: return ServiceResult.Failure(MessageKey.ERROR)
 
         // get plot type from args
-        val type = if (args.isNotEmpty() && args[0] is PlotType) {
+        val type = if (args.getOrNull(0) is PlotType) {
             args[0] as PlotType
         } else {
-            PlotType.PERSONAL
+            // Choose plot by request
+            menuService.plotTypeMenu.request(playerId, null, null) ?: return ServiceResult.Failure(MessageKey.TELEPORT_CHOOSE_PLOT_TYPE_ERROR, SoundKey.FAILURE)
         }
 
-        // Guild check
-        val guildCheck = guildChecks(playerId)
-        if (guildCheck != ServiceResult.Success(MessageKey.PREVIEW_STARTING, SoundKey.TELEPORT)) return guildCheck
+        // checks
+        when (type) {
+            PlotType.GUILD -> {
+                val guildCheck = guildChecks(playerId)
+                if (guildCheck !is ServiceResult.Success) return guildCheck
+            }
 
-        // Personal checks
-        val personalCheck = personalChecks(playerId)
-        if (personalCheck != ServiceResult.Success(MessageKey.PREVIEW_STARTING, SoundKey.TELEPORT)) return personalCheck
+            PlotType.PERSONAL -> {
+                val personalCheck = personalChecks(playerId)
+                if (personalCheck !is ServiceResult.Success) return personalCheck
+            }
+        }
 
         val world = plotService.getPlotWorld(type).name
 
@@ -167,8 +174,8 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
 
         val plotPreview = PlotPreview(
             playerId,
-            player.location.clone(),
-            player.inventory.contents.clone(),
+            playerLocation,
+            playerInventory,
             world,
             openPlot,
             interfaceView
@@ -178,7 +185,7 @@ class PlotPreviewService(override val plugin: Plop): Addon, State {
         toggleFree(playerId, false)
         teleportToPlot(playerId)
 
-        return ServiceResult.Success(MessageKey.PREVIEW_STARTING)
+        return ServiceResult.Success(MessageKey.PREVIEW_STARTING, SoundKey.TELEPORT)
     }
 
     suspend fun cyclePreview(playerId: UUID, forward: Boolean) {

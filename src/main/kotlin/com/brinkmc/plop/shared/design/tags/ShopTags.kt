@@ -2,12 +2,10 @@ package com.brinkmc.plop.shared.design.tags
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shop.dto.Shop
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import org.bukkit.entity.Player
 import java.util.UUID
 
 class ShopTags(override val plugin: Plop, val miniMessage: MiniMessage) : Addon {
@@ -31,7 +29,7 @@ class ShopTags(override val plugin: Plop, val miniMessage: MiniMessage) : Addon 
     }
 
     private suspend fun totalTag(playerId: UUID): TagResolver? {
-        val multiplier = shopAccessService.getTotal(playerId) ?: return null
+        val multiplier = shopQuantityService.getTotal(playerId) ?: return null
         return Placeholder.component(
             "total",
             Component.text(multiplier)
@@ -39,7 +37,7 @@ class ShopTags(override val plugin: Plop, val miniMessage: MiniMessage) : Addon 
     }
 
     private suspend fun multiplierTag(playerId: UUID): TagResolver? {
-        val multiplier = shopAccessService.getMultiplier(playerId) ?: return null
+        val multiplier = shopQuantityService.getMultiplier(playerId) ?: return null
         return Placeholder.component(
             "multiplier",
             Component.text(multiplier)

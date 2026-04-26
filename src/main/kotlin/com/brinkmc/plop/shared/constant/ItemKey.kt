@@ -24,6 +24,9 @@ enum class ItemKey(val item: ItemStack) {
     OPEN_SHOP(ItemStack(Material.OAK_DOOR)),
     DELETE_SHOP(ItemStack(Material.BARRIER)),
 
+    NEXT_PAGE(ItemStack(Material.ARROW)),
+    PREV_PAGE(ItemStack(Material.ARROW)),
+
     // Creation
     CREATE_CHOOSE(ItemStack(Material.BOOK)),
 
@@ -34,4 +37,9 @@ enum class ItemKey(val item: ItemStack) {
     NEXUS_TOTEM(ItemStack(Material.TOTEM_OF_UNDYING)),
 
     PLAYER_HEAD(ItemStack(Material.PLAYER_HEAD)),
+
+    // Personal Plot representation
+    PERSONAL_PLOT(ItemStack(Material.PLAYER_HEAD)),
+    GUILD_PLOT(ItemStack(Material.SHIELD)),
+    CLOSED_PLOT(ItemStack(Material.BARRIER))
 }

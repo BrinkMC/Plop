@@ -1,7 +1,7 @@
 package com.brinkmc.plop.plot.controller.gui.nexus
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.shared.base.Gui
+import com.brinkmc.plop.shared.base.gui.Gui
 import com.noxcrew.interfaces.view.InterfaceView
 import java.util.UUID
 

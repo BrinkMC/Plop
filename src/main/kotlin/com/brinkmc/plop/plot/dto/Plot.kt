@@ -8,6 +8,7 @@ import com.brinkmc.plop.plot.dto.modifier.PlotSize
 import com.brinkmc.plop.plot.dto.modifier.PlotTotem
 import com.brinkmc.plop.plot.dto.modifier.PlotVisit
 import com.brinkmc.plop.plot.constant.PlotType
+import com.brinkmc.plop.plot.dto.logs.PlotLogs
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.UUID
@@ -24,6 +25,7 @@ data class Plot(
     private var _shop: PlotShop,
     private var _totem: PlotTotem,
     private var _nexus: PlotNexus,
+    private var _logs: PlotLogs
 ) {
     private val mutex = Mutex()
 
@@ -35,6 +37,7 @@ data class Plot(
     val factory: PlotFactory get() = _factory
     val shop: PlotShop get() = _shop
     val totem: PlotTotem get() = _totem
+    val logs: PlotLogs get() = _logs
 
     // Thread-safe setters
     suspend fun setClaim(claim: PlotClaim) = mutex.withLock {
@@ -59,5 +62,13 @@ data class Plot(
 
     suspend fun setTotem(totem: PlotTotem) = mutex.withLock {
         _totem = totem
+    }
+
+    suspend fun setNexus(nexus: PlotNexus) = mutex.withLock {
+        _nexus = nexus
+    }
+
+    suspend fun setLogs(logs: PlotLogs) = mutex.withLock {
+        _logs = logs
     }
 }

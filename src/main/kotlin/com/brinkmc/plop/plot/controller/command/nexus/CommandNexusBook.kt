@@ -8,7 +8,7 @@ import org.incendo.cloud.annotations.Command
 
 internal class CommandNexusBook(override val plugin: Plop): Addon {
 
-    @Command("nexus book")
+    @Command("plot nexus|book")
     suspend fun nexusBook(
         sender: CommandSourceStack
     ) {

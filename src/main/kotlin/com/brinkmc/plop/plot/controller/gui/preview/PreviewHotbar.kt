@@ -2,22 +2,14 @@ package com.brinkmc.plop.plot.controller.gui.preview
 
 import com.brinkmc.plop.Plop
 import com.brinkmc.plop.shared.base.Addon
-import com.brinkmc.plop.shared.base.Gui
+import com.brinkmc.plop.shared.base.gui.Gui
 import com.brinkmc.plop.shared.constant.ItemKey
 import com.brinkmc.plop.shared.constant.MessageKey
-import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
-import com.noxcrew.interfaces.element.StaticElement
-import com.noxcrew.interfaces.interfaces.buildPlayerInterface
-import com.noxcrew.interfaces.properties.interfaceProperty
 import com.noxcrew.interfaces.view.InterfaceView
-import com.noxcrew.interfaces.view.PlayerInterfaceView
-import org.bukkit.Material
-import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
-import kotlin.time.Duration.Companion.seconds
 
- class PreviewHotbar(override val plugin: Plop): Addon, Gui {
+class PreviewHotbar(override val plugin: Plop): Addon, Gui {
     // Requires a cooldown
 
     private suspend fun getBackwardButton(): ItemStack {

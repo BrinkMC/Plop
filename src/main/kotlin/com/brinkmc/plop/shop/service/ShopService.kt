@@ -1,9 +1,7 @@
 package com.brinkmc.plop.shop.service
 
 import com.brinkmc.plop.Plop
-import com.brinkmc.plop.factory.dto.Factory
 import com.brinkmc.plop.plot.constant.PlotType
-import com.brinkmc.plop.plot.dto.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.constant.MessageKey
@@ -14,21 +12,13 @@ import com.brinkmc.plop.shared.util.LocationString.toLocation
 import com.brinkmc.plop.shop.constant.ShopType
 import com.brinkmc.plop.shop.dto.Shop
 import com.brinkmc.plop.shop.dao.ShopCache
-import com.github.benmanes.caffeine.cache.Caffeine
-import com.sksamuel.aedile.core.Cache
-import com.sksamuel.aedile.core.asLoadingCache
-import com.sksamuel.aedile.core.expireAfterAccess
-import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
 import org.bukkit.block.Chest
-import org.bukkit.entity.Item
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import java.util.HashMap
 import java.util.UUID
-import kotlin.time.Duration.Companion.minutes
 
 class ShopService(override val plugin: Plop): Addon, State {
 
@@ -180,7 +170,7 @@ class ShopService(override val plugin: Plop): Addon, State {
 
         // Close all active sessions
         //TODO WIP
-        shopAccessService.getOpenAccess(shopId).forEach {
+        shopQuantityService.getOpenAccess(shopId).forEach {
         }
         unregisterChest(location)
 

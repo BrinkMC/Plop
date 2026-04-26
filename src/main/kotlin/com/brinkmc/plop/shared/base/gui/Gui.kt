@@ -1,13 +1,13 @@
-package com.brinkmc.plop.shared.base
+package com.brinkmc.plop.shared.base.gui
 
+import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.constant.ItemKey
 import com.brinkmc.plop.shared.constant.MessageKey
 import com.brinkmc.plop.shared.util.CoroutineUtils.async
-import com.noxcrew.interfaces.drawable.Drawable.Companion.drawable
+import com.noxcrew.interfaces.drawable.Drawable
 import com.noxcrew.interfaces.element.StaticElement
-import com.noxcrew.interfaces.interfaces.ChestInterfaceBuilder
+import com.noxcrew.interfaces.interfaces.ContainerInterfaceBuilder
 import com.noxcrew.interfaces.view.InterfaceView
-import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
 
@@ -21,10 +21,10 @@ internal interface Gui: Addon {
         )
     }
 
-    fun ChestInterfaceBuilder.setupBackButton() {
+    fun ContainerInterfaceBuilder.Simple.setupBackButton(row: Int, col: Int) {
         withTransform { pane, view ->
-            pane[4, 4] = StaticElement(
-                drawable(
+            pane[row, col] = StaticElement(
+                Drawable.drawable(
                     getBackButton()
                 )
             ) { _ ->

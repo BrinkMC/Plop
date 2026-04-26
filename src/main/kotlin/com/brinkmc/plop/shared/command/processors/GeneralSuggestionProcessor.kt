@@ -8,7 +8,7 @@ import org.incendo.cloud.context.CommandInput
 
 class GeneralSuggestionProcessor(override val plugin: Plop): Addon {
 
-    @Suggestions("plotType")
+    @Suggestions("plot_type")
     fun suggestions(context: CommandContext<*>, input: CommandInput): List<String> {
         return listOf("personal", "guild")
     }

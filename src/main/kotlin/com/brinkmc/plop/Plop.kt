@@ -2,13 +2,16 @@ package com.brinkmc.plop
 
 import com.brinkmc.plop.factory.Factories
 import com.brinkmc.plop.plot.Plots
+import com.brinkmc.plop.plot.controller.command.admin.CommandAdminTransferPlot
+import com.brinkmc.plop.plot.controller.command.admin.CommandAdminUnclaimPlot
+import com.brinkmc.plop.plot.controller.command.general.CommandSetHome
+import com.brinkmc.plop.plot.controller.command.general.CommandSetVisit
+import com.brinkmc.plop.plot.controller.command.general.CommandToggleVisits
+import com.brinkmc.plop.plot.controller.command.nexus.CommandNexusBook
+import com.brinkmc.plop.plot.controller.command.preview.CommandPreview
+import com.brinkmc.plop.plot.controller.command.teleport.CommandHome
+import com.brinkmc.plop.plot.controller.command.teleport.CommandVisit
 import com.brinkmc.plop.shared.base.State
-import com.brinkmc.plop.shared.command.plot.general.CommandPlotHome
-import com.brinkmc.plop.shared.command.plot.general.CommandPlotVisit
-import com.brinkmc.plop.shared.command.plot.nexus.CommandPlotSetEntrance
-import com.brinkmc.plop.shared.command.plot.nexus.CommandPlotSetHome
-import com.brinkmc.plop.shared.command.plot.nexus.CommandPlotVisitToggle
-import com.brinkmc.plop.shared.command.plot.preview.CommandPlotPreview
 import com.brinkmc.plop.shared.command.processors.GeneralSuggestionProcessor
 import com.brinkmc.plop.shared.command.utils.PlotTypeParser
 import com.brinkmc.plop.shared.db.HikariManager
@@ -150,14 +153,15 @@ class Plop : State, SuspendingJavaPlugin() {
 
         listOf(
             CommandAdminUnclaimPlot(plugin),
-            CommandAdminResetPlot(plugin),
+            CommandAdminUnclaimPlot(plugin),
+            CommandAdminTransferPlot(plugin),
             CommandNexusBook(plugin),
-            CommandPlotHome(plugin),
-            CommandPlotVisit(plugin),
-            CommandPlotSetEntrance(plugin),
-            CommandPlotSetHome(plugin),
-            CommandPlotVisitToggle(plugin),
-            CommandPlotPreview(plugin),
+            CommandHome(plugin),
+            CommandVisit(plugin),
+            CommandSetVisit(plugin),
+            CommandSetHome(plugin),
+            CommandToggleVisits(plugin),
+            CommandPreview(plugin),
 
         ).forEach { command ->
             logger.info("Registering command: ${command.javaClass.simpleName}")

@@ -15,8 +15,7 @@ import com.destroystokyo.paper.profile.PlayerProfile
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.yannicklamprecht.worldborder.api.WorldBorderApi
 import com.noxcrew.interfaces.InterfacesListeners
-import com.noxcrew.interfaces.interfaces.ChestInterface
-import com.noxcrew.interfaces.interfaces.CombinedInterface
+import com.noxcrew.interfaces.interfaces.ContainerInterface
 import com.noxcrew.interfaces.interfaces.PlayerInterface
 import com.noxcrew.interfaces.view.InterfaceView
 import com.sksamuel.aedile.core.asLoadingCache
@@ -44,6 +43,11 @@ class PlayerService(override val plugin: Plop): Addon, State {
         plotService.getPlotIdFromLocation(it.location)
     }
 
+    /**
+     * Gets the [UUID] of the plot a player is currently standing on.
+     * @param [playerId] The unique ID of the player to check.
+     * @return The [UUID] of the plot, or null if the player is not on a plot or is offline.
+     */
     suspend fun getPlotId(playerId: UUID): UUID? { // Get the plot ID the player is currently in
         val player = getOfflinePlayer(playerId).player ?: return null
         return locations.get(player)
@@ -109,7 +113,7 @@ class PlayerService(override val plugin: Plop): Addon, State {
         player.isFlying = allow
     }
 
-    fun teleport(playerId: UUID, location: org.bukkit.Location, reason: PlayerTeleportEvent.TeleportCause) {
+    fun teleport(playerId: UUID, location: org.bukkit.Location, reason: PlayerTeleportEvent.TeleportCause = PlayerTeleportEvent.TeleportCause.PLUGIN) {
         val player = getOfflinePlayer(playerId).player ?: return
         player.teleportAsync(location, reason)
         plotBorderService.updateBorder(playerId)
@@ -208,7 +212,7 @@ class PlayerService(override val plugin: Plop): Addon, State {
 
     // Menus
 
-    suspend fun openMenu(inventory: ChestInterface, playerId: UUID, parentView: InterfaceView? = null): InterfaceView? {
+    suspend fun openMenu(inventory: ContainerInterface.Simple, playerId: UUID, parentView: InterfaceView? = null): InterfaceView? {
         val player = getOfflinePlayer(playerId).player ?: return null
         return inventory.open(player, parentView)
     }
@@ -218,10 +222,10 @@ class PlayerService(override val plugin: Plop): Addon, State {
         return inventory.open(player, parentView)
     }
 
-    suspend fun openMenu(inventory: CombinedInterface, playerId: UUID, parentView: InterfaceView? = null): InterfaceView? {
-        val player = getOfflinePlayer(playerId).player ?: return null
-        return inventory.open(player, parentView)
-    }
+//    suspend fun openMenu(inventory: ContainerInterface, playerId: UUID, parentView: InterfaceView? = null): InterfaceView? {
+//        val player = getOfflinePlayer(playerId).player ?: return null
+//        return inventory.open(player, parentView)
+//    }
 
     suspend fun closeMenu(playerId: UUID) {
         InterfacesListeners.INSTANCE.getOpenPlayerInterface(playerId)?.close()

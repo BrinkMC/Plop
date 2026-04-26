@@ -27,30 +27,29 @@ repositories {
         content { includeGroup("me.clip") }
     }
     maven("https://jitpack.io")
-    maven("https://repo.doesnt-want-to.work/snapshots/")
 }
 
 dependencies {
     implementation(platform(kotlin("bom")))
     implementation(kotlin("stdlib"))
 
-    compileOnly("io.papermc.paper", "paper-api", "1.21.7-R0.1-SNAPSHOT")
-    compileOnly("com.github.MilkBowl", "VaultAPI", "1.7.1")
-    compileOnly("me.clip", "placeholderapi", "2.11.6")
-    compileOnly("me.glaremasters", "guilds", "3.5.7.0")
-    compileOnly("io.lumine", "Mythic-Dist", "5.10.0-SNAPSHOT")
-    compileOnly("com.github.yannicklamprecht:worldborderapi:1.217.0:dev") // Weird import
-    compileOnly("com.github.retrooper", "packetevents-spigot", "2.7.0")
-    compileOnly("de.oliver", "FancyHolograms", "2.7.0")
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
+    compileOnly("me.clip:placeholderapi:2.12.2")
+    compileOnly("me.glaremasters:guilds:3.5.7.0")
+    compileOnly("io.lumine:Mythic-Dist:5.12.0-SNAPSHOT")
+    compileOnly("com.github.yannicklamprecht:worldborderapi:1.2111.0:dev") // Weird import
+    compileOnly("com.github.retrooper:packetevents-spigot:2.11.2")
+    compileOnly("de.oliver:FancyHolograms:2.9.1")
 
 
-    compileOnly("com.sk89q.worldguard", "worldguard-core", "7.0.15-SNAPSHOT")
-    compileOnly("com.sk89q.worldguard", "worldguard-bukkit", "7.0.15-SNAPSHOT")
-    compileOnly("com.sk89q.worldedit", "worldedit-core", "7.3.15-SNAPSHOT")
-    compileOnly("com.sk89q.worldedit", "worldedit-bukkit", "7.3.15-SNAPSHOT")
+    compileOnly("com.sk89q.worldguard:worldguard-core:7.0.16-SNAPSHOT")
+    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.16-SNAPSHOT")
+    compileOnly("com.sk89q.worldedit:worldedit-core:7.4.1-SNAPSHOT")
+    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.4.1-SNAPSHOT")
 
     // Kyori
-    compileOnly(platform("net.kyori:adventure-bom:4.17.0"))
+    compileOnly(platform("net.kyori:adventure-bom:4.26.1"))
     compileOnly("net.kyori", "adventure-extra-kotlin")
     compileOnly("net.kyori", "adventure-serializer-configurate4")
 
@@ -63,20 +62,19 @@ dependencies {
 
 
     // Coroutine implementation
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
-    implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-api","2.22.0")
-    implementation("com.github.shynixn.mccoroutine", "mccoroutine-bukkit-core","2.22.0")
-    implementation("com.noxcrew.interfaces", "interfaces", "2.0.0") {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.22.0")
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.22.0")
+    implementation("com.noxcrew.interfaces:interfaces:2.1.0-SNAPSHOT") {
         exclude(group = "com.google.guava")
     }
 
-    implementation(platform("org.spongepowered:configurate-bom:4.1.2"))
+    implementation(platform("org.spongepowered:configurate-bom:4.2.0"))
     implementation("org.spongepowered", "configurate-hocon")
     implementation("org.spongepowered", "configurate-extra-kotlin")
 
-    implementation("com.zaxxer", "HikariCP", "6.2.1")
-    implementation("com.sksamuel.aedile", "aedile-core", "3.0.1")
-    implementation("org.bstats", "bstats-bukkit", "3.0.2")
+    implementation("com.zaxxer:HikariCP:6.2.1")
+    implementation("com.sksamuel.aedile:aedile-core:3.0.2")
 }
 
 version = (version as String)//.decorateVersion()

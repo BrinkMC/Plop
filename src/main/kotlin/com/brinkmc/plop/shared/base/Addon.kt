@@ -9,6 +9,7 @@ import com.brinkmc.plop.plot.service.PlotBorderService
 import com.brinkmc.plop.plot.service.PlotClaimService
 import com.brinkmc.plop.plot.service.PlotFactoryService
 import com.brinkmc.plop.plot.service.PlotLayoutService
+import com.brinkmc.plop.plot.service.PlotLogService
 import com.brinkmc.plop.plot.service.PlotNexusService
 import com.brinkmc.plop.plot.service.PlotPreviewService
 import com.brinkmc.plop.plot.service.PlotService
@@ -20,7 +21,6 @@ import com.brinkmc.plop.plot.service.PlotVisitService
 import com.brinkmc.plop.shared.service.ConfigService
 import com.brinkmc.plop.shared.db.HikariManager
 import com.brinkmc.plop.shared.service.HookService
-import com.brinkmc.plop.shared.hook.api.PlayerTracker
 import com.brinkmc.plop.shared.item.ItemService
 import com.brinkmc.plop.shared.service.DesignService
 import com.brinkmc.plop.shared.service.EconomyService
@@ -28,13 +28,12 @@ import com.brinkmc.plop.shared.service.HologramService
 import com.brinkmc.plop.shared.service.MenuService
 import com.brinkmc.plop.shared.service.PlayerService
 import com.brinkmc.plop.shop.Shops
-import com.brinkmc.plop.shop.service.ShopAccessService
+import com.brinkmc.plop.shop.service.ShopQuantityService
 import com.brinkmc.plop.shop.service.ShopCreationService
 import com.brinkmc.plop.shop.service.ShopService
-import com.brinkmc.plop.shop.service.ShopStockService
+import com.brinkmc.plop.shop.service.ShopInventoryService
 import com.brinkmc.plop.shop.service.ShopTransactionService
 import com.google.gson.Gson
-import net.kyori.adventure.audience.Audiences
 import org.bukkit.*
 import org.slf4j.Logger
 
@@ -118,12 +117,15 @@ internal interface Addon {
     val plotBorderService: PlotBorderService
         get() = plugin.plots.plotBorderService
 
+    val plotLogService: PlotLogService
+        get() = plugin.plots.plotLogService
+
     // Shop handlers
     val shops: Shops
         get() = plugin.shops
 
-    val shopStockService: ShopStockService
-        get() = plugin.shops.shopStockService
+    val shopInventoryService: ShopInventoryService
+        get() = plugin.shops.shopInventoryService
 
     val shopCreationService: ShopCreationService
         get() = plugin.shops.shopCreationService
@@ -131,8 +133,8 @@ internal interface Addon {
     val shopTransactionService: ShopTransactionService
         get() = plugin.shops.shopTransactionService
 
-    val shopAccessService: ShopAccessService
-        get() = plugin.shops.shopAccessService
+    val shopQuantityService: ShopQuantityService
+        get() = plugin.shops.shopQuantityService
 
     val shopService: ShopService
         get() = plugin.shops.shopService

@@ -10,7 +10,7 @@ import org.spongepowered.configurate.hocon.HoconConfigurationLoader
 
 class MessageSource(override val plugin: Plop): State, Addon {
 
-    private val hashOfStrings: HashMap<MessageKey, String> = hashMapOf()
+    private val hashOfStrings: HashMap<String, String> = hashMapOf()
 
     private lateinit var loader: HoconConfigurationLoader
 
@@ -63,7 +63,7 @@ class MessageSource(override val plugin: Plop): State, Addon {
                 // Not a child node with children and is instead a value
                 else {
                     MessageKey.entries.find { it.name == totalKey }?.let {
-                        hashOfStrings[it] = child.string ?: "$totalKey is missing!"
+                        hashOfStrings[it.key] = child.string ?: "$totalKey is missing!"
                         logger.info("Registered $totalKey: ${child.string}") // Debug process
                     }
                 }
@@ -71,7 +71,7 @@ class MessageSource(override val plugin: Plop): State, Addon {
         }
     }
 
-    fun findMessage(find: MessageKey): String? {
+    fun findMessage(find: String): String? {
         return hashOfStrings[find]
     }
 }

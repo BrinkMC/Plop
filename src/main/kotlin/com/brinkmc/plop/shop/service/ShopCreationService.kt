@@ -28,11 +28,11 @@ class ShopCreationService(override val plugin: Plop): Addon, State {
     private val playerToShopTracker = hashMapOf<UUID, ShopCreation>()
 
     // Helper function to get all reserved locations
-    private suspend fun reservedLocations(): Set<Location> {
-        return playerToShopTracker.values.map { it.location }.toSet()
+    private fun reservedLocations(): Set<Location> {
+        return playerToShopTracker.values.mapNotNull { it.location.toLocation() }.toSet()
     }
 
-    private suspend fun isReserved(playerId: UUID, location: Location): Boolean {
+    private fun isReserved(playerId: UUID, location: Location): Boolean {
         return reservedLocations().contains(location) && getSession(playerId)?.location != location.fullString()
     }
 
@@ -198,6 +198,14 @@ class ShopCreationService(override val plugin: Plop): Addon, State {
         // Clean up the session
         removeSession(playerId)
         return ShopCreationResult.SUCCESS
+    }
+
+    override suspend fun load() {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun kill() {
+        TODO("Not yet implemented")
     }
 }
 

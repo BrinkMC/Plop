@@ -4,6 +4,7 @@ import com.brinkmc.plop.Plop
 import com.brinkmc.plop.factory.dto.Factory
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
+import com.brinkmc.plop.shop.dto.Shop
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.UUID
@@ -17,11 +18,13 @@ internal class DatabaseFactory(override val plugin: Plop): Addon, State {
     override suspend fun kill() {}
 
     suspend fun loadFactory(id: UUID): Factory? = mutex.withLock {
-        val json = DB.query("SELECT * FROM factories WHERE factory_id=?", id.toString()) ?: return null
-        return if (json.next()) {
-            gson.fromJson(json.getString("data"), Factory::class.java)
-        } else {
-            null
+        return@withLock DB.query("SELECT * FROM factories WHERE factory_id=?", id.toString()) { resultSet ->
+            if (resultSet.next()) {
+                val json = resultSet.getString("data")
+                gson.fromJson(json, Factory::class.java)
+            } else {
+                null
+            }
         }
     }
 

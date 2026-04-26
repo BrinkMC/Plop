@@ -1,6 +1,7 @@
 package com.brinkmc.plop.shop.dao
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.dto.Plot
 import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shared.util.LocationString.fullString
@@ -22,11 +23,13 @@ internal class DatabaseShop(override val plugin: Plop) : Addon, State {
     override suspend fun kill() {}
 
     suspend fun loadShop(id: UUID): Shop? = mutex.withLock {
-        val json = DB.query("SELECT * FROM shops WHERE shop_id=?", id.toString()) ?: return null
-        return if (json.next()) {
-            gson.fromJson(json.getString("data"), Shop::class.java)
-        } else {
-            null
+        return@withLock DB.query("SELECT * FROM shops WHERE shop_id=?", id.toString()) { resultSet ->
+            if (resultSet.next()) {
+                val json = resultSet.getString("data")
+                gson.fromJson(json, Shop::class.java)
+            } else {
+                null
+            }
         }
     }
 

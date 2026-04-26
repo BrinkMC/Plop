@@ -5,7 +5,7 @@ import com.brinkmc.plop.shared.base.Addon
 import com.brinkmc.plop.shared.base.State
 import com.brinkmc.plop.shop.service.ShopCreationService
 import com.brinkmc.plop.shop.service.ShopService
-import com.brinkmc.plop.shop.service.ShopStockService
+import com.brinkmc.plop.shop.service.ShopInventoryService
 import com.brinkmc.plop.shop.service.ShopTransactionService
 
 class Shops(override val plugin: Plop): Addon, State {
@@ -13,7 +13,7 @@ class Shops(override val plugin: Plop): Addon, State {
     override val shopService = ShopService(plugin)
     override val shopTransactionService = ShopTransactionService(plugin)
     override val shopCreationService = ShopCreationService(plugin)
-    override val shopStockService = ShopStockService(plugin)
+    override val shopInventoryService = ShopInventoryService(plugin)
 
     override suspend fun load() {
         logger.info("Loading shops...")
@@ -21,7 +21,7 @@ class Shops(override val plugin: Plop): Addon, State {
             shopService,
             shopTransactionService,
             shopCreationService,
-            shopStockService
+            shopInventoryService
         ).forEach { handler -> (handler as State).load() }
     }
 

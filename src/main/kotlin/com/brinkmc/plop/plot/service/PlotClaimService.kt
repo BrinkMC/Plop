@@ -1,9 +1,11 @@
 package com.brinkmc.plop.plot.service
 
 import com.brinkmc.plop.Plop
+import com.brinkmc.plop.plot.constant.PlotAction
 import com.brinkmc.plop.plot.constant.PlotType
 import com.brinkmc.plop.shared.constant.StringLocation
 import com.brinkmc.plop.plot.dto.Plot
+import com.brinkmc.plop.plot.dto.logs.PlotLogs
 import com.brinkmc.plop.plot.dto.modifier.*
 import com.brinkmc.plop.plot.dto.structure.Nexus
 import com.brinkmc.plop.shared.base.Addon
@@ -52,12 +54,13 @@ class PlotClaimService(override val plugin: Plop): Addon, State {
             plotId,
             plotType,
             plotClaim,
-            PlotVisit(true, 0, listOf(), mutableListOf()),
+            PlotVisit(true, 0, 0, mutableListOf(), mutableListOf()),
             PlotSize(0),
             PlotFactory(0),
             PlotShop(0),
             PlotTotem(mutableListOf(),0 , true),
             PlotNexus(mutableListOf<Nexus>()),
+            PlotLogs(mutableListOf())
         )
 
         plotService.addPlot(newPlot) // Register new plot in handler
@@ -66,10 +69,49 @@ class PlotClaimService(override val plugin: Plop): Addon, State {
         // Hooks
         hookService.worldGuard.createRegion(plotId)
 
+        // Log this creation
+        plotLogService.addPlotLog(plotId, PlotAction.CREATE_PLOT, playerId)
+
         // Teleport player to the new schematic
         return ServiceResult.Success(MessageKey.CLAIM_SUCCESS, SoundKey.SUCCESS)
+    }
 
+    suspend fun deletePlotAdmin(playerId: UUID, targetId: UUID, location: Location?, plotType: PlotType?): ServiceResult {
+        val toBeDeleted: UUID = if (plotType == null && location != null) {
+            plotService.getPlotIdFromLocation(location) ?: return ServiceResult.Failure(MessageKey.NO_PLOT, SoundKey.FAILURE)
+        } else if (plotType != null) {
+            plotService.getPlotId(targetId, plotType) ?: return ServiceResult.Failure(MessageKey.NO_PLOT, SoundKey.FAILURE)
+        } else {
+            return ServiceResult.Failure(MessageKey.ERROR, SoundKey.FAILURE)
+        }
 
+        //TODO Handle shops being deleted asw
+
+        return deletePlot(playerId, toBeDeleted)
+    }
+
+    suspend fun deletePlotUser(playerId: UUID, plotId: UUID): ServiceResult {
+        if (!plotService.isPlotOwner(plotId, playerId)) {
+            return ServiceResult.Failure(MessageKey.NOT_OWNER, SoundKey.FAILURE)
+        }
+
+        if (shopService.getShopCount(plotId) != 0) {
+            return ServiceResult.Failure(MessageKey.PLEASE_DELETE_SHOPS, SoundKey.FAILURE)
+        }
+
+        if (plotVisitService.getPlotVisitors(plotId)?.isEmpty() != true) {
+            return ServiceResult.Failure(MessageKey.PLEASE_REMOVE_VISITORS, SoundKey.FAILURE)
+        }
+
+        return deletePlot(playerId, plotId)
+    }
+
+    suspend fun deletePlot(playerId: UUID, plotId: UUID): ServiceResult {
+        plotService.deletePlot(plotId)
+        hookService.worldGuard.deleteRegion(plotId)
+        plotLogService.addPlotLog(plotId, PlotAction.DELETE_PLOT, playerId)
+
+        return ServiceResult.Success(MessageKey.DELETE_SUCCESS, SoundKey.SUCCESS)
     }
 
     suspend fun addMemberToRegion(plotId: UUID, memberId: UUID) {

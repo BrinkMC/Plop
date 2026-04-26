@@ -28,7 +28,7 @@ class BuyFromShopGui(override val plugin: Plop): ShopGui {
     private suspend fun ChestInterfaceBuilder.setupConfirmButton() {
         withTransform { pane, view ->
             val playerId = view.player.uniqueId
-            val shopId = shopAccessService.getViewedShop(playerId) ?: return@withTransform
+            val shopId = shopQuantityService.getViewedShop(playerId) ?: return@withTransform
 
             pane[3,3] = StaticElement(
                 drawable(

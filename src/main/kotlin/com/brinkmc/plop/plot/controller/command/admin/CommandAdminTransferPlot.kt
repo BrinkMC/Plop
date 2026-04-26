@@ -7,7 +7,7 @@ import org.incendo.cloud.annotations.Command
 
 internal class CommandAdminTransferPlot(override val plugin: Plop): Addon {
 
-    @Command("plop plot claim <player_list >")
+    @Command("plop plot claim <player>")
     suspend fun setHome(
         sender: CommandSourceStack
     ) {

@@ -20,9 +20,7 @@ import com.brinkmc.plop.shared.hologram.HologramHandler
 import com.brinkmc.plop.shared.item.ItemService
 import com.brinkmc.plop.shared.service.*
 import com.brinkmc.plop.shop.Shops
-import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
-import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
-import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
+import com.github.shynixn.mccoroutine.folia.SuspendingJavaPlugin
 import com.google.gson.Gson
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack

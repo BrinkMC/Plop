@@ -1,10 +1,9 @@
 import org.gradle.kotlin.dsl.exclude
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-//import xyz.jpenilla.runpaper.task.RunServer
 
 plugins {
-    kotlin("jvm") version "2.2.0"
+    kotlin("jvm") version "2.3.0"
     alias(libs.plugins.ktlint)
     alias(libs.plugins.shadow)
 }
@@ -26,14 +25,14 @@ repositories {
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") {
         content { includeGroup("me.clip") }
     }
-    maven("https://jitpack.io")
 }
 
 dependencies {
     implementation(platform(kotlin("bom")))
     implementation(kotlin("stdlib"))
 
-    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    // Hooks
+    compileOnly("dev.folia:folia-api:26.1.2.build.+")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
     compileOnly("me.clip:placeholderapi:2.12.2")
     compileOnly("me.glaremasters:guilds:3.5.7.0")
@@ -42,17 +41,25 @@ dependencies {
     compileOnly("com.github.retrooper:packetevents-spigot:2.11.2")
     compileOnly("de.oliver:FancyHolograms:2.9.1")
 
-
-    compileOnly("com.sk89q.worldguard:worldguard-core:7.0.16-SNAPSHOT")
-    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.16-SNAPSHOT")
-    compileOnly("com.sk89q.worldedit:worldedit-core:7.4.1-SNAPSHOT")
-    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.4.1-SNAPSHOT")
+    compileOnly("com.sk89q.worldguard:worldguard-core:7.0.17-SNAPSHOT") {
+        isTransitive = false
+    }
+    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.17-SNAPSHOT"){
+        isTransitive = false
+    }
+    compileOnly("com.sk89q.worldedit:worldedit-core:7.4.4-SNAPSHOT"){
+        isTransitive = false
+    }
+    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.4.4-SNAPSHOT"){
+        isTransitive = false
+    }
 
     // Kyori
     compileOnly(platform("net.kyori:adventure-bom:4.26.1"))
     compileOnly("net.kyori", "adventure-extra-kotlin")
     compileOnly("net.kyori", "adventure-serializer-configurate4")
 
+    // Commands
     implementation(platform("org.incendo:cloud-bom:2.0.0"))
     implementation("org.incendo","cloud-annotations")
     implementation("org.incendo","cloud-kotlin-coroutines-annotations")
@@ -63,16 +70,18 @@ dependencies {
 
     // Coroutine implementation
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.22.0")
-    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.22.0")
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-folia-api:2.22.0")
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-folia-core:2.22.0")
     implementation("com.noxcrew.interfaces:interfaces:2.1.0-SNAPSHOT") {
         exclude(group = "com.google.guava")
     }
 
+    // Configs
     implementation(platform("org.spongepowered:configurate-bom:4.2.0"))
     implementation("org.spongepowered", "configurate-hocon")
     implementation("org.spongepowered", "configurate-extra-kotlin")
 
+    // Database
     implementation("com.zaxxer:HikariCP:6.2.1")
     implementation("com.sksamuel.aedile:aedile-core:3.0.2")
 }
@@ -81,24 +90,24 @@ version = (version as String)//.decorateVersion()
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
 tasks {
     compileKotlin {
         compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25)
             javaParameters.set(true)
         }
     }
     withType<JavaCompile> {
-        sourceCompatibility = "21"
-        targetCompatibility = "21"
+        sourceCompatibility = "25"
+        targetCompatibility = "25"
     }
     jar {
         archiveClassifier.set("not-shadowed")
@@ -135,9 +144,6 @@ tasks {
     assemble {
         dependsOn(shadowJar)
     }
-//    runServer {
-//        minecraftVersion("1.20.1")
-//    }
     register("format") {
         group = "formatting"
         description = "Formats source code according to project style."
@@ -145,10 +151,3 @@ tasks {
     }
 }
 
-//runPaper.folia.registerTask()
-
-//fun String.decorateVersion(): String =
-//  if (endsWith("-SNAPSHOT")) "$this+${lastCommitHash()}" else this
-
-//fun lastCommitHash(): String = indraGit.commit()?.name?.substring(0, 7)
-//  ?: error("Failed to determine git hash.")

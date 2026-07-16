@@ -1,0 +1,20 @@
+The concept behind Atlas is a spell system that takes in blocks and items as inputs and produces unique yet consistent spells and enchantments based on them
+
+The vanilla enchanting system is to be overwritten by this system by adding a modifier to spell construction that enables it to stick to items / armour
+Spells are otherwise books that when right-clicked do something, certain spells stick to the ground and trigger upon being walked upon, some spells trigger when redstone is activated e.t.c
+The system is built upon Gen-AI much like Neal.fun and will combine new spells from a pool of mythic mobs skills that are hand-crafted therefore ensuring balance
+
+The Core:
+
+- Spell Element (Can be anything, no arbitrary categorisations of "elements")
+- Delivery system (Projectile, Area, Line, Enchantment, Self-buff, Summon, Utility)
+
+Modifiers:
+
+- Speed of spell
+- Duration
+- Size
+- Chain / pull
+- Piercing?
+- Bounce
+- Catalyst (modify strength)
